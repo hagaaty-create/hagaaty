@@ -34,7 +34,7 @@ export default function Home() {
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <Button asChild size="lg">
-            <Link href="/signup">ابدأ الآن</Link>
+            <Link href="/signup">ابدأ الآن مجانًا</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link href="/dashboard">اذهب إلى لوحة التحكم</Link>
@@ -49,9 +49,9 @@ export default function Home() {
         </h2>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Card key={index} className="flex flex-col text-center items-center">
+            <Card key={index} className="flex flex-col text-center items-center transition-all duration-300 hover:shadow-primary/20 hover:shadow-lg hover:-translate-y-2">
               <CardHeader>
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
+                <div className="bg-primary/10 p-4 rounded-full mb-4 mx-auto transition-all duration-300 group-hover:scale-110">
                   {feature.icon}
                 </div>
                 <CardTitle className="font-headline">{feature.title}</CardTitle>

@@ -53,7 +53,7 @@ export default function InsightsPage() {
                     {isLoading && (
                         <div className="space-y-6">
                             {[...Array(5)].map((_, i) => (
-                                <div key={i} className="space-y-2">
+                                <div key={i} className="space-y-2 p-4 rounded-lg bg-muted/50">
                                     <Skeleton className="h-6 w-3/4" />
                                     <Skeleton className="h-4 w-full" />
                                 </div>
@@ -69,15 +69,15 @@ export default function InsightsPage() {
                     {!isLoading && !error && (
                          <div className="space-y-6">
                             {suggestions.map((suggestion, index) => (
-                                <Card key={index} className="bg-muted/50">
+                                <Card key={index} className="bg-muted/50 border-l-4 border-primary/50">
                                     <CardHeader>
-                                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                        <CardTitle className="text-lg font-semibold flex items-center gap-3">
                                             <Wand2 className="h-5 w-5 text-primary" />
                                             {suggestion.title}
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <p className="text-sm text-muted-foreground pr-7">{suggestion.reason}</p>
+                                        <p className="text-sm text-muted-foreground pl-8">{suggestion.reason}</p>
                                     </CardContent>
                                 </Card>
                             ))}
