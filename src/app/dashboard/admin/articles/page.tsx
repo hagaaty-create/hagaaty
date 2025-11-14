@@ -67,15 +67,15 @@ export default function ManageArticlesPage() {
     try {
       await deleteDoc(doc(firestore, 'posts', postId));
       toast({
-        title: 'Article Deleted',
-        description: 'The article has been successfully removed.',
+        title: 'تم حذف المقال',
+        description: 'تمت إزالة المقال بنجاح.',
       });
     } catch (error) {
       console.error('Error deleting article:', error);
       toast({
         variant: 'destructive',
-        title: 'Deletion Failed',
-        description: 'Could not delete the article. Please try again.',
+        title: 'فشل الحذف',
+        description: 'لا يمكن حذف المقال. يرجى المحاولة مرة أخرى.',
       });
     } finally {
       setIsDeleting(null);
@@ -86,13 +86,13 @@ export default function ManageArticlesPage() {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <FileText className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold font-headline">Manage Articles</h1>
+        <h1 className="text-3xl font-bold font-headline">إدارة المقالات</h1>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Blog Posts</CardTitle>
+          <CardTitle>جميع منشورات المدونة</CardTitle>
           <CardDescription>
-            View, edit, or delete existing blog posts.
+            عرض أو تعديل أو حذف منشورات المدونة الحالية.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -107,10 +107,10 @@ export default function ManageArticlesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>العنوان</TableHead>
+                  <TableHead>الفئة</TableHead>
+                  <TableHead>التاريخ</TableHead>
+                  <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -134,16 +134,16 @@ export default function ManageArticlesPage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the article
+                              لا يمكن التراجع عن هذا الإجراء. سيؤدي هذا إلى حذف المقال بشكل دائم
                               "{post.title}".
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
                             <AlertDialogAction onClick={() => handleDelete(post.id)}>
-                              Delete
+                              حذف
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -156,9 +156,9 @@ export default function ManageArticlesPage() {
           )}
           {!loading && (!posts || posts.length === 0) && (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No articles found.</p>
+              <p>لم يتم العثور على مقالات.</p>
               <p>
-                Go to the "Generate Article" page to create your first one!
+                اذهب إلى صفحة "توليد مقال" لإنشاء مقالك الأول!
               </p>
             </div>
           )}

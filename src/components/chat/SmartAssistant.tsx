@@ -52,7 +52,7 @@ export default function SmartAssistant() {
     } catch (error) {
       const errorMessage: Message = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: 'عذراً، لقد واجهت خطأ. يرجى المحاولة مرة أخرى.',
       };
       setMessages(prev => [...prev, errorMessage]);
       console.error('Error with smart assistant:', error);
@@ -71,9 +71,9 @@ export default function SmartAssistant() {
   }, [messages]);
 
   const exampleQueries = [
-    "What is Generative AI?",
-    "How does Quantum Computing work?",
-    "What are the principles of good UI design?"
+    "ما هو الذكاء الاصطناعي التوليدي؟",
+    "كيف تعمل الحوسبة الكمومية؟",
+    "ما هي مبادئ تصميم واجهة المستخدم الجيدة؟"
   ];
   
   const handleExampleQuery = (query: string) => {
@@ -92,7 +92,7 @@ export default function SmartAssistant() {
         setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
       })
       .catch(err => {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had an issue. Please try again.'}]);
+        setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدثت مشكلة. يرجى المحاولة مرة أخرى.'}]);
         console.error(err);
       })
       .finally(() => setIsLoading(false));
@@ -110,11 +110,11 @@ export default function SmartAssistant() {
           <Bot className="h-8 w-8" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0" aria-label="Smart Assistant">
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0" aria-label="المساعد الذكي">
         <SheetHeader className="p-6 border-b">
           <SheetTitle className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <span className="font-headline">Smart Assistant</span>
+            <span className="font-headline">المساعد الذكي</span>
           </SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex-1" ref={scrollAreaRef}>
@@ -122,7 +122,7 @@ export default function SmartAssistant() {
             {messages.length === 0 && (
                 <div className="text-center text-muted-foreground p-4 sm:p-8">
                     <Bot className="mx-auto h-12 w-12 mb-4 text-primary/50"/>
-                    <p className='mb-6'>Hello! I'm the Hagaaty AI assistant. Ask me anything about the articles on this blog.</p>
+                    <p className='mb-6'>مرحباً! أنا مساعد حاجتي للذكاء الاصطناعي. اسألني أي شيء عن المقالات في هذه المدونة.</p>
                     <div className='flex flex-col items-center gap-2'>
                         {exampleQueries.map((q) => (
                            <Button 
@@ -179,7 +179,7 @@ export default function SmartAssistant() {
             <Input
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Ask a question..."
+              placeholder="اطرح سؤالاً..."
               autoComplete="off"
               disabled={isLoading}
             />

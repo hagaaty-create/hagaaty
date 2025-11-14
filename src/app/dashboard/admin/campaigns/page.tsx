@@ -60,7 +60,7 @@ export default function AllCampaignsPage() {
           ...data,
           user: {
             id: parentDoc?.id || 'unknown',
-            email: 'Loading...', // Placeholder
+            email: 'جاري التحميل...', // Placeholder
           }
         } as AdCampaign;
       });
@@ -88,7 +88,7 @@ export default function AllCampaignsPage() {
         if (!userSnap.empty) {
             return { ...campaign, user: { ...campaign.user, email: userSnap.docs[0].data().email } };
         }
-        return { ...campaign, user: { ...campaign.user, email: 'Not Found'} };
+        return { ...campaign, user: { ...campaign.user, email: 'غير موجود'} };
       }));
 
 
@@ -109,13 +109,13 @@ export default function AllCampaignsPage() {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Users className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold font-headline">All User Campaigns</h1>
+        <h1 className="text-3xl font-bold font-headline">جميع حملات المستخدمين</h1>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>All Campaigns</CardTitle>
+          <CardTitle>جميع الحملات</CardTitle>
           <CardDescription>
-            A view of all ad campaigns created by all users across the platform.
+            عرض لجميع الحملات الإعلانية التي أنشأها جميع المستخدمين عبر المنصة.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -130,11 +130,11 @@ export default function AllCampaignsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Headline</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>المستخدم</TableHead>
+                  <TableHead>المنتج</TableHead>
+                  <TableHead>العنوان الرئيسي</TableHead>
+                  <TableHead>الحالة</TableHead>
+                  <TableHead>تاريخ الإنشاء</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -160,7 +160,7 @@ export default function AllCampaignsPage() {
           )}
           {!loading && (!campaigns || campaigns.length === 0) && (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No campaigns have been created by any user yet.</p>
+              <p>لم يتم إنشاء أي حملات من قبل أي مستخدم حتى الآن.</p>
             </div>
           )}
         </CardContent>

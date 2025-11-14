@@ -49,16 +49,16 @@ export default function DashboardLayout({
 
 
   const userNavItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
-    { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
+    { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
+    { href: '/dashboard/create-ad', label: 'إنشاء إعلان', icon: PenSquare },
+    { href: '/dashboard/campaigns', label: 'حملاتي', icon: BarChart },
   ];
   
   const adminNavItems = [
-    { href: '/dashboard/admin/generate', label: 'Generate Article', icon: PenSquare },
-    { href: '/dashboard/admin/articles', label: 'Manage Articles', icon: FileText },
-    { href: '/dashboard/admin/insights', label: 'Content Insights', icon: Lightbulb },
-    { href: '/dashboard/admin/campaigns', label: 'All Campaigns', icon: Users },
+    { href: '/dashboard/admin/generate', label: 'توليد مقال', icon: PenSquare },
+    { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText },
+    { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
+    { href: '/dashboard/admin/campaigns', label: 'كل الحملات', icon: Users },
   ];
 
   const handleLogout = () => {
@@ -119,7 +119,7 @@ export default function DashboardLayout({
                   <SidebarGroup>
                       <SidebarGroupLabel className="flex items-center gap-2">
                           <Shield />
-                          <span>Admin</span>
+                          <span>مسؤول</span>
                       </SidebarGroupLabel>
                       <SidebarMenu>
                            {adminNavItems.map((item) => (
@@ -145,16 +145,16 @@ export default function DashboardLayout({
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <Link href="/">
-                             <SidebarMenuButton tooltip="Back to Home">
+                             <SidebarMenuButton tooltip="العودة للرئيسية">
                                 <Home />
-                                <span>Back to Home</span>
+                                <span>العودة للرئيسية</span>
                             </SidebarMenuButton>
                         </Link>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                         <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+                         <SidebarMenuButton tooltip="تسجيل الخروج" onClick={handleLogout}>
                             <LogOut />
-                            <span>Logout</span>
+                            <span>تسجيل الخروج</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>

@@ -53,11 +53,11 @@ export default function GenerateArticleForm() {
                     title: firstLine.replace(/#/g, '').trim()
                 });
             } else {
-                 throw new Error("Failed to generate article content.");
+                 throw new Error("فشل في توليد محتوى المقال.");
             }
         } catch (err) {
             console.error(err);
-            setError(err instanceof Error ? err.message : "An unknown error occurred.");
+            setError(err instanceof Error ? err.message : "حدث خطأ غير معروف.");
         } finally {
             setIsLoading(false);
         }
@@ -88,8 +88,8 @@ export default function GenerateArticleForm() {
             date: serverTimestamp(),
         });
         toast({
-            title: "Article Saved!",
-            description: "The new article has been published to your blog.",
+            title: "تم حفظ المقال!",
+            description: "تم نشر المقال الجديد في مدونتك.",
         });
         setGeneratedData(null);
         setPrompt('');
@@ -97,8 +97,8 @@ export default function GenerateArticleForm() {
           console.error("Error saving article: ", e);
           toast({
             variant: "destructive",
-            title: "Saving failed",
-            description: "Could not save the article to the database.",
+            title: "فشل الحفظ",
+            description: "لم نتمكن من حفظ المقال في قاعدة البيانات.",
           });
       } finally {
         setIsSaving(false);
@@ -110,29 +110,29 @@ export default function GenerateArticleForm() {
         <div className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid w-full gap-2">
-                    <Label htmlFor="prompt">Article Prompt</Label>
+                    <Label htmlFor="prompt">فكرة المقال</Label>
                     <Textarea
                         id="prompt"
-                        placeholder="e.g., 'The future of AI in web development'"
+                        placeholder="مثال: 'مستقبل الذكاء الاصطناعي في تطوير الويب'"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         rows={3}
                         disabled={isLoading || isSaving}
                     />
                     <p className="text-sm text-muted-foreground">
-                        Be as specific or as general as you like.
+                        كن محددًا أو عامًا كما تريد.
                     </p>
                 </div>
                 <Button type="submit" disabled={isLoading || isSaving || !prompt.trim()}>
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Generating...
+                            جاري التوليد...
                         </>
                     ) : (
                         <>
                             <Wand2 className="mr-2 h-4 w-4" />
-                            Generate Article
+                            توليد المقال
                         </>
                     )}
                 </Button>
@@ -141,7 +141,7 @@ export default function GenerateArticleForm() {
             {error && (
                 <Card className="bg-destructive/10 border-destructive">
                     <CardHeader>
-                        <CardTitle className="text-destructive">Generation Failed</CardTitle>
+                        <CardTitle className="text-destructive">فشل التوليد</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p>{error}</p>
@@ -152,7 +152,7 @@ export default function GenerateArticleForm() {
             {generatedData && (
                  <Card>
                     <CardHeader>
-                        <Label htmlFor="title">Title</Label>
+                        <Label htmlFor="title">العنوان</Label>
                         <Input 
                             id="title" 
                             value={generatedData.title}
@@ -179,12 +179,12 @@ export default function GenerateArticleForm() {
                              {isSaving ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
+                                    جاري الحفظ...
                                 </>
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                   Save and Publish
+                                   حفظ ونشر
                                 </>
                             )}
                         </Button>

@@ -7,12 +7,12 @@ export default function CreateAdPage() {
         <div className="space-y-8">
             <div className="flex items-center gap-4">
                 <PenSquare className="h-8 w-8 text-primary"/>
-                <h1 className="text-3xl font-bold font-headline">AI Ad Generator</h1>
+                <h1 className="text-3xl font-bold font-headline">مولد الإعلانات بالذكاء الاصطناعي</h1>
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Create New Ad Campaign</CardTitle>
-                    <CardDescription>Describe your product or service and let our AI generate compelling ad copy.</CardDescription>
+                    <CardTitle>إنشاء حملة إعلانية جديدة</CardTitle>
+                    <CardDescription>صف منتجك أو خدمتك ودع الذكاء الاصطناعي يولد نصًا إعلانيًا مقنعًا.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <AdCreationForm />

@@ -59,7 +59,7 @@ export default function AdCreationForm() {
         if (!productName.trim() || !productDescription.trim() || !targetAudience.trim()) return;
 
         if (!hasSufficientBalance) {
-            setError(`Your balance is too low to generate an ad. The cost is $${AD_COST.toFixed(2)}.`);
+            setError(`رصيدك غير كافٍ لإنشاء إعلان. التكلفة هي ${AD_COST.toFixed(2)}$`);
             return;
         }
 
@@ -76,11 +76,11 @@ export default function AdCreationForm() {
             if (result) {
                 setGeneratedAd(result);
             } else {
-                 throw new Error("Failed to generate ad campaign.");
+                 throw new Error("فشل في إنشاء الحملة الإعلانية.");
             }
         } catch (err) {
             console.error(err);
-            setError(err instanceof Error ? err.message : "An unknown error occurred.");
+            setError(err instanceof Error ? err.message : "حدث خطأ غير معروف.");
         } finally {
             setIsLoading(false);
         }
@@ -106,16 +106,16 @@ export default function AdCreationForm() {
             });
 
             toast({
-                title: "Campaign Saved!",
-                description: `Your new ad campaign has been saved. $${AD_COST.toFixed(2)} has been deducted from your balance.`,
+                title: "تم حفظ الحملة!",
+                description: `تم حفظ حملتك الإعلانية الجديدة. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
             });
             setGeneratedAd(null); // Clear the form after saving
         } catch(e) {
             console.error("Error saving campaign: ", e);
             toast({
               variant: "destructive",
-              title: "Saving failed",
-              description: "Could not save the campaign to the database.",
+              title: "فشل الحفظ",
+              description: "لم نتمكن من حفظ الحملة في قاعدة البيانات.",
             });
         } finally {
             setIsSaving(false);
@@ -130,28 +130,28 @@ export default function AdCreationForm() {
         <div className="space-y-6">
              {!hasSufficientBalance && (
                 <Alert variant="destructive">
-                    <AlertTitle>Insufficient Balance</AlertTitle>
+                    <AlertTitle>رصيد غير كافٍ</AlertTitle>
                     <AlertDescription>
-                        Your current balance is ${userProfile?.balance?.toFixed(2) || '0.00'}. You need at least ${AD_COST.toFixed(2)} to create a new ad campaign. Please top up your balance.
+                        رصيدك الحالي هو ${userProfile?.balance?.toFixed(2) || '0.00'}. تحتاج إلى ${AD_COST.toFixed(2)} على الأقل لإنشاء حملة إعلانية جديدة. يرجى شحن رصيدك.
                     </AlertDescription>
                 </Alert>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid w-full gap-2">
-                    <Label htmlFor="productName">Product/Service Name</Label>
+                    <Label htmlFor="productName">اسم المنتج/الخدمة</Label>
                     <Input
                         id="productName"
-                        placeholder="e.g., 'Hagaaty AI Platform'"
+                        placeholder="مثال: 'منصة حاجتي للذكاء الاصطناعي'"
                         value={productName}
                         onChange={(e) => setProductName(e.target.value)}
                         disabled={isLoading || isSaving}
                     />
                 </div>
                 <div className="grid w-full gap-2">
-                    <Label htmlFor="productDescription">Product/Service Description</Label>
+                    <Label htmlFor="productDescription">وصف المنتج/الخدمة</Label>
                     <Textarea
                         id="productDescription"
-                        placeholder="e.g., 'An AI-powered platform to automate advertising campaigns and SEO.'"
+                        placeholder="مثال: 'منصة مدعومة بالذكاء الاصطناعي لأتمتة الحملات الإعلانية وتحسين محركات البحث.'"
                         value={productDescription}
                         onChange={(e) => setProductDescription(e.target.value)}
                         rows={3}
@@ -159,10 +159,10 @@ export default function AdCreationForm() {
                     />
                 </div>
                  <div className="grid w-full gap-2">
-                    <Label htmlFor="targetAudience">Target Audience</Label>
+                    <Label htmlFor="targetAudience">الجمهور المستهدف</Label>
                     <Input
                         id="targetAudience"
-                        placeholder="e.g., 'Small business owners and digital marketers in Egypt'"
+                        placeholder="مثال: 'أصحاب الأعمال الصغيرة والمسوقون الرقميون في مصر'"
                         value={targetAudience}
                         onChange={(e) => setTargetAudience(e.target.value)}
                         disabled={isLoading || isSaving}
@@ -172,12 +172,12 @@ export default function AdCreationForm() {
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Generating Ad...
+                            جاري الإنشاء...
                         </>
                     ) : (
                         <>
                             <Wand2 className="mr-2 h-4 w-4" />
-                            Generate Ad
+                            إنشاء إعلان
                         </>
                     )}
                 </Button>
@@ -186,7 +186,7 @@ export default function AdCreationForm() {
             {error && !isLoading &&(
                 <Card className="bg-destructive/10 border-destructive">
                     <CardHeader>
-                        <CardTitle className="text-destructive">Generation Failed</CardTitle>
+                        <CardTitle className="text-destructive">فشل الإنشاء</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p>{error}</p>
@@ -197,18 +197,18 @@ export default function AdCreationForm() {
             {generatedAd && (
                  <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl">Generated Ad Copy</CardTitle>
-                        <CardDescription>Review the AI-generated ad copy below. You can copy it or save the campaign to activate it.</CardDescription>
+                        <CardTitle className="font-headline text-2xl">نسخة الإعلان المُولَّدة</CardTitle>
+                        <CardDescription>راجع نسخة الإعلان التي تم إنشاؤها بواسطة الذكاء الاصطناعي أدناه. يمكنك نسخها أو حفظ الحملة لتفعيلها.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <Label className="text-sm font-semibold">Headline</Label>
+                            <Label className="text-sm font-semibold">العنوان الرئيسي</Label>
                             <div className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">
                                 <p>{generatedAd.headline}</p>
                             </div>
                         </div>
                          <div>
-                            <Label className="text-sm font-semibold">Body</Label>
+                            <Label className="text-sm font-semibold">النص الأساسي</Label>
                             <div className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">
                                 <p>{generatedAd.body}</p>
                             </div>
@@ -219,12 +219,12 @@ export default function AdCreationForm() {
                              {isSaving ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
+                                    جاري الحفظ...
                                 </>
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                   Save Campaign & Deduct ${AD_COST.toFixed(2)}
+                                   حفظ الحملة وخصم ${AD_COST.toFixed(2)}
                                 </>
                             )}
                         </Button>
