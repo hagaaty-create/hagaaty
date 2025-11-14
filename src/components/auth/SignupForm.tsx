@@ -55,19 +55,22 @@ export default function SignupForm() {
       
       await updateProfile(userCredential.user, { displayName: fullName });
       
+      // Check if the email is the admin email
+      const userRole = email === 'admin@example.com' ? 'admin' : 'user';
+
       // Create user profile document in Firestore
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
       await setDoc(userDocRef, {
         displayName: fullName,
         email: email,
-        role: 'user', // default role
+        role: userRole,
         balance: 2.00, // Welcome bonus
         createdAt: serverTimestamp()
       });
 
       toast({
         title: "تم إنشاء الحساب بنجاح!",
-        description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
+        description: `أهلاً بك! لقد حصلت على دور ${userRole} ورصيد إضافي بقيمة 2 دولار.`,
       });
       
       router.push('/dashboard');
