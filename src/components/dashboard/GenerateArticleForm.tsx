@@ -13,6 +13,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "../ui/input";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 type GeneratedData = {
     article: string;
@@ -49,7 +50,7 @@ export default function GenerateArticleForm() {
                     article: articleResult.article,
                     category: metaResult.category,
                     tags: metaResult.tags,
-                    title: firstLine.replace('#', '').trim()
+                    title: firstLine.replace(/#/g, '').trim()
                 });
             } else {
                  throw new Error("Failed to generate article content.");
@@ -67,6 +68,8 @@ export default function GenerateArticleForm() {
       setIsSaving(true);
 
       const slug = generatedData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+
 
       try {
         await addDoc(collection(firestore, 'posts'), {
@@ -78,10 +81,10 @@ export default function GenerateArticleForm() {
             tags: generatedData.tags,
             author: {
                 name: user.displayName || "AI Admin",
-                avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
+                avatarUrl: user.photoURL || PlaceHolderImages.find(p => p.id === '7')?.imageUrl || 'https://picsum.photos/seed/avatar-placeholder/40/40'
             },
-            imageUrl: `https://picsum.photos/seed/${slug}/1200/800`,
-            imageHint: 'placeholder image',
+            imageUrl: randomImage.imageUrl,
+            imageHint: randomImage.imageHint,
             date: serverTimestamp(),
         });
         toast({
@@ -89,6 +92,7 @@ export default function GenerateArticleForm() {
             description: "The new article has been published to your blog.",
         });
         setGeneratedData(null);
+        setPrompt('');
       } catch(e) {
           console.error("Error saving article: ", e);
           toast({
@@ -113,13 +117,13 @@ export default function GenerateArticleForm() {
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         rows={3}
-                        disabled={isLoading}
+                        disabled={isLoading || isSaving}
                     />
                     <p className="text-sm text-muted-foreground">
                         Be as specific or as general as you like.
                     </p>
                 </div>
-                <Button type="submit" disabled={isLoading || !prompt.trim()}>
+                <Button type="submit" disabled={isLoading || isSaving || !prompt.trim()}>
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
