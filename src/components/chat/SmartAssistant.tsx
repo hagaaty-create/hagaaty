@@ -51,7 +51,7 @@ export default function SmartAssistant() {
         const result = await smartAssistantChat({ query: currentQuery });
         
         const toolCalls = result.toolCalls();
-        if (toolCalls.length > 0) {
+        if (toolCalls && toolCalls.length > 0) {
             for (const toolCall of toolCalls) {
                 if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
                     router.push(toolCall.input.path);
@@ -108,7 +108,7 @@ export default function SmartAssistant() {
     smartAssistantChat({ query: query })
       .then(result => {
         const toolCalls = result.toolCalls();
-        if (toolCalls.length > 0) {
+        if (toolCalls && toolCalls.length > 0) {
             for (const toolCall of toolCalls) {
                 if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
                     router.push(toolCall.input.path);
