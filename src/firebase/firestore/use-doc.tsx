@@ -8,6 +8,7 @@ import {
   DocumentData,
   FirestoreError,
   DocumentSnapshot,
+  Timestamp
 } from 'firebase/firestore';
 
 interface UseDoc<T> {
@@ -35,7 +36,15 @@ export const useDoc = <T extends DocumentData>(
       ref,
       (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
-          setData({ id: snapshot.id, ...snapshot.data() } as T);
+           const docData = snapshot.data();
+            // Convert Timestamp to ISO string to avoid serialization issues
+            if (docData.date && docData.date instanceof Timestamp) {
+                docData.date = docData.date.toDate().toISOString();
+            }
+             if (docData.createdAt && docData.createdAt instanceof Timestamp) {
+                docData.createdAt = docData.createdAt.toDate().toISOString();
+            }
+          setData({ id: snapshot.id, ...docData } as T);
         } else {
           setData(null);
         }

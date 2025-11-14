@@ -8,6 +8,7 @@ import {
   DocumentData,
   FirestoreError,
   QuerySnapshot,
+  Timestamp
 } from 'firebase/firestore';
 
 interface UseCollection<T> {
@@ -34,10 +35,20 @@ export const useCollection = <T extends DocumentData>(
     const unsubscribe = onSnapshot(
       query,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        const docs = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as T[];
+        const docs = snapshot.docs.map((doc) => {
+            const docData = doc.data();
+            // Convert Timestamp to ISO string to avoid serialization issues
+            if (docData.date && docData.date instanceof Timestamp) {
+                docData.date = docData.date.toDate().toISOString();
+            }
+             if (docData.createdAt && docData.createdAt instanceof Timestamp) {
+                docData.createdAt = docData.createdAt.toDate().toISOString();
+            }
+            return {
+              id: doc.id,
+              ...docData,
+            } as T;
+        });
         setData(docs);
         setLoading(false);
         setError(null);

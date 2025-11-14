@@ -51,12 +51,16 @@ export default function ManageArticlesPage() {
 
   const { data: posts, loading } = useCollection<Post>(postsQuery);
 
-  const formatDate = (timestamp: Timestamp | string | null) => {
+  const formatDate = (timestamp: Timestamp | string | Date | null) => {
     if (!timestamp) return 'N/A';
     if (typeof timestamp === 'string') {
         return format(new Date(timestamp), 'PPP');
     }
-    if (timestamp instanceof Timestamp) {
+    if (timestamp instanceof Date) {
+        return format(timestamp, 'PPP');
+    }
+    // This is for the Timestamp from Firestore
+    if ('toDate' in timestamp && typeof timestamp.toDate === 'function') {
         return format(timestamp.toDate(), 'PPP');
     }
     return 'Invalid Date';

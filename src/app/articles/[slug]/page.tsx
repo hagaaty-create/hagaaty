@@ -14,7 +14,7 @@ import type { Post } from '@/types';
 import { useEffect, useState } from 'react';
 import { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase/server-initialization';
 import { Metadata, ResolvingMetadata } from 'next';
 
 type ArticlePageProps = {
@@ -51,12 +51,15 @@ export async function generateMetadata(
 }
 
 
-function formatDate(date: string | Timestamp) {
+function formatDate(date: string | Date | Timestamp) {
     if (typeof date === 'string') {
         return format(new Date(date), 'PPP');
     }
     if (date instanceof Timestamp) {
         return format(date.toDate(), 'PPP');
+    }
+    if (date instanceof Date) {
+        return format(date, 'PPP');
     }
     return "Date not available";
 }
@@ -78,7 +81,9 @@ export default function ArticlePage({ params }: ArticlePageProps) {
       
       if (!querySnapshot.empty) {
         const postDoc = querySnapshot.docs[0];
-        setPost({ id: postDoc.id, ...postDoc.data() } as Post);
+        const postData = postDoc.data();
+        const date = postData.date instanceof Timestamp ? postData.date.toDate().toISOString() : postData.date;
+        setPost({ id: postDoc.id, ...postData, date } as Post);
       } else {
         setPost(null);
       }
