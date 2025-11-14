@@ -14,7 +14,8 @@ import {
   Users,
   ShieldCheck,
   FileText,
-  Wand2
+  Wand2,
+  Lightbulb
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -54,6 +55,7 @@ export default function DashboardLayout({
     { href: '/dashboard/generate', label: 'Generate Article', icon: Wand2 },
     { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
+    { href: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
     { href: '/dashboard/financials', label: 'Financials', icon: Wallet },
     { href: '/dashboard/support', label: 'Support', icon: Headset },
   ];

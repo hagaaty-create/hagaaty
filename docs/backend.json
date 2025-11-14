@@ -125,6 +125,22 @@
         "status",
         "createdAt"
       ]
+    },
+    "Query": {
+      "title": "User Query",
+      "description": "Represents a query submitted by a user to the smart assistant.",
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The user's question."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["query", "createdAt"]
     }
   },
   "auth": {
@@ -151,6 +167,12 @@
         "$ref": "#/entities/AdCampaign"
       },
       "description": "Stores ad campaigns created by a user."
+    },
+    "/queries/{queryId}": {
+        "schema": {
+            "$ref": "#/entities/Query"
+        },
+        "description": "Stores queries made to the smart assistant."
     }
   }
 }

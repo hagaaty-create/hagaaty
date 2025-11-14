@@ -7,9 +7,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Bot, Loader2, Send, User, Sparkles } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 import { cn } from '@/lib/utils';
-import { Badge } from '../ui/badge';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 
 type Message = {
   role: 'user' | 'assistant';
@@ -22,21 +24,31 @@ export default function SmartAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const firestore = useFirestore();
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !firestore) return;
 
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
     const currentQuery = input;
+    const userMessage: Message = { role: 'user', content: currentQuery };
+    
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const result = await smartAssistantChat({ query: currentQuery });
-      const assistantMessage: Message = { role: 'assistant', content: result.response };
-      setMessages(prev => [...prev, assistantMessage]);
+        // Log the query to Firestore first, don't wait for it
+        const queriesRef = collection(firestore, 'queries');
+        addDoc(queriesRef, {
+            query: currentQuery,
+            createdAt: serverTimestamp()
+        }).catch(err => console.error("Failed to log query:", err));
+        
+        // Then get the response
+        const result = await smartAssistantChat({ query: currentQuery });
+        const assistantMessage: Message = { role: 'assistant', content: result.response };
+        setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       const errorMessage: Message = {
         role: 'assistant',
@@ -63,6 +75,29 @@ export default function SmartAssistant() {
     "How does Quantum Computing work?",
     "What are the principles of good UI design?"
   ];
+  
+  const handleExampleQuery = (query: string) => {
+    if (!firestore) return;
+    const userMessage: Message = { role: 'user', content: query };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    addDoc(collection(firestore, 'queries'), {
+        query: query,
+        createdAt: serverTimestamp()
+    }).catch(err => console.error("Failed to log query:", err));
+
+    smartAssistantChat({ query: query })
+      .then(result => {
+        setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
+      })
+      .catch(err => {
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had an issue. Please try again.'}]);
+        console.error(err);
+      })
+      .finally(() => setIsLoading(false));
+  };
+
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -95,16 +130,7 @@ export default function SmartAssistant() {
                              variant="outline"
                              size="sm"
                              className="w-full"
-                             onClick={() => {
-                                setMessages(prev => [...prev, {role: 'user', content: q}]);
-                                setIsLoading(true);
-                                smartAssistantChat({ query: q }).then(result => {
-                                  setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
-                                }).catch(err => {
-                                    setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had an issue. Please try again.'}]);
-                                    console.error(err);
-                                }).finally(() => setIsLoading(false));
-                            }}
+                             onClick={() => handleExampleQuery(q)}
                            >
                             {q}
                            </Button>
