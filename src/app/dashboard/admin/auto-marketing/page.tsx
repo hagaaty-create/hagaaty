@@ -66,7 +66,7 @@ export default function AutoMarketingPage() {
                     <CardTitle>وكيل التسويق بالذكاء الاصطناعي</CardTitle>
                     <CardDescription>
                         يقوم الذكاء الاصطناعي بتحليل مدونتك ويقترح حملة تسويقية كاملة للوصول إلى جمهور أوسع.
-                    </Description>
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isLoading && <CampaignSkeleton />}
