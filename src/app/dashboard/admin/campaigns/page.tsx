@@ -228,8 +228,9 @@ export default function AllCampaignsPage() {
                                   tickLine={false}
                                   tickMargin={10}
                                   axisLine={false}
+                                  stroke="hsl(var(--muted-foreground))"
                               />
-                              <YAxis />
+                              <YAxis stroke="hsl(var(--muted-foreground))" />
                               <ChartTooltip
                                   cursor={false}
                                   content={<ChartTooltipContent />}
