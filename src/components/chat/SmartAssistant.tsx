@@ -1,0 +1,137 @@
+'use client';
+
+import { smartAssistantChat } from '@/ai/flows/smart-assistant-chat';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Bot, Loader2, Send, User } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { cn } from '@/lib/utils';
+
+type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
+export default function SmartAssistant() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const result = await smartAssistantChat({ query: input });
+      const assistantMessage: Message = { role: 'assistant', content: result.response };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      console.error('Error with smart assistant:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+        if (viewport) {
+            viewport.scrollTop = viewport.scrollHeight;
+        }
+    }
+  }, [messages]);
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
+          size="icon"
+          aria-label="Open Smart Assistant"
+        >
+          <Bot className="h-8 w-8" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
+        <SheetHeader className="p-6 border-b">
+          <SheetTitle className="flex items-center gap-2">
+            <Bot className="h-6 w-6" />
+            Smart Assistant
+          </SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <div className="p-6 space-y-6">
+            {messages.length === 0 && (
+                <div className="text-center text-muted-foreground p-8">
+                    <Bot className="mx-auto h-12 w-12 mb-4"/>
+                    <p>Hello! I'm the Hagaaty AI assistant. Ask me anything about our articles.</p>
+                </div>
+            )}
+            {messages.map((message, index) => (
+              <div key={index} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : '')}>
+                {message.role === 'assistant' && (
+                  <Avatar className="h-8 w-8 border">
+                    <AvatarFallback><Bot size={16}/></AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={cn(
+                    'max-w-[80%] rounded-lg p-3 text-sm',
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  )}
+                >
+                  {message.content}
+                </div>
+                 {message.role === 'user' && (
+                  <Avatar className="h-8 w-8 border">
+                    <AvatarFallback><User size={16}/></AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex items-start gap-3">
+                 <Avatar className="h-8 w-8 border">
+                    <AvatarFallback><Bot size={16}/></AvatarFallback>
+                  </Avatar>
+                <div className="bg-muted rounded-lg p-3 flex items-center">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        <div className="p-4 border-t bg-background">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <Input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Ask a question..."
+              autoComplete="off"
+              disabled={isLoading}
+            />
+            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "Abstract network of nodes",
+      "imageUrl": "https://images.unsplash.com/photo-1738082956254-1dd63ad1db71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhYnN0cmFjdCUyMG5ldHdvcmt8ZW58MHx8fHwxNzYzMDY5MDQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract network"
+    },
+    {
+      "id": "2",
+      "description": "Modern office with a laptop",
+      "imageUrl": "https://images.unsplash.com/photo-1658124974726-d96bc44783cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsYXB0b3AlMjB0ZWNobm9sb2d5fGVufDB8fHx8MTc2MzA3MDM3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laptop technology"
+    },
+    {
+      "id": "3",
+      "description": "Person interacting with a futuristic UI",
+      "imageUrl": "https://images.unsplash.com/photo-1639060015191-9d83063eab2a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmdXR1cmlzdGljJTIwaW50ZXJmYWNlfGVufDB8fHx8MTc2MzA3NTQ1M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "futuristic interface"
+    },
+    {
+      "id": "4",
+      "description": "AI robot thinking",
+      "imageUrl": "https://images.unsplash.com/photo-1641973841580-7834af051f6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyb2JvdCUyMHRoaW5raW5nfGVufDB8fHx8MTc2MzA5NDY2Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot thinking"
+    },
+    {
+      "id": "5",
+      "description": "Glowing brain illustration",
+      "imageUrl": "https://images.unsplash.com/photo-1632670570993-ee1add86d0be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnbG93aW5nJTIwYnJhaW58ZW58MHx8fHwxNzYzMDA2NjkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "glowing brain"
+    },
+    {
+      "id": "6",
+      "description": "Code on a screen",
+      "imageUrl": "https://images.unsplash.com/photo-1658274474930-bb27a64022c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb2RlJTIwc2NyZWVufGVufDB8fHx8MTc2MzA1MDAwMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "code screen"
+    },
+    {
+      "id": "7",
+      "description": "User avatar placeholder",
+      "imageUrl": "https://images.unsplash.com/photo-1710974481447-fb001ad9ad5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc2MzA5NDY2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person face"
+    }
+  ]
 }
