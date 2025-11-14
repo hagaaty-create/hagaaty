@@ -149,7 +149,7 @@ export default function ManageArticlesPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(post.id)}>
+                              <AlertDialogAction onClick={() => handleDelete(post.id)} className={buttonVariants({ variant: "destructive" })}>
                                 حذف
                               </AlertDialogAction>
                             </AlertDialogFooter>

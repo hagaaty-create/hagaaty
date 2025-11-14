@@ -82,7 +82,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                     onChange={(e) => setContent(e.target.value)}
                     rows={20}
                     disabled={isSaving}
-                    className="prose"
+                    className="prose dark:prose-invert prose-p:leading-relaxed"
                 />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
