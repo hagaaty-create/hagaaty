@@ -26,6 +26,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 
 
 export default function LoginForm() {
@@ -34,39 +36,76 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
 
-  // --- MOCK AUTHENTICATION ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate a network request
-    setTimeout(() => {
-      // Any email/password will work for this simulation
-      if (email && password) {
-        console.log("Mock login successful for:", email);
+    if (!auth) {
         toast({
-            title: "تم تسجيل الدخول (محاكاة)",
-            description: "تم تسجيل دخولك بنجاح في الوضع الوهمي.",
+            variant: 'destructive',
+            title: 'خطأ في المصادقة',
+            description: 'لم يتم تهيئة خدمة المصادقة. يرجى المحاولة مرة أخرى.',
+        });
+        return;
+    }
+
+    setIsLoading(true);
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast({
+            title: "تم تسجيل الدخول بنجاح",
+            description: "أهلاً بعودتك!",
         });
         router.push('/dashboard');
-      } else {
+    } catch (error: any) {
+        let title = 'فشل تسجيل الدخول';
+        let description = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            description = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+        } else if (error.code === 'auth/invalid-email') {
+            description = 'البريد الإلكتروني الذي أدخلته غير صالح.';
+        }
+        console.error("Login error: ", error.code, error.message);
         toast({
-          variant: 'destructive',
-          title: 'فشل تسجيل الدخول',
-          description: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.',
+            variant: 'destructive',
+            title: title,
+            description: description,
         });
+    } finally {
         setIsLoading(false);
-      }
-      // No need to set isLoading to false on success because we are navigating away
-    }, 1000);
+    }
   };
 
   const handlePasswordReset = async () => {
-    toast({
-        title: "تم إرسال البريد الإلكتروني (محاكاة)",
-        description: "في الوضع الحقيقي, سيتم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور.",
-    });
+     if (!auth) {
+        toast({
+            variant: 'destructive',
+            title: 'خطأ',
+            description: 'خدمة المصادقة غير متاحة حاليًا.',
+        });
+        return;
+    }
+    if (!email) {
+        toast({
+            variant: 'destructive',
+            title: 'مطلوب بريد إلكتروني',
+            description: 'الرجاء إدخال بريدك الإلكتروني في الحقل المخصص أولاً.',
+        });
+        return;
+    }
+    try {
+        await sendPasswordResetEmail(auth, email);
+        toast({
+            title: "تم إرسال بريد إلكتروني لإعادة التعيين",
+            description: "تحقق من بريدك الوارد للحصول على إرشادات إعادة تعيين كلمة المرور.",
+        });
+    } catch (error: any) {
+         toast({
+            variant: "destructive",
+            title: "فشل إرسال البريد الإلكتروني",
+            description: "لم نتمكن من إرسال بريد إعادة التعيين. تأكد من أن البريد الإلكتروني صحيح.",
+        });
+    }
   }
 
   return (
@@ -104,18 +143,9 @@ export default function LoginForm() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>إعادة تعيين كلمة المرور</AlertDialogTitle>
                         <AlertDialogDescription>
-                            أدخل بريدك الإلكتروني المسجل أدناه. سنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.
+                           أدخل بريدك الإلكتروني المسجل في حقل تسجيل الدخول أولاً، ثم انقر على "إرسال". سنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="grid gap-2 text-right">
-                        <Label htmlFor="reset-email">البريد الإلكتروني</Label>
-                        <Input
-                            id="reset-email"
-                            type="email"
-                            placeholder="m@example.com"
-                            required
-                        />
-                    </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>إلغاء</AlertDialogCancel>
                         <AlertDialogAction onClick={handlePasswordReset}>

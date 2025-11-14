@@ -15,6 +15,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth, useFirestore } from "@/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function SignupForm() {
   const [fullName, setFullName] = useState('');
@@ -24,32 +27,71 @@ export default function SignupForm() {
   
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
+  const firestore = useFirestore();
 
-  // --- MOCK AUTHENTICATION ---
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!auth || !firestore) {
+        toast({
+            variant: 'destructive',
+            title: 'خطأ في المصادقة',
+            description: 'لم يتم تهيئة خدمة المصادقة. يرجى المحاولة مرة أخرى.',
+        });
+        return;
+    }
+    if (password.length < 6) {
+      toast({
+        variant: 'destructive',
+        title: 'كلمة مرور ضعيفة',
+        description: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.',
+      });
+      return;
+    }
 
-    // Simulate a network request
-    setTimeout(() => {
-        if (fullName && email && password) {
-            console.log("Mock signup successful for:", email);
-            toast({
-                title: "تم إنشاء الحساب! (محاكاة)",
-                description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
-            });
-            // In a real app, you would also create a user profile here.
-            // For now, we just navigate to the dashboard.
-            router.push('/dashboard');
-        } else {
-             toast({
-                variant: 'destructive',
-                title: 'فشل إنشاء الحساب',
-                description: 'الرجاء ملء جميع الحقول.',
-            });
-            setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      await updateProfile(userCredential.user, { displayName: fullName });
+      
+      // Create user profile document in Firestore
+      const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+      await setDoc(userDocRef, {
+        displayName: fullName,
+        email: email,
+        role: 'user', // default role
+        balance: 2.00, // Welcome bonus
+        createdAt: serverTimestamp()
+      });
+
+      toast({
+        title: "تم إنشاء الحساب بنجاح!",
+        description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
+      });
+      
+      router.push('/dashboard');
+
+    } catch (error: any) {
+        let title = 'فشل إنشاء الحساب';
+        let description = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+
+        if (error.code === 'auth/email-already-in-use') {
+            description = 'هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول بدلاً من ذلك.';
+        } else if (error.code === 'auth/invalid-email') {
+            description = 'البريد الإلكتروني الذي أدخلته غير صالح.';
+        } else if (error.code === 'auth/weak-password') {
+            description = 'كلمة المرور ضعيفة جدًا. يجب أن تتكون من 6 أحرف على الأقل.';
         }
-    }, 1000);
+        console.error("Signup error: ", error.code, error.message);
+        toast({
+            variant: 'destructive',
+            title: title,
+            description: description,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
