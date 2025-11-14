@@ -13,7 +13,8 @@ import {
   Headset,
   Users,
   ShieldCheck,
-  FileText
+  FileText,
+  Wand2
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -29,6 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser, useAuth } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import React from 'react';
 
 export default function DashboardLayout({
   children,
@@ -49,6 +51,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/generate', label: 'Generate Article', icon: Wand2 },
     { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
     { href: '/dashboard/financials', label: 'Financials', icon: Wallet },
