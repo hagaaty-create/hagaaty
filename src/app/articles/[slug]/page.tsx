@@ -4,6 +4,9 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 type ArticlePageProps = {
   params: {
@@ -26,6 +29,14 @@ export default function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <article className="container max-w-4xl mx-auto px-4 py-12">
+        <div className='mb-8'>
+            <Button variant="ghost" asChild>
+                <Link href="/blog">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Blog
+                </Link>
+            </Button>
+        </div>
       <header className="mb-8">
         <div className="mb-4">
             <Badge variant="secondary">{post.category}</Badge>

@@ -12,7 +12,7 @@ export default function Header() {
   
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/#recent-posts', label: 'Articles' },
+    { href: '/blog', label: 'Blog' },
     { href: '/dashboard', label: 'Dashboard' },
   ];
 
@@ -22,7 +22,7 @@ export default function Header() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Bot className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg font-headline">Hagaaty AI Blog</span>
+            <span className="font-bold text-lg font-headline">Hagaaty</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             {navLinks.map((link) => (
@@ -59,7 +59,7 @@ export default function Header() {
                     <div className="flex items-center justify-between border-b pb-4">
                          <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                             <Bot className="h-6 w-6 text-primary" />
-                            <span className="font-bold">Hagaaty AI Blog</span>
+                            <span className="font-bold">Hagaaty</span>
                         </Link>
                     </div>
                     <nav className="flex flex-col gap-4 mt-8">
