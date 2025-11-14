@@ -13,6 +13,7 @@ import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from "
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 
 type AdCopy = {
@@ -52,6 +53,7 @@ export default function AdCreationForm() {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
+    const router = useRouter();
     
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -111,7 +113,7 @@ export default function AdCreationForm() {
         const ctr = clicks / impressions;
 
         try {
-            await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
+            const newCampaignRef = await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
                 productName,
                 productDescription,
                 targetAudience,
@@ -119,7 +121,7 @@ export default function AdCreationForm() {
                 keywords: keywords.split(',').map(k => k.trim()),
                 phoneNumber,
                 ...selectedAd,
-                status: 'draft',
+                status: 'reviewing', // Set status to reviewing
                 createdAt: serverTimestamp(),
                 performance: {
                     impressions,
@@ -133,11 +135,12 @@ export default function AdCreationForm() {
             });
 
             toast({
-                title: "تم حفظ الحملة!",
-                description: `تم حفظ حملتك الإعلانية الجديدة. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
+                title: "تم إرسال الحملة للمراجعة!",
+                description: `سيقوم الذكاء الاصطناعي بمراجعة حملتك. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
             });
-            setGeneratedAd(null);
-            setSelectedAd(null);
+            
+            router.push(`/dashboard/campaigns?newCampaignId=${newCampaignRef.id}`);
+
         } catch(e) {
             console.error("Error saving campaign: ", e);
             toast({
@@ -145,7 +148,6 @@ export default function AdCreationForm() {
               title: "فشل الحفظ",
               description: "لم نتمكن من حفظ الحملة في قاعدة البيانات.",
             });
-        } finally {
             setIsSaving(false);
         }
     }
@@ -320,7 +322,7 @@ export default function AdCreationForm() {
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                   حفظ وإطلاق الحملة (خصم ${AD_COST.toFixed(2)})
+                                   حفظ وإرسال للمراجعة (خصم ${AD_COST.toFixed(2)})
                                 </>
                             )}
                         </Button>

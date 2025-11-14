@@ -6,18 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart, Loader2, DollarSign, MousePointerClick, Eye } from "lucide-react";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
 import { format } from 'date-fns';
 import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { useSearchParams } from "next/navigation";
+import CampaignReviewProgress from "@/components/dashboard/CampaignReviewProgress";
 
 type AdCampaign = {
     id: string;
     productName: string;
     headline: string;
-    status: 'draft' | 'active' | 'paused' | 'completed';
+    status: 'draft' | 'reviewing' | 'active' | 'paused' | 'completed';
     createdAt: Timestamp;
     performance: {
         impressions: number;
@@ -28,9 +30,11 @@ type AdCampaign = {
 
 const AD_COST = 2.00;
 
-export default function CampaignsPage() {
+function CampaignsPageContent() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const searchParams = useSearchParams();
+    const newCampaignId = searchParams.get('newCampaignId');
 
     const campaignsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -43,6 +47,30 @@ export default function CampaignsPage() {
         if (!timestamp) return 'N/A';
         return format(timestamp.toDate(), 'PPP');
     }
+    
+    const getStatusBadge = (status: AdCampaign['status'], campaignId: string) => {
+        if (status === 'reviewing' && campaignId === newCampaignId) {
+            return <CampaignReviewProgress campaignId={campaignId} />;
+        }
+        
+        const variantMap: Record<AdCampaign['status'], 'default' | 'secondary' | 'outline' | 'destructive'> = {
+            active: 'default',
+            reviewing: 'secondary',
+            paused: 'outline',
+            completed: 'outline',
+            draft: 'secondary',
+        };
+        
+        const statusTextMap: Record<AdCampaign['status'], string> = {
+            active: 'نشطة',
+            reviewing: 'تحت المراجعة',
+            paused: 'متوقفة',
+            completed: 'مكتملة',
+            draft: 'مسودة',
+        };
+
+        return <Badge variant={variantMap[status] || 'secondary'}>{statusTextMap[status]}</Badge>;
+    };
 
     const { chartData, totalImpressions, totalClicks, totalSpent } = useMemo(() => {
         if (!campaigns) {
@@ -193,7 +221,7 @@ export default function CampaignsPage() {
                                         <TableCell className="font-medium">{campaign.productName}</TableCell>
                                         <TableCell>{campaign.headline}</TableCell>
                                         <TableCell>
-                                            <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>{campaign.status}</Badge>
+                                            {getStatusBadge(campaign.status, campaign.id)}
                                         </TableCell>
                                         <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
                                         <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>
@@ -215,5 +243,13 @@ export default function CampaignsPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function CampaignsPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CampaignsPageContent />
+        </Suspense>
     );
 }
