@@ -20,38 +20,118 @@
           "description": "URL of the user's profile picture."
         }
       },
-      "required": ["displayName", "email"]
+      "required": [
+        "displayName",
+        "email"
+      ]
     },
     "Post": {
       "title": "Post",
       "description": "Represents a blog post.",
       "type": "object",
       "properties": {
-        "title": { "type": "string" },
-        "slug": { "type": "string" },
-        "content": { "type": "string" },
-        "excerpt": { "type": "string" },
-        "imageUrl": { "type": "string", "format": "uri" },
-        "imageHint": { "type": "string" },
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "imageHint": {
+          "type": "string"
+        },
         "author": {
           "type": "object",
           "properties": {
-            "name": { "type": "string" },
-            "avatarUrl": { "type": "string", "format": "uri" }
+            "name": {
+              "type": "string"
+            },
+            "avatarUrl": {
+              "type": "string",
+              "format": "uri"
+            }
           }
         },
-        "date": { "type": "string", "format": "date-time" },
-        "category": { "type": "string" },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string"
+        },
         "tags": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       },
-      "required": ["title", "slug", "content", "author", "date", "category"]
+      "required": [
+        "title",
+        "slug",
+        "content",
+        "author",
+        "date",
+        "category"
+      ]
+    },
+    "AdCampaign": {
+      "title": "Ad Campaign",
+      "description": "Represents a generated ad campaign.",
+      "type": "object",
+      "properties": {
+        "productName": {
+          "type": "string"
+        },
+        "productDescription": {
+          "type": "string"
+        },
+        "targetAudience": {
+          "type": "string"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "active",
+            "paused",
+            "completed"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "productName",
+        "headline",
+        "body",
+        "status",
+        "createdAt"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com", "password"]
+    "providers": [
+      "google.com",
+      "password"
+    ]
   },
   "firestore": {
     "/users/{userId}": {
@@ -65,6 +145,12 @@
         "$ref": "#/entities/Post"
       },
       "description": "Stores blog posts."
+    },
+    "/users/{userId}/campaigns/{campaignId}": {
+      "schema": {
+        "$ref": "#/entities/AdCampaign"
+      },
+      "description": "Stores ad campaigns created by a user."
     }
   }
 }

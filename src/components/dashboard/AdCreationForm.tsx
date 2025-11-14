@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, Wand2 } from "lucide-react";
+import { Loader2, Save, Wand2 } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { useFirestore, useUser } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+
 
 type GeneratedAd = {
     headline: string;
@@ -19,8 +23,13 @@ export default function AdCreationForm() {
     const [productDescription, setProductDescription] = useState('');
     const [targetAudience, setTargetAudience] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [generatedAd, setGeneratedAd] = useState<GeneratedAd | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const firestore = useFirestore();
+    const { user } = useUser();
+    const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,6 +57,35 @@ export default function AdCreationForm() {
             setIsLoading(false);
         }
     };
+    
+    const handleSave = async () => {
+        if (!generatedAd || !firestore || !user) return;
+        setIsSaving(true);
+        try {
+            await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
+                productName,
+                productDescription,
+                targetAudience,
+                ...generatedAd,
+                status: 'draft',
+                createdAt: serverTimestamp(),
+            });
+            toast({
+                title: "Campaign Saved!",
+                description: "Your new ad campaign has been saved as a draft.",
+            });
+            setGeneratedAd(null); // Clear the form after saving
+        } catch(e) {
+            console.error("Error saving campaign: ", e);
+            toast({
+              variant: "destructive",
+              title: "Saving failed",
+              description: "Could not save the campaign to the database.",
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -59,7 +97,7 @@ export default function AdCreationForm() {
                         placeholder="e.g., 'Hagaaty AI Platform'"
                         value={productName}
                         onChange={(e) => setProductName(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isLoading || isSaving}
                     />
                 </div>
                 <div className="grid w-full gap-2">
@@ -70,7 +108,7 @@ export default function AdCreationForm() {
                         value={productDescription}
                         onChange={(e) => setProductDescription(e.target.value)}
                         rows={3}
-                        disabled={isLoading}
+                        disabled={isLoading || isSaving}
                     />
                 </div>
                  <div className="grid w-full gap-2">
@@ -80,10 +118,10 @@ export default function AdCreationForm() {
                         placeholder="e.g., 'Small business owners and digital marketers in Egypt'"
                         value={targetAudience}
                         onChange={(e) => setTargetAudience(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isLoading || isSaving}
                     />
                 </div>
-                <Button type="submit" disabled={isLoading || !productName.trim() || !productDescription.trim() || !targetAudience.trim()}>
+                <Button type="submit" disabled={isLoading || isSaving || !productName.trim() || !productDescription.trim() || !targetAudience.trim()}>
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -113,7 +151,7 @@ export default function AdCreationForm() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">Generated Ad Copy</CardTitle>
-                        <CardDescription>Review the AI-generated ad copy below. You can copy it and use it in your campaigns.</CardDescription>
+                        <CardDescription>Review the AI-generated ad copy below. You can copy it or save the campaign.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -129,6 +167,21 @@ export default function AdCreationForm() {
                             </div>
                         </div>
                     </CardContent>
+                    <CardFooter>
+                         <Button onClick={handleSave} disabled={isSaving}>
+                             {isSaving ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                   Save Campaign
+                                </>
+                            )}
+                        </Button>
+                    </CardFooter>
                 </Card>
             )}
         </div>
