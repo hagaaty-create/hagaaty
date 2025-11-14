@@ -13,6 +13,8 @@ import {
   Lightbulb,
   Users,
   Megaphone,
+  Share2,
+  Send,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -66,6 +68,8 @@ export default function DashboardLayout({
     { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
     { href: '/dashboard/create-ad', label: 'إنشاء إعلان', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'حملاتي', icon: BarChart },
+    { href: '/dashboard/social-connect', label: 'ربط الحسابات', icon: Share2 },
+    { href: '/dashboard/social-post', label: 'إنشاء منشور', icon: Send },
   ];
   
   const adminNavItems = [

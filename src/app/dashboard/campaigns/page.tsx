@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Loader2, DollarSign, MousePointerClick, Eye } from "lucide-react";
+import { BarChart, Loader2, DollarSign, MousePointerClick, Eye, Share2 } from "lucide-react";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useMemo, Suspense } from "react";
@@ -14,6 +14,9 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useSearchParams } from "next/navigation";
 import CampaignReviewProgress from "@/components/dashboard/CampaignReviewProgress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 type AdCampaign = {
     id: string;
@@ -48,6 +51,13 @@ function CampaignsPageContent() {
         return format(timestamp.toDate(), 'PPP');
     }
     
+    const isReviewingNewCampaign = useMemo(() => {
+        if (!newCampaignId || !campaigns) return false;
+        const newCampaign = campaigns.find(c => c.id === newCampaignId);
+        return newCampaign?.status === 'reviewing';
+    }, [campaigns, newCampaignId]);
+
+
     const getStatusBadge = (status: AdCampaign['status'], campaignId: string) => {
         if (status === 'reviewing' && campaignId === newCampaignId) {
             return <CampaignReviewProgress campaignId={campaignId} />;
@@ -124,6 +134,21 @@ function CampaignsPageContent() {
                 <BarChart className="h-8 w-8 text-primary"/>
                 <h1 className="text-3xl font-bold font-headline">حملاتي</h1>
             </div>
+
+            {isReviewingNewCampaign && (
+                 <Alert className="border-primary/30 bg-primary/5">
+                    <Share2 className="h-4 w-4" />
+                    <AlertTitle className="font-bold">استغل وقت المراجعة!</AlertTitle>
+                    <AlertDescription className="mt-2 flex items-center justify-between">
+                       بينما يقوم الذكاء الاصطناعي بمراجعة حملتك، لماذا لا تربط حساباتك على وسائل التواصل الاجتماعي لأتمتة التسويق؟
+                        <Button asChild variant="outline" size="sm">
+                            <Link href="/dashboard/social-connect">
+                                ربط الحسابات الآن
+                            </Link>
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>

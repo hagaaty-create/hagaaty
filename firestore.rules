@@ -68,17 +68,18 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
+
+      /**
+       * @description Rules for user's ad campaigns.
+       * @path /users/{userId}/campaigns/{campaignId}
+       * @allow (get, list, create, update, delete) User can manage their own campaigns.
+       * @principle Enforces document ownership for all operations.
+       */
+      match /campaigns/{campaignId} {
+          allow read, write: if isOwner(userId);
+      }
     }
 
-    /**
-     * @description Rules for user's ad campaigns.
-     * @path /users/{userId}/campaigns/{campaignId}
-     * @allow (get, list, create, update, delete) User can manage their own campaigns.
-     * @principle Enforces document ownership for all operations.
-     */
-    match /users/{userId}/campaigns/{campaignId} {
-        allow read, write: if isOwner(userId);
-    }
 
     /**
      * @description Rules for articles.
