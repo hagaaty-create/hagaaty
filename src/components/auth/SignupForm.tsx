@@ -63,7 +63,14 @@ export default function SignupForm() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth) {
+        toast({
+            variant: 'destructive',
+            title: 'خطأ في التهيئة',
+            description: 'لم يتم تهيئة خدمة المصادقة. يرجى المحاولة مرة أخرى.',
+        });
+        return;
+    }
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -88,7 +95,14 @@ export default function SignupForm() {
   };
 
   const handleGoogleSignup = async () => {
-    if (!auth) return;
+    if (!auth) {
+        toast({
+            variant: 'destructive',
+            title: 'خطأ في التهيئة',
+            description: 'لم يتم تهيئة خدمة المصادقة. يرجى المحاولة مرة أخرى.',
+        });
+        return;
+    }
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
