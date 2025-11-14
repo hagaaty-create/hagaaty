@@ -277,12 +277,12 @@ export default function AdCreationForm() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <Label className="text-sm font-semibold">العنوان</Label>
-                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionA.headline}</p>
+                                    <h4 className="text-sm font-semibold mb-1 text-muted-foreground">العنوان</h4>
+                                    <p className="rounded-md border bg-muted p-3 text-sm">{generatedAd.suggestionA.headline}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-sm font-semibold">النص</Label>
-                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionA.body}</p>
+                                    <h4 className="text-sm font-semibold mb-1 text-muted-foreground">النص</h4>
+                                    <p className="rounded-md border bg-muted p-3 text-sm">{generatedAd.suggestionA.body}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -299,12 +299,12 @@ export default function AdCreationForm() {
                             </CardHeader>
                            <CardContent className="space-y-4">
                                 <div>
-                                    <Label className="text-sm font-semibold">العنوان</Label>
-                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionB.headline}</p>
+                                    <h4 className="text-sm font-semibold mb-1 text-muted-foreground">العنوان</h4>
+                                    <p className="rounded-md border bg-muted p-3 text-sm">{generatedAd.suggestionB.headline}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-sm font-semibold">النص</Label>
-                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionB.body}</p>
+                                    <h4 className="text-sm font-semibold mb-1 text-muted-foreground">النص</h4>
+                                    <p className="rounded-md border bg-muted p-3 text-sm">{generatedAd.suggestionB.body}</p>
                                 </div>
                             </CardContent>
                         </Card>

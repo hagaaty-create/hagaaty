@@ -7,7 +7,7 @@ export default function CreateAdPage() {
         <div className="space-y-8">
             <div className="flex items-center gap-4">
                 <PenSquare className="h-8 w-8 text-primary"/>
-                <h1 className="text-3xl font-bold font-headline">إعداد حملة إعلانية جديدة</h1>
+                <h1 className="text-3xl font-bold font-headline">إنشاء حملة إعلانية</h1>
             </div>
             <Card>
                 <CardHeader>
