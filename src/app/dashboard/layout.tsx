@@ -12,7 +12,6 @@ import {
   FileText,
   Lightbulb,
   Users,
-  FileEdit,
 } from 'lucide-react';
 import {
   SidebarProvider,

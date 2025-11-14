@@ -18,8 +18,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
-import { useCollection, useFirestore } from '@/firebase';
-import { collectionGroup, query, orderBy, getDocs, doc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collectionGroup, query, orderBy, getDocs, doc, getDoc, where } from 'firebase/firestore';
 import { useMemo, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
@@ -65,32 +65,32 @@ export default function AllCampaignsPage() {
         } as AdCampaign;
       });
 
-      // Fetch user emails
-      const userPromises = campaignsData.map(async (campaign) => {
-        if (campaign.user && firestore) {
-           try {
-            const userDoc = await getDocs(query(collection(firestore, 'users'), where('__name__', '==', campaign.user.id)));
-            if (!userDoc.empty) {
-                return { ...campaign, user: { ...campaign.user, email: userDoc.docs[0].data().email } };
-            }
-           } catch(e) {
-               // This can happen if the user doc is not available, we just keep the loading state
-           }
-        }
-        return { ...campaign, user: { ...campaign.user, email: 'N/A' } };
+      // Fetch user emails efficiently
+      const userIds = [...new Set(campaignsData.map(c => c.user?.id).filter(Boolean) as string[])];
+      const usersMap = new Map<string, string>();
+      
+      if (userIds.length > 0 && firestore) {
+          // Firestore 'in' query is limited to 30 items. 
+          // If you expect more users, you'd need to batch this.
+          const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', userIds));
+          const usersSnapshot = await getDocs(usersQuery);
+          usersSnapshot.forEach(userDoc => {
+              usersMap.set(userDoc.id, userDoc.data().email || 'غير موجود');
+          });
+      }
+
+      const populatedCampaigns = campaignsData.map(campaign => {
+          if (campaign.user) {
+              return {
+                  ...campaign,
+                  user: {
+                      ...campaign.user,
+                      email: usersMap.get(campaign.user.id) || 'غير موجود'
+                  }
+              }
+          }
+          return campaign;
       });
-
-      const populatedCampaigns = await Promise.all(campaignsData.map(async (campaign) => {
-        if (!campaign.user || !firestore) return { ...campaign, user: { id: 'N/A', email: 'N/A'} };
-        const userRef = doc(firestore, 'users', campaign.user.id);
-        // This is a simplified fetch, in a real app you might want to cache this
-        const userSnap = await getDocs(query(collection(firestore, 'users'), where('__name__', '==', campaign.user.id)));
-        if (!userSnap.empty) {
-            return { ...campaign, user: { ...campaign.user, email: userSnap.docs[0].data().email } };
-        }
-        return { ...campaign, user: { ...campaign.user, email: 'غير موجود'} };
-      }));
-
 
       setCampaigns(populatedCampaigns);
       setLoading(false);
@@ -102,7 +102,10 @@ export default function AllCampaignsPage() {
 
   const formatDate = (timestamp: Timestamp | null) => {
     if (!timestamp) return 'N/A';
-    return format(timestamp.toDate(), 'PPP');
+    if (timestamp instanceof Timestamp) {
+      return format(timestamp.toDate(), 'PPP');
+    }
+    return format(new Date(timestamp), 'PPP');
   };
 
   return (
