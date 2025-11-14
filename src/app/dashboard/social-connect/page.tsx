@@ -1,5 +1,3 @@
-// This is a new file
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -64,8 +62,8 @@ export default function SocialConnectPage() {
         [`socialConnections.${platformId}`]: true,
       });
       toast({
-        title: 'تم الربط بنجاح!',
-        description: `تم ربط حسابك على ${socialPlatforms.find(p => p.id === platformId)?.name}.`,
+        title: 'تم الربط بنجاح! (محاكاة)',
+        description: `تم ربط حسابك على ${socialPlatforms.find(p => p.id === platformId)?.name}. الآن يمكنك النشر عليه من خلال المنصة.`,
       });
     } catch (error) {
       // If the document or socialConnections field doesn't exist, create it.
@@ -75,7 +73,7 @@ export default function SocialConnectPage() {
               socialConnections: { [platformId]: true } 
             }, { merge: true });
              toast({
-                title: 'تم الربط بنجاح!',
+                title: 'تم الربط بنجاح! (محاكاة)',
                 description: `تم ربط حسابك على ${socialPlatforms.find(p => p.id === platformId)?.name}.`,
             });
          } catch (e) {

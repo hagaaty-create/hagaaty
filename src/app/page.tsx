@@ -1,19 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gift, Zap, Percent, Users, Bot, BarChart } from 'lucide-react';
+import { Gift, Zap, Percent, Users, Bot, BarChart, Share2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
   const features = [
     {
       icon: <Zap className="h-8 w-8 text-primary" />,
-      title: 'إعلانات جوجل الفورية',
-      description: 'احصل على رصيد ترحيبي بقيمة 2$ لتجربة إعلانك الأول على جوجل. يقوم الذكاء الاصطناعي بتصميم وتفعيل حملتك خلال 10 دقائق فقط!',
+      title: 'محاكاة إعلانات جوجل الفورية',
+      description: 'احصل على رصيد ترحيبي بقيمة 2$ لتجربة إعلانك الأول. يقوم الذكاء الاصطناعي بتصميم وتفعيل حملتك خلال 10 دقائق فقط!',
     },
     {
-      icon: <Bot className="h-8 w-8 text-primary" />,
-      title: 'التسويق الذكي للمحتوى',
-      description: 'اربط حساباتك على منصات التواصل الاجتماعي، وسيقوم الذكاء الاصطناعي بكتابة وتصميم وتحسين منشوراتك مع إضافة الهاشتاجات المناسبة ونشرها بضغطة زر واحدة.',
+      icon: <Share2 className="h-8 w-8 text-primary" />,
+      title: 'النشر الموحد على الشبكات الاجتماعية',
+      description: 'اربط حساباتك، وسيقوم الذكاء الاصطناعي بكتابة وتصميم وتحسين منشوراتك. انشرها على جميع منصاتك بضغطة زر واحدة.',
     },
     {
       icon: <Percent className="h-8 w-8 text-primary" />,
