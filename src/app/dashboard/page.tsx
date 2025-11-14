@@ -23,7 +23,7 @@ type AdCampaign = {
     status: 'draft' | 'active' | 'paused' | 'completed';
 };
 
-const AD_COST = 1.00;
+const AD_COST = 20.00;
 
 export default function DashboardPage() {
   const { user } = useUser();
