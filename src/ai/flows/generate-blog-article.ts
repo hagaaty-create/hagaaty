@@ -38,10 +38,6 @@ const generateBlogArticlePrompt = ai.definePrompt({
   input: {schema: GenerateBlogArticleInputSchema},
   output: {schema: GenerateBlogArticleOutputSchema},
   prompt: `Generate a blog article based on the following prompt:\n\n{{{prompt}}} `,
-  model: 'openrouter:google/gemma-1.1-7b-it',
-  config: {
-    apiKey: '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',
-  },
 });
 
 const generateBlogArticleFlow = ai.defineFlow(

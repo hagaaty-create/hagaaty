@@ -32,10 +32,6 @@ const prompt = ai.definePrompt({
   prompt: `You are a smart assistant for the Hagaaty blog. Answer user questions based on the content of the blog.
 
 User Query: {{{query}}}`,
-  model: {
-    name: 'openrouter/googleai/gemini-1.5-pro',
-    apiKey: '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'
-  }
 });
 
 const smartAssistantChatFlow = ai.defineFlow(
