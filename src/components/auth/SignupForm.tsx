@@ -56,7 +56,7 @@ export default function SignupForm() {
       await updateProfile(userCredential.user, { displayName: fullName });
       
       // Check if the email is the admin email
-      const userRole = email === 'admin@example.com' ? 'admin' : 'user';
+      const userRole = email === 'hagaaty@gmail.com' ? 'admin' : 'user';
 
       // Create user profile document in Firestore
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
