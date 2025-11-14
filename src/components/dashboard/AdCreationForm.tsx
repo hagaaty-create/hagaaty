@@ -108,8 +108,9 @@ export default function AdCreationForm() {
         if (!selectedAd || !firestore || !user || !userProfileRef) return;
         setIsSaving(true);
 
-        const impressions = Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
-        const clicks = Math.floor(impressions * (Math.random() * (0.05 - 0.01) + 0.01));
+        // Realistic performance simulation for a $2 budget
+        const impressions = Math.floor(Math.random() * (2000 - 500 + 1)) + 500; // 500 to 2000 impressions
+        const clicks = Math.min(100, Math.floor(impressions * (Math.random() * (0.08 - 0.02) + 0.02))); // 2% to 8% CTR, max 100 clicks
         const ctr = clicks / impressions;
 
         try {
