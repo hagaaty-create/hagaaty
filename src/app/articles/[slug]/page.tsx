@@ -96,7 +96,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             </div>
              <header className="mb-8 space-y-4">
                 <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-10 w-3/4" />
                 <div className="mt-6 flex items-center gap-4 pt-4">
                     <Skeleton className="h-12 w-12 rounded-full" />
@@ -107,7 +107,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
                 </div>
             </header>
             <Skeleton className="w-full aspect-video mb-8 rounded-lg" />
-            <div className="space-y-4">
+            <div className="prose prose-lg dark:prose-invert max-w-none space-y-4">
                 <Skeleton className="h-6 w-full" />
                 <Skeleton className="h-6 w-full" />
                 <Skeleton className="h-6 w-5/6" />
@@ -135,14 +135,16 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         </div>
       <header className="mb-8">
         <div className="mb-4">
-            <Badge variant="secondary">{post.category}</Badge>
+            <Badge variant="default" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+              {post.category}
+            </Badge>
         </div>
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl font-headline text-primary">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl font-headline text-foreground">
           {post.title}
         </h1>
         <div className="mt-6 flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-10 w-10 border-2 border-primary/50">
               <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
               <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
             </Avatar>
@@ -156,19 +158,19 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         </div>
       </header>
 
-      <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden shadow-lg">
+      <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden shadow-lg shadow-primary/10">
         <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint}/>
       </div>
 
-      <div className="prose prose-lg max-w-none text-foreground prose-headings:text-primary prose-a:text-accent prose-strong:text-foreground">
+      <div className="prose prose-lg dark:prose-invert max-w-none text-foreground/90 prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground">
         {post.content.split('\n\n').map((paragraph, index) => (
             <p key={index}>{paragraph}</p>
         ))}
       </div>
 
       <footer className="mt-12">
-        <div className="flex flex-wrap gap-2">
-            <span className="font-semibold">الوسوم:</span>
+        <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-foreground">الوسوم:</span>
             {post.tags.map(tag => (
                 <Badge key={tag} variant="outline">{tag}</Badge>
             ))}

@@ -30,7 +30,7 @@ export default function BlogPage() {
   
   if (loading) {
       return (
-          <div className="container mx-auto px-4 py-8">
+          <div className="container mx-auto px-4 py-12">
               <section className="mb-16 text-center">
                   <Skeleton className="h-12 w-1/2 mx-auto" />
                   <Skeleton className="h-6 w-3/4 mx-auto mt-4" />
@@ -38,17 +38,14 @@ export default function BlogPage() {
               
               <section className="mb-16">
                    <Skeleton className="h-10 w-1/3 mb-8" />
-                   <div className="grid gap-8 lg:grid-cols-2">
-                       <Skeleton className="h-[450px] w-full rounded-lg" />
-                        <div className="flex flex-col justify-between space-y-4">
-                           <Skeleton className="h-[215px] w-full rounded-lg" />
-                           <Skeleton className="h-[215px] w-full rounded-lg" />
-                       </div>
-                   </div>
+                    <Skeleton className="h-[450px] w-full rounded-lg" />
               </section>
 
               <section>
                    <Skeleton className="h-10 w-1/4 mb-8" />
+                   <div className="flex justify-center mb-8">
+                     <Skeleton className="h-10 w-full max-w-md" />
+                   </div>
                    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                        <Skeleton className="w-full h-96 rounded-lg" />
                        <Skeleton className="w-full h-96 rounded-lg" />
@@ -61,19 +58,24 @@ export default function BlogPage() {
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-3xl font-bold">لا توجد مقالات بعد</h1>
-        <p className="text-muted-foreground mt-2">تحقق مرة أخرى لاحقًا للحصول على محتوى جديد!</p>
+      <div className="container mx-auto px-4 py-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
+        <h1 className="text-4xl font-bold font-headline">لا توجد مقالات بعد</h1>
+        <p className="text-muted-foreground mt-4 text-lg">
+          وكلاء الذكاء الاصطناعي لدينا يعملون بجد. تحقق مرة أخرى لاحقًا للحصول على محتوى جديد!
+        </p>
+         <Button asChild className="mt-8">
+          <Link href="/dashboard/admin/generate">توليد مقال الآن</Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-12">
       {/* Hero Section */}
       <section className="mb-16 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl md:text-6xl font-headline">
-          مدونة حاجتي للذكاء الاصطناعي
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl font-headline">
+          مدونة <span className="text-primary">حاجتي للذكاء الاصطناعي</span>
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl">
           اكتشف مقالات متطورة تم إنشاؤها بواسطة الذكاء الاصطناعي، وتفاعل مع مساعدنا الذكي لأي أسئلة.
@@ -91,12 +93,16 @@ export default function BlogPage() {
       {/* Posts */}
       <section id="posts">
         <h2 className="text-3xl font-bold tracking-tight mb-8 font-headline">كل المقالات</h2>
-        <Tabs defaultValue="الكل" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-flow-col mb-4">
-            {categories.map(category => (
-              <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
-            ))}
-          </TabsList>
+        <Tabs defaultValue="الكل" className="w-full" dir="rtl">
+          <div className="flex justify-center mb-8">
+            <TabsList className="grid grid-cols-3 p-1 h-auto md:grid-flow-col">
+              {categories.map(category => (
+                <TabsTrigger key={category} value={category} className="text-base px-4 py-2">
+                  {category}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
           {categories.map(category => (
             <TabsContent key={category} value={category}>
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">

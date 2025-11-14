@@ -26,9 +26,9 @@ function formatDate(date: string | Timestamp) {
 
 export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
   return (
-    <Link href={`/articles/${post.slug}`} className="group block">
+    <Link href={`/articles/${post.slug}`} className="group block h-full">
       <Card className={cn(
-          "h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+          "h-full flex flex-col transition-all duration-300 hover:border-primary/50 hover:shadow-primary/20 hover:shadow-lg hover:-translate-y-2 bg-card/50 hover:bg-card",
           isFeatured ? "lg:flex-row" : "overflow-hidden"
           )}>
         <div className={cn("relative", isFeatured ? "lg:w-1/2" : "aspect-[16/9]")}>
@@ -39,18 +39,21 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
             className="object-cover"
             data-ai-hint={post.imageHint}
           />
+           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         </div>
         <div className={cn("flex flex-col flex-1", isFeatured ? "lg:w-1/2" : "")}>
           <CardHeader>
-            <Badge variant="secondary" className="w-fit mb-2">{post.category}</Badge>
-            <CardTitle className={cn("group-hover:text-primary transition-colors", isFeatured ? "text-3xl" : "text-xl")}>{post.title}</CardTitle>
+            <Badge variant="default" className="w-fit mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+              {post.category}
+            </Badge>
+            <CardTitle className={cn("group-hover:text-primary transition-colors", isFeatured ? "text-3xl font-bold" : "text-xl font-semibold")}>{post.title}</CardTitle>
           </CardHeader>
           <CardContent className="flex-1">
-            <p className="text-muted-foreground">{post.excerpt}</p>
+            <p className="text-muted-foreground line-clamp-3">{post.excerpt}</p>
           </CardContent>
-          <CardFooter className="flex justify-between items-center">
+          <CardFooter className="flex justify-between items-center mt-auto">
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8 border-2 border-primary/30">
                 <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
                 <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
               </Avatar>
