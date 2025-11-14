@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Bot, Menu, Search, X, LogOut, User } from 'lucide-react';
+import { Bot, Menu, Search, X, LogOut, User, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -10,16 +10,17 @@ import { useAuth, useUser } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading } = useUser();
   const auth = useAuth();
+  const pathname = usePathname();
   
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/blog', label: 'Blog' },
-    { href: '/dashboard', label: 'Dashboard' },
   ];
 
   const handleLogout = () => {
@@ -68,7 +69,7 @@ export default function Header() {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/dashboard">
-              <User className="mr-2 h-4 w-4" />
+              <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
             </Link>
           </DropdownMenuItem>
@@ -80,6 +81,11 @@ export default function Header() {
       </DropdownMenu>
     );
   };
+  
+  // Don't show header on dashboard pages
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

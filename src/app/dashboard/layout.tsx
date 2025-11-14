@@ -1,12 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   PenSquare,
   Home,
   User,
+  LogOut,
+  BarChart,
+  Wallet,
+  Headset,
+  Users,
+  ShieldCheck,
+  FileText
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -19,6 +26,9 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useUser, useAuth } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardLayout({
   children,
@@ -26,11 +36,46 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, loading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
 
   const navItems = [
-    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { href: '/dashboard/generate', label: 'Generate Article', icon: PenSquare },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
+    { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
+    { href: '/dashboard/financials', label: 'Financials', icon: Wallet },
+    { href: '/dashboard/support', label: 'Support', icon: Headset },
   ];
+
+  const adminNavItems = [
+    { href: '/dashboard/admin', label: 'Admin Dashboard', icon: ShieldCheck },
+    { href: '/dashboard/admin/add-balance', label: 'Add Balance', icon: Wallet },
+    { href: '/dashboard/admin/site-marketing', label: 'Site Marketing', icon: Users },
+    { href: '/dashboard/admin/articles', label: 'Manage Articles', icon: FileText },
+  ];
+
+  const handleLogout = () => {
+    if (auth) {
+      auth.signOut();
+      router.push('/');
+    }
+  };
+  
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Skeleton className="h-screen w-full" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -39,12 +84,12 @@ export default function DashboardLayout({
             <SidebarHeader>
                 <div className="flex items-center gap-2 p-2">
                     <Avatar>
-                        <AvatarImage src="https://picsum.photos/seed/user-avatar/40/40" />
-                        <AvatarFallback>U</AvatarFallback>
+                        {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'}/>}
+                        <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
-                    <div className="text-sm">
-                        <p className="font-semibold">User Name</p>
-                        <p className="text-muted-foreground">user@example.com</p>
+                    <div className="text-sm overflow-hidden">
+                        <p className="font-semibold truncate">{user.displayName || 'User Name'}</p>
+                        <p className="text-muted-foreground truncate">{user.email}</p>
                     </div>
                 </div>
             </SidebarHeader>
@@ -63,6 +108,8 @@ export default function DashboardLayout({
                             </Link>
                         </SidebarMenuItem>
                     ))}
+                    {/* Placeholder for admin role check */}
+                    {/* {user.isAdmin && adminNavItems.map...} */}
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
@@ -75,10 +122,18 @@ export default function DashboardLayout({
                             </SidebarMenuButton>
                         </Link>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                         <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+                            <LogOut />
+                            <span>Logout</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+            {children}
+        </main>
       </div>
     </SidebarProvider>
   );

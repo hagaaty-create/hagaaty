@@ -1,4 +1,3 @@
-import GenerateArticleForm from "@/components/dashboard/GenerateArticleForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PenSquare } from "lucide-react";
 
@@ -15,8 +14,7 @@ export default function CreateAdPage() {
                     <CardDescription>Describe your product or service and let our AI generate a compelling ad campaign.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {/* This form will be updated later to handle ad creation */}
-                    <GenerateArticleForm />
+                    <p>Ad creation form will be here.</p>
                 </CardContent>
             </Card>
         </div>
