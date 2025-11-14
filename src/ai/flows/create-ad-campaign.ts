@@ -36,13 +36,13 @@ const adCampaignPrompt = ai.definePrompt({
   name: 'createAdCampaignPrompt',
   input: {schema: CreateAdCampaignInputSchema},
   output: {schema: CreateAdCampaignOutputSchema},
-  prompt: `You are an expert advertising copywriter. Your task is to generate a compelling ad campaign for the following product. Create a catchy headline and a persuasive body text. The tone should be professional and enticing.
+  prompt: `أنت خبير في كتابة الإعلانات باللغة العربية. مهمتك هي إنشاء حملة إعلانية جذابة للمنتج التالي. قم بإنشاء عنوان جذاب ونص مقنع. يجب أن تكون النبرة احترافية وجذابة وموجهة للسوق العربي والخليجي.
 
-Product Name: {{{productName}}}
-Product Description: {{{productDescription}}}
-Target Audience: {{{targetAudience}}}
+اسم المنتج: {{{productName}}}
+وصف المنتج: {{{productDescription}}}
+الجمهور المستهدف: {{{targetAudience}}}
 
-Generate the ad copy now.`,
+أنشئ نسخة الإعلان الآن باللغة العربية.`,
 });
 
 const createAdCampaignFlow = ai.defineFlow(

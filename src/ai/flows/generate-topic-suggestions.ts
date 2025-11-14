@@ -18,12 +18,12 @@ if (!getApps().length) {
 }
 
 const SuggestionSchema = z.object({
-  title: z.string().describe('The suggested blog post title.'),
-  reason: z.string().describe('A brief explanation of why this topic is relevant based on user queries.'),
+  title: z.string().describe('The suggested blog post title in Arabic.'),
+  reason: z.string().describe('A brief explanation in Arabic of why this topic is relevant based on user queries.'),
 });
 
 const GenerateTopicSuggestionsOutputSchema = z.object({
-  suggestions: z.array(SuggestionSchema).describe('A list of 5 suggested blog post topics.'),
+  suggestions: z.array(SuggestionSchema).describe('A list of 5 suggested blog post topics in Arabic.'),
 });
 
 export type GenerateTopicSuggestionsOutput = z.infer<typeof GenerateTopicSuggestionsOutputSchema>;
@@ -31,7 +31,7 @@ export type GenerateTopicSuggestionsOutput = z.infer<typeof GenerateTopicSuggest
 const getRecentQueries = ai.defineTool(
   {
     name: 'getRecentQueries',
-    description: 'Retrieves the most recent user queries submitted to the smart assistant.',
+    description: 'يسترجع أحدث استفسارات المستخدمين المقدمة إلى المساعد الذكي.',
     inputSchema: z.object({
         limit: z.number().optional().default(50).describe('The maximum number of queries to retrieve.'),
     }),
@@ -60,11 +60,11 @@ const suggestionPrompt = ai.definePrompt({
   name: 'generateTopicSuggestionsPrompt',
   output: { schema: GenerateTopicSuggestionsOutputSchema },
   tools: [getRecentQueries],
-  prompt: `You are a content strategist for the Hagaaty AI Blog. Your task is to analyze recent user queries to identify trends, pain points, and areas of interest, and then suggest 5 new blog post topics.
+  prompt: `أنت استراتيجي محتوى لمدونة "حاجتي للذكاء الاصطناعي". مهمتك هي تحليل استفسارات المستخدمين الأخيرة لتحديد الاتجاهات ونقاط الضعف ومجالات الاهتمام، ثم اقتراح 5 مواضيع جديدة لمقالات المدونة.
 
-First, use the 'getRecentQueries' tool to get a list of the latest questions users have asked.
+أولاً، استخدم أداة 'getRecentQueries' للحصول على قائمة بأحدث الأسئلة التي طرحها المستخدمون.
 
-Then, based on these queries, generate 5 distinct and compelling blog post titles. For each suggestion, provide a short reason explaining why it's a good topic based on the user queries. Focus on topics that seem to be recurring or are not well-covered by existing content.`,
+بعد ذلك، وبناءً على هذه الاستفسارات، قم بإنشاء 5 عناوين مقالات مدونة مميزة ومقنعة باللغة العربية. لكل اقتراح، قدم سببًا موجزًا باللغة العربية يشرح سبب كونه موضوعًا جيدًا بناءً على استفسارات المستخدمين. ركز على الموضوعات التي تبدو متكررة أو لا يغطيها المحتوى الحالي بشكل جيد.`,
 });
 
 const generateTopicSuggestionsFlow = ai.defineFlow(

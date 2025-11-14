@@ -18,8 +18,8 @@ export type CategorizeAndTagArticleInput = z.infer<
 >;
 
 const CategorizeAndTagArticleOutputSchema = z.object({
-  category: z.string().describe('The category of the article.'),
-  tags: z.array(z.string()).describe('The tags for the article.'),
+  category: z.string().describe('The category of the article in Arabic.'),
+  tags: z.array(z.string()).describe('The tags for the article in Arabic.'),
 });
 export type CategorizeAndTagArticleOutput = z.infer<
   typeof CategorizeAndTagArticleOutputSchema
@@ -35,11 +35,9 @@ const prompt = ai.definePrompt({
   name: 'categorizeAndTagArticlePrompt',
   input: {schema: CategorizeAndTagArticleInputSchema},
   output: {schema: CategorizeAndTagArticleOutputSchema},
-  prompt: `You are a blog administrator. Your task is to categorize and tag a given blog article.
+  prompt: `أنت مسؤول عن مدونة باللغة العربية. مهمتك هي تصنيف ووضع وسوم لمقال مدونة معين. قم بتحديد الفئة الأنسب للمقال وقدم قائمة بالوسوم ذات الصلة، كل ذلك باللغة العربية.
 
-  Article Content: {{{articleContent}}}
-  
-  Determine the most appropriate category for the article and provide a list of relevant tags.
+  محتوى المقال: {{{articleContent}}}
   `,
 });
 

@@ -37,7 +37,9 @@ const generateBlogArticlePrompt = ai.definePrompt({
   name: 'generateBlogArticlePrompt',
   input: {schema: GenerateBlogArticleInputSchema},
   output: {schema: GenerateBlogArticleOutputSchema},
-  prompt: `Generate a blog article based on the following prompt:\n\n{{{prompt}}} `,
+  prompt: `اكتب مقالاً باللغة العربية للمدونة بناءً على الموضوع التالي. يجب أن يكون المقال موجهاً لجمهور في الدول العربية والخليجية، واستخدم أسلوبًا جذابًا واحترافيًا.
+
+الموضوع: {{{prompt}}}`,
 });
 
 const generateBlogArticleFlow = ai.defineFlow(

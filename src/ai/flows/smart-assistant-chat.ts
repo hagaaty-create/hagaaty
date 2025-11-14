@@ -37,11 +37,11 @@ const getPublishedArticles = ai.defineTool(
   {
     name: 'getPublishedArticles',
     description:
-      'Retrieves a list of published blog articles. Use this to answer questions about blog content.',
+      'يسترجع قائمة بمقالات المدونة المنشورة. استخدم هذا للرد على الأسئلة المتعلقة بمحتوى المدونة.',
     inputSchema: z.object({
       keywords: z
         .array(z.string())
-        .describe('Keywords to search for in article titles or tags.'),
+        .describe('الكلمات الرئيسية للبحث عنها في عناوين المقالات أو الوسوم.'),
     }),
     outputSchema: z.array(
       z.object({
@@ -99,15 +99,15 @@ const prompt = ai.definePrompt({
   input: {schema: SmartAssistantChatInputSchema},
   output: {schema: SmartAssistantChatOutputSchema},
   tools: [getPublishedArticles],
-  prompt: `You are a friendly and helpful smart assistant for the Hagaaty AI Blog. Your goal is to answer user questions based on the content of the blog.
+  prompt: `أنت مساعد ذكي وودود لمدونة "حاجتي للذكاء الاصطناعي". هدفك هو الإجابة على أسئلة المستخدمين باللغة العربية بناءً على محتوى المدونة.
 
-First, use the 'getPublishedArticles' tool to find relevant articles based on the user's query.
+أولاً، استخدم أداة 'getPublishedArticles' للعثور على المقالات ذات الصلة بناءً على استعلام المستخدم.
 
-Then, use the content of the retrieved articles to formulate a comprehensive and helpful answer.
+بعد ذلك، استخدم محتوى المقالات التي تم استردادها لصياغة إجابة شاملة ومفيدة.
 
-If you can't find a relevant article, politely state that you couldn't find the information in the blog but you can help with other questions. Do not make up information.
+إذا لم تتمكن من العثور على مقال ذي صلة، فاذكر بأدب أنك لم تتمكن من العثور على المعلومات في المدونة ولكن يمكنك المساعدة في أسئلة أخرى. لا تخترع معلومات.
 
-User Query: {{{query}}}`,
+استعلام المستخدم: {{{query}}}`,
 });
 
 const smartAssistantChatFlow = ai.defineFlow(
