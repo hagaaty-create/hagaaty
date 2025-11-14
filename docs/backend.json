@@ -18,6 +18,10 @@
           "type": "string",
           "format": "uri",
           "description": "URL of the user's profile picture."
+        },
+        "balance": {
+            "type": "number",
+            "description": "The user's current account balance."
         }
       },
       "required": [

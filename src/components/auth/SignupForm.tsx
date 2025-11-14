@@ -13,10 +13,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 
 export default function SignupForm() {
@@ -27,8 +28,20 @@ export default function SignupForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+
+  const createUserProfile = async (user: User, isNewUser: boolean) => {
+    if (!firestore) return;
+    const userRef = doc(firestore, 'users', user.uid);
+    await setDoc(userRef, {
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      balance: isNewUser ? 2.00 : 0, // Give $2 bonus to new users
+    }, { merge: true });
+  }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +50,12 @@ export default function SignupForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: fullName });
-      // Here you can add logic to add the welcome bonus to the user's account in Firestore
+      
+      await createUserProfile(userCredential.user, true);
+
       toast({
         title: "Account Created!",
-        description: "Welcome! You've received a $4 bonus.",
+        description: "Welcome! You've received a $2 bonus.",
       });
       router.push('/dashboard');
     } catch (error: any) {
@@ -59,12 +74,21 @@ export default function SignupForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-       // Here you can add logic to check if user is new and add the welcome bonus
-      toast({
-        title: "Account Created!",
-        description: "Welcome! You've received a $4 bonus.",
-      });
+      const result = await signInWithPopup(auth, provider);
+      
+      // The getAdditionalUserInfo function can tell us if the user is new
+      const { getAdditionalUserInfo } = await import('firebase/auth');
+      const info = getAdditionalUserInfo(result);
+      
+      await createUserProfile(result.user, !!info?.isNewUser);
+
+      if (info?.isNewUser) {
+        toast({
+            title: "Account Created!",
+            description: "Welcome! You've received a $2 bonus.",
+        });
+      }
+
       router.push('/dashboard');
     } catch (error: any) {
       toast({

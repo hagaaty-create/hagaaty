@@ -1,9 +1,32 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, PenSquare, Wallet, Zap } from "lucide-react";
+import { useDoc, useFirestore, useUser } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { BarChart, PenSquare, Wallet, Zap, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
+
+
+type UserProfile = {
+  id: string;
+  displayName: string;
+  email: string;
+  balance?: number;
+}
 
 export default function DashboardPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const userProfileRef = useMemo(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile, loading } = useDoc<UserProfile>(userProfileRef);
+
   return (
     <div className="grid gap-8">
       <Card>
@@ -18,8 +41,12 @@ export default function DashboardPage() {
                 <Wallet className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$4.00</div>
-                <p className="text-xs text-muted-foreground">Welcome bonus applied</p>
+                {loading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                   <div className="text-2xl font-bold">${userProfile?.balance?.toFixed(2) || '0.00'}</div>
+                )}
+                <p className="text-xs text-muted-foreground">Ready to launch some ads?</p>
               </CardContent>
             </Card>
             <Card>
