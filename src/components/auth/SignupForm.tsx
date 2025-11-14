@@ -82,6 +82,8 @@ export default function SignupForm() {
             description = 'البريد الإلكتروني الذي أدخلته غير صالح.';
         } else if (error.code === 'auth/weak-password') {
             description = 'كلمة المرور ضعيفة جدًا. يجب أن تتكون من 6 أحرف على الأقل.';
+        } else if (error.code === 'auth/api-key-not-valid') {
+            description = 'مفتاح API غير صالح. يرجى التأكد من صحة إعدادات Firebase.';
         }
         console.error("Signup error: ", error.code, error.message);
         toast({
