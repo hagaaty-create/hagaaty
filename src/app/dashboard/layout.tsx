@@ -6,17 +6,11 @@ import {
   LayoutDashboard,
   PenSquare,
   Home,
-  User,
   LogOut,
   BarChart,
-  Wallet,
-  Headset,
-  Users,
-  ShieldCheck,
   FileText,
-  Wand2,
   Lightbulb,
-  SeparatorHorizontal,
+  ShieldCheck
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -34,7 +28,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser, useAuth } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 import React from 'react';
 
 export default function DashboardLayout({
@@ -56,7 +49,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/generate', label: 'Generate Article', icon: Wand2 },
+    { href: '/dashboard/generate', label: 'Generate Article', icon: PenSquare },
     { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
     { href: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
@@ -83,7 +76,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-muted/40">
+      <div className="flex min-h-screen bg-background">
         <Sidebar>
             <SidebarHeader>
                 <div className="flex items-center gap-2 p-2">
@@ -91,7 +84,7 @@ export default function DashboardLayout({
                         {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'}/>}
                         <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
-                    <div className="text-sm overflow-hidden">
+                    <div className="text-sm overflow-hidden text-sidebar-foreground">
                         <p className="font-semibold truncate">{user.displayName || 'User Name'}</p>
                         <p className="text-muted-foreground truncate">{user.email}</p>
                     </div>
@@ -115,7 +108,7 @@ export default function DashboardLayout({
                 </SidebarMenu>
                 <SidebarSeparator className='my-2' />
                  <SidebarGroup>
-                    <SidebarGroupLabel className='flex items-center gap-2'>
+                    <SidebarGroupLabel className='flex items-center gap-2 text-sidebar-foreground/70'>
                         <ShieldCheck />
                         <span>Admin</span>
                     </SidebarGroupLabel>
