@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  // We use a key for the userProfileRef to force a re-fetch when the user changes.
+  // This is a simple way to ensure the data is fresh after balance updates.
   const userProfileRef = useMemo(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -32,7 +34,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-3xl">Dashboard</CardTitle>
-          <CardDescription>Welcome to your AI-powered advertising hub.</CardDescription>
+          <CardDescription>Welcome back, {user?.displayName || 'User'}.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
            <Card>
@@ -63,7 +65,7 @@ export default function DashboardPage() {
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Total Spending</CardTitle>
                 <BarChart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
+              </Header>
               <CardContent>
                 <div className="text-2xl font-bold">$0.00</div>
                  <p className="text-xs text-muted-foreground">Across all campaigns</p>

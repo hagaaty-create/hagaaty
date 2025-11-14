@@ -6,17 +6,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save, Wand2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
-import { useFirestore, useUser } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useFirestore, useUser, useDoc } from "@/firebase";
+import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 
 type GeneratedAd = {
     headline: string;
     body: string;
 }
+
+type UserProfile = {
+  id: string;
+  displayName: string;
+  email: string;
+  balance?: number;
+}
+
+const AD_COST = 1.00;
+
 
 export default function AdCreationForm() {
     const [productName, setProductName] = useState('');
@@ -30,10 +41,27 @@ export default function AdCreationForm() {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
+    
+    const userProfileRef = useMemo(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+
+    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
+    const hasSufficientBalance = useMemo(() => {
+        return (userProfile?.balance ?? 0) >= AD_COST;
+    }, [userProfile]);
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!productName.trim() || !productDescription.trim() || !targetAudience.trim()) return;
+
+        if (!hasSufficientBalance) {
+            setError(`Your balance is too low to generate an ad. The cost is $${AD_COST.toFixed(2)}.`);
+            return;
+        }
 
         setIsLoading(true);
         setGeneratedAd(null);
@@ -59,9 +87,10 @@ export default function AdCreationForm() {
     };
     
     const handleSave = async () => {
-        if (!generatedAd || !firestore || !user) return;
+        if (!generatedAd || !firestore || !user || !userProfileRef) return;
         setIsSaving(true);
         try {
+            // First, save the campaign
             await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
                 productName,
                 productDescription,
@@ -70,9 +99,15 @@ export default function AdCreationForm() {
                 status: 'draft',
                 createdAt: serverTimestamp(),
             });
+
+            // Then, deduct the cost from the user's balance
+            await updateDoc(userProfileRef, {
+                balance: increment(-AD_COST)
+            });
+
             toast({
                 title: "Campaign Saved!",
-                description: "Your new ad campaign has been saved as a draft.",
+                description: `Your new ad campaign has been saved. $${AD_COST.toFixed(2)} has been deducted from your balance.`,
             });
             setGeneratedAd(null); // Clear the form after saving
         } catch(e) {
@@ -87,8 +122,20 @@ export default function AdCreationForm() {
         }
     }
 
+    const canGenerate = useMemo(() => {
+        return hasSufficientBalance && productName.trim() && productDescription.trim() && targetAudience.trim()
+    }, [hasSufficientBalance, productName, productDescription, targetAudience]);
+
     return (
         <div className="space-y-6">
+             {!hasSufficientBalance && (
+                <Alert variant="destructive">
+                    <AlertTitle>Insufficient Balance</AlertTitle>
+                    <AlertDescription>
+                        Your current balance is ${userProfile?.balance?.toFixed(2) || '0.00'}. You need at least ${AD_COST.toFixed(2)} to create a new ad campaign. Please top up your balance.
+                    </AlertDescription>
+                </Alert>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid w-full gap-2">
                     <Label htmlFor="productName">Product/Service Name</Label>
@@ -121,7 +168,7 @@ export default function AdCreationForm() {
                         disabled={isLoading || isSaving}
                     />
                 </div>
-                <Button type="submit" disabled={isLoading || isSaving || !productName.trim() || !productDescription.trim() || !targetAudience.trim()}>
+                <Button type="submit" disabled={isLoading || isSaving || !canGenerate}>
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -136,7 +183,7 @@ export default function AdCreationForm() {
                 </Button>
             </form>
 
-            {error && (
+            {error && !isLoading &&(
                 <Card className="bg-destructive/10 border-destructive">
                     <CardHeader>
                         <CardTitle className="text-destructive">Generation Failed</CardTitle>
@@ -151,7 +198,7 @@ export default function AdCreationForm() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">Generated Ad Copy</CardTitle>
-                        <CardDescription>Review the AI-generated ad copy below. You can copy it or save the campaign.</CardDescription>
+                        <CardDescription>Review the AI-generated ad copy below. You can copy it or save the campaign to activate it.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -177,7 +224,7 @@ export default function AdCreationForm() {
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                   Save Campaign
+                                   Save Campaign & Deduct ${AD_COST.toFixed(2)}
                                 </>
                             )}
                         </Button>
