@@ -7,12 +7,12 @@ export default function CreateAdPage() {
         <div className="space-y-8">
             <div className="flex items-center gap-4">
                 <PenSquare className="h-8 w-8 text-primary"/>
-                <h1 className="text-3xl font-bold font-headline">مولد الإعلانات بالذكاء الاصطناعي</h1>
+                <h1 className="text-3xl font-bold font-headline">إعداد حملة إعلانية جديدة</h1>
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>إنشاء حملة إعلانية جديدة</CardTitle>
-                    <CardDescription>صف منتجك أو خدمتك ودع الذكاء الاصطناعي يولد نصًا إعلانيًا مقنعًا.</CardDescription>
+                    <CardTitle>محاكي حملات جوجل الإعلانية</CardTitle>
+                    <CardDescription>أدخل تفاصيل حملتك ودع الذكاء الاصطناعي يقترح عليك أفضل نسخة إعلانية. هذه محاكاة لتجربة إنشاء إعلان على جوجل.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <AdCreationForm />

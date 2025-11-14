@@ -20,13 +20,16 @@
           "description": "URL of the user's profile picture."
         },
         "balance": {
-            "type": "number",
-            "description": "The user's current account balance."
+          "type": "number",
+          "description": "The user's current account balance."
         },
         "role": {
-            "type": "string",
-            "description": "The user's role in the system.",
-            "enum": ["admin", "user"]
+          "type": "string",
+          "description": "The user's role in the system.",
+          "enum": [
+            "admin",
+            "user"
+          ]
         }
       },
       "required": [
@@ -108,6 +111,19 @@
         "targetAudience": {
           "type": "string"
         },
+        "websiteUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
         "headline": {
           "type": "string"
         },
@@ -133,7 +149,10 @@
         "headline",
         "body",
         "status",
-        "createdAt"
+        "createdAt",
+        "websiteUrl",
+        "keywords",
+        "targetAudience"
       ]
     },
     "Query": {
@@ -150,7 +169,10 @@
           "format": "date-time"
         }
       },
-      "required": ["query", "createdAt"]
+      "required": [
+        "query",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -179,10 +201,10 @@
       "description": "Stores ad campaigns created by a user."
     },
     "/queries/{queryId}": {
-        "schema": {
-            "$ref": "#/entities/Query"
-        },
-        "description": "Stores queries made to the smart assistant."
+      "schema": {
+        "$ref": "#/entities/Query"
+      },
+      "description": "Stores queries made to the smart assistant."
     }
   }
 }
