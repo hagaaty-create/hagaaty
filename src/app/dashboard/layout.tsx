@@ -10,7 +10,8 @@ import {
   BarChart,
   Shield,
   FileText,
-  Lightbulb
+  Lightbulb,
+  Users,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -57,6 +58,7 @@ export default function DashboardLayout({
     { href: '/dashboard/admin/generate', label: 'Generate Article', icon: PenSquare },
     { href: '/dashboard/admin/articles', label: 'Manage Articles', icon: FileText },
     { href: '/dashboard/admin/insights', label: 'Content Insights', icon: Lightbulb },
+    { href: '/dashboard/admin/campaigns', label: 'All Campaigns', icon: Users },
   ];
 
   const handleLogout = () => {
