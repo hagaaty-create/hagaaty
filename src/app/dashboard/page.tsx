@@ -23,7 +23,7 @@ type AdCampaign = {
     status: 'draft' | 'active' | 'paused' | 'completed';
 };
 
-const AD_COST = 20.00;
+const AD_COST = 2.00;
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-8">
-      <Card>
+      <Card className="border-0 shadow-none">
         <CardHeader>
           <CardTitle className="font-headline text-3xl">لوحة التحكم</CardTitle>
           <CardDescription>أهلاً بعودتك، {user?.displayName || 'مستخدم'}.</CardDescription>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                 <CardDescription>أنشئ حملة إعلانية جديدة من وصف بسيط.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
-                <p>استفد من قوة الذكاء الاصطناعي التوليدي لصياغة نصوص إعلانية واستراتيجيات حملة مقنعة في ثوانٍ. ما عليك سوى تقديم هدفك والسماح للذكاء الاصطناعي بالقيام بالباقي.</p>
+                <p className="text-muted-foreground">استفد من قوة الذكاء الاصطناعي التوليدي لصياغة نصوص إعلانية واستراتيجيات حملة مقنعة في ثوانٍ. ما عليك سوى تقديم هدفك والسماح للذكاء الاصطناعي بالقيام بالباقي.</p>
             </CardContent>
             <div className="p-6 pt-0">
                 <Button asChild className="w-full">
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                 <CardDescription>راقب أداء حملاتك.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
-                <p>تتبع النقرات ومرات الظهور والتحويلات لجميع حملاتك في مكان واحد. يوفر الذكاء الاصطناعي لدينا رؤى لمساعدتك على التحسين لتحقيق نتائج أفضل.</p>
+                <p className="text-muted-foreground">تتبع النقرات ومرات الظهور والتحويلات لجميع حملاتك في مكان واحد. يوفر الذكاء الاصطناعي لدينا رؤى لمساعدتك على التحسين لتحقيق نتائج أفضل.</p>
             </CardContent>
              <div className="p-6 pt-0">
                 <Button asChild className="w-full" variant="outline">
