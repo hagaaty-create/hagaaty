@@ -12,6 +12,7 @@ import {
   FileText,
   Lightbulb,
   Users,
+  Megaphone,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -72,6 +73,7 @@ export default function DashboardLayout({
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
     { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
     { href: '/dashboard/admin/campaigns', label: 'كل الحملات', icon: Users },
+    { href: '/dashboard/admin/auto-marketing', label: 'التسويق الآلي', icon: Megaphone },
   ];
 
   const handleLogout = () => {
