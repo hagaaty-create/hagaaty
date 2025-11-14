@@ -9,17 +9,47 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { doc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, collection, query, where, getDocs, getDoc, DocumentData } from 'firebase/firestore';
 import type { Post } from '@/types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { initializeFirebase } from '@/firebase';
+import { Metadata, ResolvingMetadata } from 'next';
 
 type ArticlePageProps = {
   params: {
     slug: string;
   };
 };
+
+// This function now runs on the server to generate metadata
+export async function generateMetadata(
+  { params }: ArticlePageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { firestore } = initializeFirebase();
+  const { slug } = params;
+
+  const postsRef = collection(firestore, 'posts');
+  const q = query(postsRef, where('slug', '==', slug));
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.empty) {
+    return {
+      title: 'Article Not Found',
+    }
+  }
+
+  const postDoc = querySnapshot.docs[0];
+  const post = postDoc.data() as Post;
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+  };
+}
+
 
 function formatDate(date: string | Timestamp) {
     if (typeof date === 'string') {
