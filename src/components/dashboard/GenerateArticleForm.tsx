@@ -8,13 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, Wand2, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "../ui/input";
 import Image from 'next/image';
+import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
 
 type GeneratedData = {
     article: string;
@@ -35,7 +36,7 @@ enum GenerationStep {
 
 const stepMessages = {
     [GenerationStep.GeneratingArticle]: "جاري كتابة المقال...",
-    [GenerationStep.GeneratingMetadata]: "جاري تصنيف المقال...",
+    [GenerationStep.GeneratingMetadata]: "جاري تصنيف المقال ووضع الوسوم...",
     [GenerationStep.GeneratingImage]: "جاري توليد صورة فريدة...",
 };
 
@@ -152,7 +153,7 @@ export default function GenerateArticleForm() {
                         disabled={isLoading || isSaving}
                     />
                     <p className="text-sm text-muted-foreground">
-                        كن محددًا أو عامًا كما تريد.
+                        كن محددًا أو عامًا كما تريد. سيقوم الذكاء الاصطناعي بالباقي.
                     </p>
                 </div>
                 <Button type="submit" disabled={isLoading || isSaving || !prompt.trim()}>
@@ -170,62 +171,73 @@ export default function GenerateArticleForm() {
                 </Button>
             </form>
 
-            {error && (
-                <Card className="bg-destructive/10 border-destructive">
-                    <CardHeader>
-                        <CardTitle className="text-destructive">فشل التوليد</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p>{error}</p>
-                    </CardContent>
-                </Card>
+            {error && !isLoading &&(
+                <Alert variant="destructive">
+                    <AlertTitle>فشل التوليد</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
             )}
 
             {generatedData && (
                  <Card>
                     <CardHeader>
+                        <CardTitle className="font-headline text-2xl">مراجعة المقال المولد</CardTitle>
+                        <CardDescription>راجع المحتوى الذي تم إنشاؤه بواسطة الذكاء الاصطناعي. يمكنك تحرير أي جزء قبل الحفظ.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
                         {generatedData.imageUrl ? (
-                           <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-4 border shadow-sm">
+                           <div className="relative aspect-video w-full rounded-lg overflow-hidden border shadow-sm">
                                <Image src={generatedData.imageUrl} alt={generatedData.title} fill className="object-cover"/>
                            </div>
                         ) : (
-                           <div className="flex justify-center items-center aspect-video w-full rounded-lg bg-muted text-muted-foreground">
-                             <ImageIcon className="h-10 w-10" />
+                           <div className="flex flex-col justify-center items-center aspect-video w-full rounded-lg bg-muted text-muted-foreground">
+                             <Loader2 className="h-10 w-10 animate-spin mb-2" />
+                             <p>{stepMessages[GenerationStep.GeneratingImage]}</p>
                            </div>
                         )}
-                        <Label htmlFor="title">العنوان</Label>
-                        <Input 
-                            id="title" 
-                            value={generatedData.title}
-                            onChange={(e) => setGeneratedData({...generatedData, title: e.target.value})}
-                            className="text-2xl font-bold font-headline"
-                        />
-                        <div className="flex flex-wrap gap-2 pt-2">
-                            <Badge variant="secondary">{generatedData.category || '...'}</Badge>
-                            {generatedData.tags.map(tag => (
-                                <Badge key={tag} variant="outline">{tag}</Badge>
-                            ))}
+                        <div className="space-y-2">
+                          <Label htmlFor="title">العنوان</Label>
+                          <Input 
+                              id="title" 
+                              value={generatedData.title}
+                              onChange={(e) => setGeneratedData({...generatedData, title: e.target.value})}
+                              className="text-xl font-bold font-headline h-auto py-2"
+                              disabled={isSaving}
+                          />
                         </div>
-                    </CardHeader>
-                    <CardContent className="prose max-w-none">
-                        <Textarea 
-                            value={generatedData.article}
-                            onChange={(e) => setGeneratedData({...generatedData, article: e.target.value})}
-                            rows={15}
-                            className="prose"
-                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Label>الفئة:</Label>
+                            <Badge variant="secondary">{generatedData.category || 'جاري التحديد...'}</Badge>
+                        </div>
+                         <div className="flex flex-wrap items-center gap-2">
+                             <Label>الوسوم:</Label>
+                            {generatedData.tags.length > 0 ? generatedData.tags.map(tag => (
+                                <Badge key={tag} variant="outline">{tag}</Badge>
+                            )) : <span className="text-sm text-muted-foreground">جاري التحديد...</span>}
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="content">المحتوى</Label>
+                            <Textarea 
+                                id="content"
+                                value={generatedData.article}
+                                onChange={(e) => setGeneratedData({...generatedData, article: e.target.value})}
+                                rows={15}
+                                className="leading-relaxed"
+                                disabled={isSaving}
+                            />
+                        </div>
                     </CardContent>
                     <CardFooter>
                         <Button onClick={handleSave} disabled={isSaving || isLoading}>
                              {isSaving ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    جاري الحفظ...
+                                    جاري الحفظ والنشر...
                                 </>
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                   حفظ ونشر
+                                   حفظ ونشر المقال
                                 </>
                             )}
                         </Button>

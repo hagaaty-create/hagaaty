@@ -12,7 +12,7 @@ export default function GenerateArticlePage() {
             <Card>
                 <CardHeader>
                     <CardTitle>مولد المقالات بالذكاء الاصطناعي</CardTitle>
-                    <CardDescription>استخدم الذكاء الاصطناعي لكتابة مقال جديد للمدونة.</CardDescription>
+                    <CardDescription>استخدم الذكاء الاصطناعي لكتابة مقال جديد للمدونة بناءً على فكرة بسيطة.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <GenerateArticleForm />
