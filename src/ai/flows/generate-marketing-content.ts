@@ -8,10 +8,11 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import type { Post } from '@/types';
+import { generateImage } from './generate-image-flow';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
@@ -38,6 +39,7 @@ export const GenerateMarketingContentOutputSchema = z.object({
     xPost: SocialPostSchema.describe('A post formatted for X (formerly Twitter).'),
   }),
   imageIdeas: z.array(z.string()).describe('A list of 3 creative and engaging image ideas for the social media posts, in Arabic.'),
+  imageUrl: z.string().url().describe('URL of the generated image for the campaign.'),
 });
 
 export type GenerateMarketingContentOutput = z.infer<typeof GenerateMarketingContentOutputSchema>;
@@ -90,7 +92,7 @@ const getMostRecentArticle = ai.defineTool(
 
 const marketingPrompt = ai.definePrompt({
   name: 'generateMarketingContentPrompt',
-  output: { schema: GenerateMarketingContentOutputSchema },
+  output: { schema: GenerateMarketingContentOutputSchema.omit({ imageUrl: true }) }, // The prompt itself doesn't generate the image URL
   tools: [getMostRecentArticle],
   prompt: `أنت مدير تسويق رقمي خبير ومبدع للمدونة التقنية "حاجتي للذكاء الاصطناعي". مهمتك هي إنشاء حملة تسويق محتوى صغيرة ومؤثرة.
 
@@ -118,8 +120,19 @@ const generateMarketingContentFlow = ai.defineFlow(
     if (!output) {
       throw new Error('Failed to generate marketing content from prompt.');
     }
-    console.log('[generateMarketingContentFlow] Successfully generated marketing content.');
-    return output;
+    
+    if (output.imageIdeas.length === 0) {
+        throw new Error('No image ideas were generated.');
+    }
+
+    console.log(`[generateMarketingContentFlow] Generating image for idea: "${output.imageIdeas[0]}"`);
+    const imageResult = await generateImage({ prompt: output.imageIdeas[0] });
+
+    console.log('[generateMarketingContentFlow] Successfully generated all marketing content.');
+    return {
+        ...output,
+        imageUrl: imageResult.imageUrl,
+    };
   }
 );
 
