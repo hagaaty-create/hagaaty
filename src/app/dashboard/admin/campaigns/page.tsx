@@ -19,8 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collectionGroup, query, orderBy, getDocs, doc, getDoc, where } from 'firebase/firestore';
-import { useMemo, useState, useEffect } from 'react';
+import { collectionGroup, query, orderBy, getDocs, collection, where } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -75,13 +75,19 @@ export default function AllCampaignsPage() {
       const usersMap = new Map<string, string>();
       
       if (userIds.length > 0 && firestore) {
-          // Firestore 'in' query is limited to 30 items. 
-          // If you expect more users, you'd need to batch this.
-          const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', userIds));
-          const usersSnapshot = await getDocs(usersQuery);
-          usersSnapshot.forEach(userDoc => {
-              usersMap.set(userDoc.id, userDoc.data().email || 'غير موجود');
-          });
+          const MAX_IN_CLAUSE_SIZE = 30; // Firestore 'in' query limit
+          const userBatches: string[][] = [];
+          for (let i = 0; i < userIds.length; i += MAX_IN_CLAUSE_SIZE) {
+            userBatches.push(userIds.slice(i, i + MAX_IN_CLAUSE_SIZE));
+          }
+          
+          await Promise.all(userBatches.map(async (batch) => {
+            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', batch));
+            const usersSnapshot = await getDocs(usersQuery);
+            usersSnapshot.forEach(userDoc => {
+                usersMap.set(userDoc.id, userDoc.data().email || 'غير موجود');
+            });
+          }));
       }
 
       const populatedCampaigns = campaignsData.map(campaign => {
