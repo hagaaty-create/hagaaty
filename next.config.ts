@@ -1,3 +1,4 @@
+require('dotenv').config({ path: './.env' });
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -29,6 +30,12 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  devIndicators: {
+    buildActivity: false,
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['firebase-admin'],
   },
 };
 
