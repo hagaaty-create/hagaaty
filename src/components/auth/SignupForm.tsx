@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useAuth, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, User, setPersistence, inMemoryPersistence } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 
@@ -68,13 +68,10 @@ export default function SignupForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Update the profile on Firebase Auth
       await updateProfile(userCredential.user, { displayName: fullName });
       
-      // Now create the profile in Firestore, passing the full name explicitly
       await createUserProfile(userCredential.user, fullName);
       
-      // Reload the user to make sure the displayName is fresh
       await userCredential.user.reload();
 
       router.push('/dashboard');
@@ -95,7 +92,6 @@ export default function SignupForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await setPersistence(auth, inMemoryPersistence);
       const result = await signInWithPopup(auth, provider);
       await createUserProfile(result.user);
       router.push('/dashboard');

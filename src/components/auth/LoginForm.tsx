@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, setPersistence, inMemoryPersistence, User } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   AlertDialog,
@@ -63,7 +63,6 @@ export default function LoginForm() {
           description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
       });
     } else {
-        // If user exists, just ensure their profile info is up-to-date from Google
         await setDoc(userRef, {
             displayName: user.displayName,
             email: user.email,
@@ -96,7 +95,6 @@ export default function LoginForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await setPersistence(auth, inMemoryPersistence);
       const result = await signInWithPopup(auth, provider);
       await checkAndCreateUserProfile(result.user);
       router.push('/dashboard');
