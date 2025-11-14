@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link"
-
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,11 +12,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
-import { useAuth, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmailAndPassword, updateProfile, User } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 
 export default function SignupForm() {
@@ -26,71 +22,34 @@ export default function SignupForm() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
 
-  const createUserProfile = async (user: User, customDisplayName?: string) => {
-    if (!firestore) return;
-    const userRef = doc(firestore, 'users', user.uid);
-    
-    const docSnap = await getDoc(userRef);
-
-    if (!docSnap.exists()) {
-      const displayName = customDisplayName || user.displayName;
-      const isFirstAdmin = user.email === 'hagaaty@gmail.com';
-      await setDoc(userRef, {
-        displayName: displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        balance: 2.00,
-        role: isFirstAdmin ? 'admin' : 'user'
-      });
-       toast({
-          title: "تم إنشاء الحساب!",
-          description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
-      });
-    } else {
-       await setDoc(userRef, {
-        displayName: customDisplayName || user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-      }, { merge: true });
-    }
-  }
-
+  // --- MOCK AUTHENTICATION ---
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) {
-        toast({
-            variant: 'destructive',
-            title: 'خطأ في التهيئة',
-            description: 'لم يتم تهيئة خدمة المصادقة. يرجى المحاولة مرة أخرى.',
-        });
-        return;
-    }
     setIsLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      await updateProfile(userCredential.user, { displayName: fullName });
-      
-      await createUserProfile(userCredential.user, fullName);
-      
-      await userCredential.user.reload();
 
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      toast({
-        variant: 'destructive',
-        title: 'فشل إنشاء الحساب',
-        description: 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Simulate a network request
+    setTimeout(() => {
+        if (fullName && email && password) {
+            console.log("Mock signup successful for:", email);
+            toast({
+                title: "تم إنشاء الحساب! (محاكاة)",
+                description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
+            });
+            // In a real app, you would also create a user profile here.
+            // For now, we just navigate to the dashboard.
+            router.push('/dashboard');
+        } else {
+             toast({
+                variant: 'destructive',
+                title: 'فشل إنشاء الحساب',
+                description: 'الرجاء ملء جميع الحقول.',
+            });
+            setIsLoading(false);
+        }
+    }, 1000);
   };
 
   return (

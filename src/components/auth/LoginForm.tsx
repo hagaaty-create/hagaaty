@@ -11,12 +11,10 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/firebase';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,59 +31,43 @@ import {
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [resetEmail, setResetEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-
-  const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
+  // --- MOCK AUTHENTICATION ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) {
-        toast({
-            variant: 'destructive',
-            title: 'خطأ في التهيئة',
-            description: 'لم يتم تهيئة خدمة المصادقة. يرجى المحاولة مرة أخرى.',
-        });
-        return;
-    }
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'فشل تسجيل الدخول',
-        description: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+
+    // Simulate a network request
+    setTimeout(() => {
+      // Any email/password will work for this simulation
+      if (email && password) {
+        console.log("Mock login successful for:", email);
+        toast({
+            title: "تم تسجيل الدخول (محاكاة)",
+            description: "تم تسجيل دخولك بنجاح في الوضع الوهمي.",
+        });
+        router.push('/dashboard');
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'فشل تسجيل الدخول',
+          description: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.',
+        });
+        setIsLoading(false);
+      }
+      // No need to set isLoading to false on success because we are navigating away
+    }, 1000);
   };
 
   const handlePasswordReset = async () => {
-    if (!auth || !resetEmail) return;
-    setIsResetting(true);
-    try {
-        await sendPasswordResetEmail(auth, resetEmail);
-        toast({
-            title: 'تم إرسال بريد إلكتروني',
-            description: 'تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.',
-        });
-    } catch (error: any) {
-        toast({
-            variant: 'destructive',
-            title: 'فشل إرسال البريد الإلكتروني',
-            description: 'قد لا يكون هذا البريد الإلكتروني مسجلاً. يرجى التحقق والمحاولة مرة أخرى.',
-        });
-    } finally {
-        setIsResetting(false);
-    }
+    toast({
+        title: "تم إرسال البريد الإلكتروني (محاكاة)",
+        description: "في الوضع الحقيقي, سيتم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور.",
+    });
   }
-
 
   return (
     <Card className="mx-auto max-w-sm w-full bg-card/50 border-border/50">
@@ -132,14 +114,11 @@ export default function LoginForm() {
                             type="email"
                             placeholder="m@example.com"
                             required
-                            value={resetEmail}
-                            onChange={(e) => setResetEmail(e.target.value)}
                         />
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction onClick={handlePasswordReset} disabled={isResetting}>
-                             {isResetting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                        <AlertDialogAction onClick={handlePasswordReset}>
                             إرسال
                         </AlertDialogAction>
                     </AlertDialogFooter>
