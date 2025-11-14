@@ -110,7 +110,7 @@ export default function SignupForm() {
 
 
   return (
-    <Card className="mx-auto max-w-sm w-full">
+    <Card className="mx-auto max-w-sm w-full bg-card/50 border-border/50">
       <CardHeader>
         <CardTitle className="text-xl font-headline">إنشاء حساب</CardTitle>
         <CardDescription>

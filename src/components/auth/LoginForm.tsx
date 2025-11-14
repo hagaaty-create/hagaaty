@@ -100,7 +100,7 @@ export default function LoginForm() {
 
 
   return (
-    <Card className="mx-auto max-w-sm w-full">
+    <Card className="mx-auto max-w-sm w-full bg-card/50 border-border/50">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">تسجيل الدخول</CardTitle>
         <CardDescription>

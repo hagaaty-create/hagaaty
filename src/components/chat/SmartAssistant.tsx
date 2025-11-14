@@ -103,7 +103,7 @@ export default function SmartAssistant() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button
-          className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
+          className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg shadow-primary/30"
           size="icon"
           aria-label="Open Smart Assistant"
         >
