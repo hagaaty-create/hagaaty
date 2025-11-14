@@ -26,7 +26,7 @@ type AdCampaign = {
     }
 };
 
-const AD_COST = 20.00;
+const AD_COST = 2.00;
 
 export default function CampaignsPage() {
     const { user } = useUser();
