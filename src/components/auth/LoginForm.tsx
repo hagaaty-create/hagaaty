@@ -11,12 +11,13 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, setPersistence, inMemoryPersistence, User } from 'firebase/auth';
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,8 +40,28 @@ export default function LoginForm() {
   const [isResetting, setIsResetting] = useState(false);
 
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+
+    const checkAndCreateUserProfile = async (user: User) => {
+    if (!firestore) return;
+    const userRef = doc(firestore, 'users', user.uid);
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) {
+      // This case is unlikely for a login flow but good for robustness.
+      // A user logging in with Google for the first time should be handled by the signup flow.
+      await setDoc(userRef, {
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        balance: 2.00, // Welcome bonus
+        role: 'user'
+      }, { merge: true });
+    }
+  }
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,9 +86,13 @@ export default function LoginForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      // Use in-memory persistence for popup flows
+      await setPersistence(auth, inMemoryPersistence);
+      const result = await signInWithPopup(auth, provider);
+      await checkAndCreateUserProfile(result.user);
       router.push('/dashboard');
     } catch (error: any) {
+       console.error("Google sign-in error:", error);
       toast({
         variant: 'destructive',
         title: 'فشل تسجيل الدخول بحساب جوجل',
