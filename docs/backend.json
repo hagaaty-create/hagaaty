@@ -142,6 +142,24 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "performance": {
+          "type": "object",
+          "description": "Simulated performance metrics for the ad campaign.",
+          "properties": {
+            "impressions": {
+              "type": "number",
+              "description": "Estimated number of times the ad was shown."
+            },
+            "clicks": {
+              "type": "number",
+              "description": "Estimated number of clicks on the ad."
+            },
+            "ctr": {
+              "type": "number",
+              "description": "Estimated Click-Through Rate (clicks / impressions)."
+            }
+          }
         }
       },
       "required": [
