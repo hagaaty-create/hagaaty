@@ -1,3 +1,4 @@
+import AdCreationForm from "@/components/dashboard/AdCreationForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PenSquare } from "lucide-react";
 
@@ -11,10 +12,10 @@ export default function CreateAdPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Create New Ad Campaign</CardTitle>
-                    <CardDescription>Describe your product or service and let our AI generate a compelling ad campaign.</CardDescription>
+                    <CardDescription>Describe your product or service and let our AI generate compelling ad copy.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p>Ad creation form will be here.</p>
+                    <AdCreationForm />
                 </CardContent>
             </Card>
         </div>
