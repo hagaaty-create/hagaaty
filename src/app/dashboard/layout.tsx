@@ -89,7 +89,7 @@ export default function DashboardLayout({
     return (
       <div className="flex h-screen w-full bg-background">
         <div className='hidden md:block'>
-          <Skeleton className="h-full w-[16rem]" />
+          <Skeleton className="h-full w-64" />
         </div>
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
            <Skeleton className="h-full w-full" />
@@ -106,25 +106,27 @@ export default function DashboardLayout({
       <div className="flex min-h-screen bg-background">
         <Sidebar>
             <SidebarHeader>
-                <div className="flex items-center gap-2 p-2">
-                    <Avatar>
+                <div className="flex items-center gap-3 p-2">
+                    <Avatar className='size-10'>
                         {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'}/>}
                         <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="text-sm overflow-hidden text-sidebar-foreground">
                         <p className="font-semibold truncate">{user.displayName || 'User Name'}</p>
-                        <p className="text-muted-foreground truncate">{user.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                 </div>
             </SidebarHeader>
             <SidebarContent>
-                <SidebarMenu>
+              <SidebarMenu>
+                <SidebarGroup>
                     {userNavItems.map((item) => (
                         <SidebarMenuItem key={item.href}>
                             <Link href={item.href}>
                                 <SidebarMenuButton
                                     isActive={pathname === item.href}
                                     tooltip={item.label}
+                                    size='lg'
                                 >
                                     <item.icon />
                                     <span>{item.label}</span>
@@ -132,7 +134,7 @@ export default function DashboardLayout({
                             </Link>
                         </SidebarMenuItem>
                     ))}
-                </SidebarMenu>
+                </SidebarGroup>
                 
                 {isAdmin && (
                   <>
@@ -149,6 +151,7 @@ export default function DashboardLayout({
                                       <SidebarMenuButton
                                           isActive={item.matchStartsWith ? pathname.startsWith(item.href) : pathname === item.href}
                                           tooltip={item.label}
+                                          size='lg'
                                       >
                                           <item.icon />
                                           <span>{item.label}</span>
@@ -160,7 +163,7 @@ export default function DashboardLayout({
                   </SidebarGroup>
                   </>
                 )}
-
+              </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
