@@ -17,7 +17,7 @@ import { useAuth, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 
 export default function SignupForm() {
@@ -32,15 +32,33 @@ export default function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const createUserProfile = async (user: User, isNewUser: boolean) => {
+  const createUserProfile = async (user: User) => {
     if (!firestore) return;
     const userRef = doc(firestore, 'users', user.uid);
-    await setDoc(userRef, {
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: user.photoURL,
-      balance: isNewUser ? 2.00 : 0, // Give $2 bonus to new users
-    }, { merge: true });
+    
+    // Check if the user document already exists
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) {
+      // New user, create the profile with a $2 bonus
+      await setDoc(userRef, {
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        balance: 2.00, // Give $2 bonus to new users
+      });
+       toast({
+          title: "Account Created!",
+          description: "Welcome! You've received a $2 bonus.",
+      });
+    } else {
+      // Existing user, just merge the latest profile info without changing the balance
+       await setDoc(userRef, {
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+      }, { merge: true });
+    }
   }
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -51,12 +69,10 @@ export default function SignupForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: fullName });
       
-      await createUserProfile(userCredential.user, true);
+      // We pass the updated user object to ensure displayName is included
+      const updatedUser = { ...userCredential.user, displayName: fullName };
+      await createUserProfile(updatedUser as User);
 
-      toast({
-        title: "Account Created!",
-        description: "Welcome! You've received a $2 bonus.",
-      });
       router.push('/dashboard');
     } catch (error: any) {
       toast({
@@ -76,18 +92,7 @@ export default function SignupForm() {
     try {
       const result = await signInWithPopup(auth, provider);
       
-      // The getAdditionalUserInfo function can tell us if the user is new
-      const { getAdditionalUserInfo } = await import('firebase/auth');
-      const info = getAdditionalUserInfo(result);
-      
-      await createUserProfile(result.user, !!info?.isNewUser);
-
-      if (info?.isNewUser) {
-        toast({
-            title: "Account Created!",
-            description: "Welcome! You've received a $2 bonus.",
-        });
-      }
+      await createUserProfile(result.user);
 
       router.push('/dashboard');
     } catch (error: any) {
@@ -107,7 +112,7 @@ export default function SignupForm() {
       <CardHeader>
         <CardTitle className="text-xl font-headline">Sign Up</CardTitle>
         <CardDescription>
-          Enter your information to create an account
+          Enter your information to create an account and get a $2 bonus!
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -20,8 +20,6 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  // We use a key for the userProfileRef to force a re-fetch when the user changes.
-  // This is a simple way to ensure the data is fresh after balance updates.
   const userProfileRef = useMemo(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -48,7 +46,7 @@ export default function DashboardPage() {
                 ) : (
                    <div className="text-2xl font-bold">${userProfile?.balance?.toFixed(2) || '0.00'}</div>
                 )}
-                <p className="text-xs text-muted-foreground">Ready to launch some ads?</p>
+                <p className="text-xs text-muted-foreground">This includes your welcome bonus!</p>
               </CardContent>
             </Card>
             <Card>
