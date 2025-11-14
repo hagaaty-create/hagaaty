@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import SmartAssistant from '@/components/chat/SmartAssistant';
-import { FirebaseProvider } from '@/firebase/provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
@@ -25,17 +24,15 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <FirebaseProvider>
-          <FirebaseClientProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <SmartAssistant />
-            <Toaster />
-          </FirebaseClientProvider>
-        </FirebaseProvider>
+        <FirebaseClientProvider>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <SmartAssistant />
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );
