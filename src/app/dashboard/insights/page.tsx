@@ -35,18 +35,18 @@ export default function InsightsPage() {
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Lightbulb className="h-8 w-8 text-primary" />
-                    <h1 className="text-3xl font-bold font-headline">Content Insights</h1>
+                    <h1 className="text-3xl font-bold font-headline">رؤى المحتوى</h1>
                 </div>
                  <Button onClick={fetchSuggestions} disabled={isLoading}>
                     <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    Refresh
+                    تحديث
                 </Button>
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>AI-Generated Topic Suggestions</CardTitle>
+                    <CardTitle>اقتراحات مواضيع مولدة بالذكاء الاصطناعي</CardTitle>
                     <CardDescription>
-                        Based on recent user questions to the Smart Assistant, here are some recommended topics for new blog articles.
+                        بناءً على الأسئلة الأخيرة للمستخدمين للمساعد الذكي، إليك بعض المواضيع الموصى بها لمقالات المدونة الجديدة.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -62,7 +62,7 @@ export default function InsightsPage() {
                     )}
                     {error && (
                         <div className="text-center py-12 text-destructive">
-                            <p>Failed to load suggestions.</p>
+                            <p>فشل تحميل الاقتراحات.</p>
                             <p className="text-sm">{error}</p>
                         </div>
                     )}
@@ -77,7 +77,7 @@ export default function InsightsPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <p className="text-sm text-muted-foreground pl-7">{suggestion.reason}</p>
+                                        <p className="text-sm text-muted-foreground pr-7">{suggestion.reason}</p>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -85,8 +85,8 @@ export default function InsightsPage() {
                     )}
                      {!isLoading && !error && suggestions.length === 0 && (
                         <div className="text-center py-12 text-muted-foreground">
-                            <p>No suggestions available yet.</p>
-                            <p>This could be because there are no recent user queries.</p>
+                            <p>لا توجد اقتراحات متاحة حتى الآن.</p>
+                            <p>قد يكون هذا بسبب عدم وجود استفسارات حديثة من المستخدمين.</p>
                         </div>
                     )}
                 </CardContent>

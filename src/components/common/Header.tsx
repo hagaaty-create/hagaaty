@@ -106,7 +106,7 @@ export default function Header() {
 
         <div className="flex items-center gap-4">
           <div className="relative hidden sm:block">
-             <Input placeholder="ابحث عن مقالات..." className="pl-4 pr-10 w-48 lg:w-64" />
+             <Input placeholder="ابحث..." className="pl-4 pr-10 w-48 lg:w-64" />
              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
           <UserMenu />
