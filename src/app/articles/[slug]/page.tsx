@@ -8,7 +8,6 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { useDoc } from '@/firebase';
 import { useFirestore } from '@/firebase';
 import { doc, collection, query, where, getDocs } from 'firebase/firestore';
 import type { Post } from '@/types';

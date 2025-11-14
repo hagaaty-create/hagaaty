@@ -3,7 +3,7 @@
 import { ArticleCard } from '@/components/blog/ArticleCard';
 import { Button } from '@/components/ui/button';
 import { useCollection } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ export default function BlogPage() {
   const firestore = useFirestore();
   const postsQuery = useMemo(() => {
     if (!firestore) return null;
-    return collection(firestore, 'posts');
+    return query(collection(firestore, 'posts'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const { data: posts, loading } = useCollection<Post>(postsQuery);
@@ -36,7 +36,10 @@ export default function BlogPage() {
               </section>
               <section className="mb-16">
                   <Skeleton className="h-8 w-1/4 mb-8" />
-                  <Skeleton className="w-full h-96" />
+                  <div className="grid gap-8 md:grid-cols-2">
+                    <Skeleton className="h-96 w-full" />
+                    <Skeleton className="h-96 w-full" />
+                  </div>
               </section>
               <section>
                    <Skeleton className="h-8 w-1/4 mb-8" />
