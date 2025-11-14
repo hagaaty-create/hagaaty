@@ -55,11 +55,11 @@ export default function DashboardPage() {
   }, [campaigns]);
 
   return (
-    <div className="grid gap-8">
-      <Card className="border-0 shadow-none">
+    <div className="space-y-8">
+      <Card className="bg-transparent border-0 shadow-none">
         <CardHeader>
-          <CardTitle className="font-headline text-3xl">لوحة التحكم</CardTitle>
-          <CardDescription>أهلاً بعودتك، {user?.displayName || 'مستخدم'}.</CardDescription>
+          <CardTitle className="font-headline text-4xl">أهلاً بعودتك، {user?.displayName || 'مستخدم'}.</CardTitle>
+          <CardDescription className="text-lg">هذه هي لوحة التحكم الخاصة بك.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
            <Card>
@@ -69,7 +69,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 {userLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 ) : (
                    <div className="text-2xl font-bold">${userProfile?.balance?.toFixed(2) || '0.00'}</div>
                 )}
@@ -83,7 +83,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                  {campaignsLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                  ) : (
                     <div className="text-2xl font-bold">{activeCampaigns}</div>
                  )}
@@ -94,10 +94,10 @@ export default function DashboardPage() {
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">إجمالي الإنفاق</CardTitle>
                 <BarChart className="h-4 w-4 text-muted-foreground" />
-              </Header>
+              </CardHeader>
               <CardContent>
                  {campaignsLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                  ) : (
                     <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
                  )}
