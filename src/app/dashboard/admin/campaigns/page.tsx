@@ -44,6 +44,11 @@ type AdCampaign = {
   }
 };
 
+type UserProfile = {
+    id: string;
+    email?: string;
+}
+
 const AD_COST = 2.00;
 
 export default function AllCampaignsPage() {
@@ -54,65 +59,45 @@ export default function AllCampaignsPage() {
   useEffect(() => {
     if (!firestore) return;
 
-    const fetchAllCampaigns = async () => {
+    const fetchAllCampaignsAndUsers = async () => {
       setLoading(true);
+      
+      // 1. Fetch all users and create a map
+      const usersRef = collection(firestore, 'users');
+      const usersSnapshot = await getDocs(usersRef);
+      const usersMap = new Map<string, UserProfile>();
+      usersSnapshot.forEach(doc => {
+          usersMap.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
+      });
+
+      // 2. Fetch all campaigns
       const campaignsQuery = query(
         collectionGroup(firestore, 'campaigns'),
         orderBy('createdAt', 'desc')
       );
-      const snapshot = await getDocs(campaignsQuery);
+      const campaignsSnapshot = await getDocs(campaignsQuery);
       
-      const campaignsData = snapshot.docs.map(doc => {
+      // 3. Map user data to campaigns
+      const campaignsData = campaignsSnapshot.docs.map(doc => {
         const data = doc.data();
-        const parentDoc = doc.ref.parent.parent; // This gets the user document
+        const userId = doc.ref.parent.parent?.id;
+        const user = userId ? usersMap.get(userId) : undefined;
+        
         return {
           id: doc.id,
           ...data,
           user: {
-            id: parentDoc?.id || 'unknown',
-            email: 'جاري التحميل...', // Placeholder
+            id: userId || 'unknown',
+            email: user?.email || 'غير موجود',
           }
         } as AdCampaign;
       });
 
-      // Fetch user emails efficiently
-      const userIds = [...new Set(campaignsData.map(c => c.user?.id).filter(Boolean) as string[])];
-      const usersMap = new Map<string, string>();
-      
-      if (userIds.length > 0 && firestore) {
-          const MAX_IN_CLAUSE_SIZE = 30; // Firestore 'in' query limit
-          const userBatches: string[][] = [];
-          for (let i = 0; i < userIds.length; i += MAX_IN_CLAUSE_SIZE) {
-            userBatches.push(userIds.slice(i, i + MAX_IN_CLAUSE_SIZE));
-          }
-          
-          await Promise.all(userBatches.map(async (batch) => {
-            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', batch));
-            const usersSnapshot = await getDocs(usersQuery);
-            usersSnapshot.forEach(userDoc => {
-                usersMap.set(userDoc.id, userDoc.data().email || 'غير موجود');
-            });
-          }));
-      }
-
-      const populatedCampaigns = campaignsData.map(campaign => {
-          if (campaign.user) {
-              return {
-                  ...campaign,
-                  user: {
-                      ...campaign.user,
-                      email: usersMap.get(campaign.user.id) || 'غير موجود'
-                  }
-              }
-          }
-          return campaign;
-      });
-
-      setCampaigns(populatedCampaigns);
+      setCampaigns(campaignsData);
       setLoading(false);
     };
 
-    fetchAllCampaigns();
+    fetchAllCampaignsAndUsers();
   }, [firestore]);
 
   const { chartData, totalImpressions, totalClicks, totalSpent, totalCampaigns } = useMemo(() => {
