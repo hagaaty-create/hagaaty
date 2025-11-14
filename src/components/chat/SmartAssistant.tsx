@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Bot, Loader2, Send, User } from 'lucide-react';
+import { Bot, Loader2, Send, User, Sparkles } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -19,6 +20,7 @@ export default function SmartAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -27,11 +29,12 @@ export default function SmartAssistant() {
 
     const userMessage: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentQuery = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      const result = await smartAssistantChat({ query: input });
+      const result = await smartAssistantChat({ query: currentQuery });
       const assistantMessage: Message = { role: 'assistant', content: result.response };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -55,8 +58,14 @@ export default function SmartAssistant() {
     }
   }, [messages]);
 
+  const exampleQueries = [
+    "What is Generative AI?",
+    "How does Quantum Computing work?",
+    "What are the principles of good UI design?"
+  ];
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button
           className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
@@ -66,31 +75,53 @@ export default function SmartAssistant() {
           <Bot className="h-8 w-8" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0" aria-label="Smart Assistant">
         <SheetHeader className="p-6 border-b">
           <SheetTitle className="flex items-center gap-2">
-            <Bot className="h-6 w-6" />
-            Smart Assistant
+            <Sparkles className="h-6 w-6 text-primary" />
+            <span className="font-headline">Smart Assistant</span>
           </SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex-1" ref={scrollAreaRef}>
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-6">
             {messages.length === 0 && (
-                <div className="text-center text-muted-foreground p-8">
-                    <Bot className="mx-auto h-12 w-12 mb-4"/>
-                    <p>Hello! I'm the Hagaaty AI assistant. Ask me anything about our articles.</p>
+                <div className="text-center text-muted-foreground p-4 sm:p-8">
+                    <Bot className="mx-auto h-12 w-12 mb-4 text-primary/50"/>
+                    <p className='mb-6'>Hello! I'm the Hagaaty AI assistant. Ask me anything about the articles on this blog.</p>
+                    <div className='flex flex-col items-center gap-2'>
+                        {exampleQueries.map((q) => (
+                           <Button 
+                             key={q}
+                             variant="outline"
+                             size="sm"
+                             className="w-full"
+                             onClick={() => {
+                                setMessages(prev => [...prev, {role: 'user', content: q}]);
+                                setIsLoading(true);
+                                smartAssistantChat({ query: q }).then(result => {
+                                  setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
+                                }).catch(err => {
+                                    setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I had an issue. Please try again.'}]);
+                                    console.error(err);
+                                }).finally(() => setIsLoading(false));
+                            }}
+                           >
+                            {q}
+                           </Button>
+                        ))}
+                    </div>
                 </div>
             )}
             {messages.map((message, index) => (
               <div key={index} className={cn('flex items-start gap-3', message.role === 'user' ? 'justify-end' : '')}>
                 {message.role === 'assistant' && (
-                  <Avatar className="h-8 w-8 border">
-                    <AvatarFallback><Bot size={16}/></AvatarFallback>
+                  <Avatar className="h-8 w-8 border bg-primary/10 text-primary">
+                    <AvatarFallback><Sparkles size={16}/></AvatarFallback>
                   </Avatar>
                 )}
                 <div
                   className={cn(
-                    'max-w-[80%] rounded-lg p-3 text-sm',
+                    'max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap',
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
@@ -107,8 +138,8 @@ export default function SmartAssistant() {
             ))}
             {isLoading && (
               <div className="flex items-start gap-3">
-                 <Avatar className="h-8 w-8 border">
-                    <AvatarFallback><Bot size={16}/></AvatarFallback>
+                 <Avatar className="h-8 w-8 border bg-primary/10 text-primary">
+                    <AvatarFallback><Sparkles size={16}/></AvatarFallback>
                   </Avatar>
                 <div className="bg-muted rounded-lg p-3 flex items-center">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
