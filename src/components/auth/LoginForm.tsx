@@ -16,13 +16,28 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -63,6 +78,26 @@ export default function LoginForm() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!auth || !resetEmail) return;
+    setIsResetting(true);
+    try {
+        await sendPasswordResetEmail(auth, resetEmail);
+        toast({
+            title: 'تم إرسال بريد إلكتروني',
+            description: 'تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.',
+        });
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'فشل إرسال البريد الإلكتروني',
+            description: 'قد لا يكون هذا البريد الإلكتروني مسجلاً. يرجى التحقق والمحاولة مرة أخرى.',
+        });
+    } finally {
+        setIsResetting(false);
+    }
+  }
+
 
   return (
     <Card className="mx-auto max-w-sm w-full">
@@ -89,9 +124,39 @@ export default function LoginForm() {
           <div className="grid gap-2 text-right">
             <div className="flex items-center">
               <Label htmlFor="password">كلمة المرور</Label>
-              <Link href="#" className="mr-auto inline-block text-sm underline">
-                هل نسيت كلمة المرور؟
-              </Link>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="link" className="mr-auto inline-block text-sm underline p-0 h-auto">
+                        هل نسيت كلمة المرور؟
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>إعادة تعيين كلمة المرور</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            أدخل بريدك الإلكتروني المسجل أدناه. سنرسل لك رابطًا لإعادة تعيين كلمة المرور الخاصة بك.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="grid gap-2 text-right">
+                        <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                        <Input
+                            id="reset-email"
+                            type="email"
+                            placeholder="m@example.com"
+                            required
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                        />
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={handlePasswordReset} disabled={isResetting}>
+                             {isResetting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                            إرسال
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
             <Input 
               id="password" 
@@ -106,7 +171,7 @@ export default function LoginForm() {
             {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
             تسجيل الدخول
           </Button>
-          <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
+          <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
             {isGoogleLoading ? (
               <Loader2 className="ml-2 h-4 w-4 animate-spin" />
             ) : (
