@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
-import { BarChart, PenSquare, Wallet, Zap, Loader2 } from "lucide-react";
+import { BarChart, PenSquare, Wallet, Zap, Loader2, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
+import AdPreview from "@/components/dashboard/AdPreview";
+import type { Timestamp } from "firebase/firestore";
 
 
 type UserProfile = {
@@ -20,7 +22,15 @@ type AdCampaign = {
     id: string;
     productName: string;
     headline: string;
-    status: 'draft' | 'active' | 'paused' | 'completed';
+    body: string;
+    websiteUrl: string;
+    status: 'draft' | 'reviewing' | 'active' | 'paused' | 'completed';
+    createdAt: Timestamp;
+    performance: {
+        impressions: number;
+        clicks: number;
+        ctr: number;
+    }
 };
 
 const AD_COST = 2.00;
@@ -43,6 +53,8 @@ export default function DashboardPage() {
 
   const { data: campaigns, loading: campaignsLoading } = useCollection<AdCampaign>(campaignsQuery);
   
+  const latestCampaign = useMemo(() => campaigns?.[0], [campaigns]);
+
   const totalSpent = useMemo(() => {
       if (!campaigns) return 0;
       return campaigns.length * AD_COST;
@@ -51,7 +63,7 @@ export default function DashboardPage() {
   const activeCampaigns = useMemo(() => {
       if (!campaigns) return 0;
       // For now we count all campaigns as "active" for the dashboard display
-      return campaigns.length;
+      return campaigns.filter(c => c.status === 'active').length;
   }, [campaigns]);
 
   return (
@@ -87,7 +99,7 @@ export default function DashboardPage() {
                  ) : (
                     <div className="text-2xl font-bold">{activeCampaigns}</div>
                  )}
-                <p className="text-xs text-muted-foreground">هل أنت مستعد لإطلاق حملتك الأولى؟</p>
+                <p className="text-xs text-muted-foreground">إجمالي الحملات التي تعمل حاليًا</p>
               </CardContent>
             </Card>
             <Card>
@@ -106,6 +118,24 @@ export default function DashboardPage() {
             </Card>
         </CardContent>
       </Card>
+
+      {campaignsLoading && (
+        <Card>
+          <CardHeader><CardTitle className="font-headline text-2xl">نظرة عامة على أحدث حملاتك</CardTitle></CardHeader>
+          <CardContent className="flex justify-center items-center h-48">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      )}
+
+      {!campaignsLoading && latestCampaign && (
+        <Card>
+          <CardHeader><CardTitle className="font-headline text-2xl">نظرة عامة على أحدث حملاتك</CardTitle></CardHeader>
+          <CardContent>
+            <AdPreview campaign={latestCampaign} cost={AD_COST}/>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="flex flex-col">
@@ -127,8 +157,11 @@ export default function DashboardPage() {
         </Card>
          <Card className="flex flex-col">
             <CardHeader>
-                <CardTitle className="text-xl font-headline">أداء الحملة</CardTitle>
-                <CardDescription>راقب أداء حملاتك.</CardDescription>
+                 <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl font-headline">أداء الحملة</CardTitle>
+                    <TrendingUp className="h-6 w-6 text-primary"/>
+                 </div>
+                <CardDescription>راقب أداء حملاتك بالتفصيل.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
                 <p className="text-muted-foreground">تتبع النقرات ومرات الظهور والتحويلات لجميع حملاتك في مكان واحد. يوفر الذكاء الاصطناعي لدينا رؤى لمساعدتك على التحسين لتحقيق نتائج أفضل.</p>
@@ -143,3 +176,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
