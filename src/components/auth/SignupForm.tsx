@@ -61,7 +61,7 @@ export default function SignupForm() {
       // Create user profile document in Firestore
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
       await setDoc(userDocRef, {
-        id: userCredential.user.uid, // Add the user's UID as the id field
+        id: userCredential.user.uid,
         displayName: fullName,
         email: email,
         role: userRole,
@@ -105,9 +105,9 @@ export default function SignupForm() {
   return (
     <Card className="mx-auto max-w-sm w-full bg-card/50 border-border/50">
       <CardHeader>
-        <CardTitle className="text-xl font-headline">إنشاء حساب</CardTitle>
+        <CardTitle className="text-xl font-headline">إنشاء حساب جديد</CardTitle>
         <CardDescription>
-          أدخل معلوماتك لإنشاء حساب والحصول على رصيد إضافي بقيمة 2 دولار!
+          أدخل معلوماتك واحصل فورًا على رصيد ترحيبي بقيمة 2$ لتجربة إعلانك الأول!
         </CardDescription>
       </CardHeader>
       <CardContent>
