@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDoc, useFirestore, useUser, useCollection } from "@/firebase";
+import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
 import { BarChart, PenSquare, Wallet, Zap, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -29,14 +29,14 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const userProfileRef = useMemo(() => {
+  const userProfileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
 
-  const { data: userProfile, loading: userLoading } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile, isLoading: userLoading } = useDoc<UserProfile>(userProfileRef);
 
-  const campaignsQuery = useMemo(() => {
+  const campaignsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, 'users', user.uid, 'campaigns'), orderBy('createdAt', 'desc'));
   }, [user, firestore]);

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Loader2, DollarSign, MousePointerClick, Eye } from "lucide-react";
-import { useCollection, useFirestore, useUser } from "@/firebase";
+import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useMemo } from "react";
 import { format } from 'date-fns';
@@ -32,7 +32,7 @@ export default function CampaignsPage() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    const campaignsQuery = useMemo(() => {
+    const campaignsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, 'users', user.uid, 'campaigns'), orderBy('createdAt', 'desc'));
     }, [user, firestore]);

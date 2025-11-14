@@ -1,6 +1,6 @@
 'use client';
 
-import { useDoc, useFirestore } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, DocumentData } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
@@ -16,7 +16,7 @@ export default function EditArticlePage() {
   const params = useParams();
   const { id } = params;
 
-  const postRef = useMemo(() => {
+  const postRef = useMemoFirebase(() => {
     if (!firestore || typeof id !== 'string') return null;
     return doc(firestore, 'posts', id);
   }, [firestore, id]);

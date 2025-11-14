@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
@@ -44,7 +44,7 @@ export default function ManageArticlesPage() {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const postsQuery = useMemo(() => {
+  const postsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'posts'), orderBy('date', 'desc'));
   }, [firestore]);

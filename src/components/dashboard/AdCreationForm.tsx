@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Circle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
-import { useFirestore, useUser, useDoc } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
@@ -53,7 +53,7 @@ export default function AdCreationForm() {
     const { user } = useUser();
     const { toast } = useToast();
     
-    const userProfileRef = useMemo(() => {
+    const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
