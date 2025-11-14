@@ -1,0 +1,145 @@
+/**
+ * @fileoverview Firestore Security Rules for the Hagaaty AI Blog.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for user profiles and favorites,
+ * and a public-read, owner-write model for articles. Categories and tags are
+ * publicly readable.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, accessible only by the user themselves.
+ * - /articles/{articleId}: Stores articles, publicly readable, but only the author
+ *   can modify or delete them.
+ * - /categories/{categoryId}: Stores categories, publicly readable.
+ * - /tags/{tagId}: Stores tags, publicly readable.
+ * - /users/{userId}/favorites/{articleId}: Stores user's favorite articles. Accessible only by the user themselves.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed for privacy.
+ * - Categories and tags are globally readable.
+ * - Articles use an 'authorId' field for ownership validation.
+ *
+ * Denormalization for Authorization:
+ * - Articles denormalize 'authorId' to enable simple ownership checks.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Checks if the request is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's ID matches the provided user ID.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the authenticated user is the owner of an existing document.
+     * @details Combines the ownership check with a resource existence check.
+     */
+    function isExistingOwner(ownerId) {
+        return isSignedIn() && request.auth.uid == ownerId && resource != null;
+    }
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' creates their profile.
+     *   Request Auth: {uid: 'user123'}
+     *   Request Data: {id: 'user123', email: 'test@example.com', username: 'testuser'}
+     * @allow (get, update, delete) User with ID 'user123' reads, updates, or deletes their profile.
+     *   Request Auth: {uid: 'user123'}
+     * @deny (create) User with ID 'user123' attempts to create a profile with a mismatched ID.
+     *   Request Auth: {uid: 'user123'}
+     *   Request Data: {id: 'user456', email: 'test@example.com', username: 'testuser'}
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // User listing is disallowed.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(resource.data.id) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(resource.data.id);
+    }
+
+    /**
+     * @description Rules for articles.
+     * @path /articles/{articleId}
+     * @allow (get, list) Any user can read any article.
+     * @allow (create) User with ID 'user123' creates an article with themselves as the author.
+     *   Request Auth: {uid: 'user123'}
+     *   Request Data: {authorId: 'user123', title: 'My Article', content: '...'}
+     * @allow (update, delete) User with ID 'user123' updates or deletes their own article.
+     *   Request Auth: {uid: 'user123'}
+     * @deny (create) User with ID 'user123' creates an article with a different author ID.
+     *   Request Auth: {uid: 'user123'}
+     *   Request Data: {authorId: 'user456', title: 'My Article', content: '...'}
+     * @deny (update, delete) User with ID 'user456' attempts to update or delete an article authored by 'user123'.
+     *   Request Auth: {uid: 'user456'}
+     * @principle Public read access with owner-only writes.
+     */
+    match /articles/{articleId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.authorId);
+      allow delete: if isExistingOwner(resource.data.authorId);
+    }
+
+    /**
+     * @description Rules for categories.
+     * @path /categories/{categoryId}
+     * @allow (get, list) Any user can read any category.
+     * @deny (create, update, delete) No one can create, update, or delete categories.
+     * @principle Public read access, no write access.
+     */
+    match /categories/{categoryId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Rules for tags.
+     * @path /tags/{tagId}
+     * @allow (get, list) Any user can read any tag.
+     * @deny (create, update, delete) No one can create, update, or delete tags.
+     * @principle Public read access, no write access.
+     */
+    match /tags/{tagId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+     /**
+      * @description Rules for user's favorite articles.
+      * @path /users/{userId}/favorites/{articleId}
+      * @allow (create) User with ID 'user123' adds an article to their favorites.
+      *   Request Auth: {uid: 'user123'}
+      * @allow (get, list, delete) User with ID 'user123' reads, lists, or deletes their own favorites.
+      *   Request Auth: {uid: 'user123'}
+      * @deny (create, get, list, delete) User with ID 'user456' attempts to manage favorites for user 'user123'.
+      *   Request Auth: {uid: 'user456'}
+      * @principle Enforces document ownership for writes and reads.
+      */
+    match /users/{userId}/favorites/{articleId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if false; // Updates are not allowed on favorites.
+      allow delete: if isOwner(userId);
+    }
+  }
+}

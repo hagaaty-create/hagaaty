@@ -1,234 +1,230 @@
 {
   "entities": {
-    "UserProfile": {
-      "title": "User Profile",
-      "description": "Represents a user's profile information.",
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
       "type": "object",
+      "description": "Represents a user of the Hagaaty AI Blog.",
       "properties": {
-        "displayName": {
+        "id": {
           "type": "string",
-          "description": "The user's display name."
+          "description": "Unique identifier for the User entity."
         },
         "email": {
           "type": "string",
-          "format": "email",
-          "description": "The user's email address."
+          "description": "User's email address.",
+          "format": "email"
         },
-        "photoURL": {
+        "username": {
           "type": "string",
-          "format": "uri",
-          "description": "URL of the user's profile picture."
+          "description": "User's chosen username."
         },
-        "balance": {
-          "type": "number",
-          "description": "The user's current account balance."
-        },
-        "role": {
-          "type": "string",
-          "description": "The user's role in the system.",
-          "enum": [
-            "admin",
-            "user"
-          ]
+        "favoriteArticleIds": {
+          "type": "array",
+          "description": "References to Articles favorited by the User. (Relationship: User 1:N Article - Favorites)",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
-        "displayName",
+        "id",
         "email",
-        "role"
+        "username"
       ]
     },
-    "Post": {
-      "title": "Post",
-      "description": "Represents a blog post.",
+    "Article": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Article",
       "type": "object",
+      "description": "Represents a blog article generated or created within the Hagaaty AI Blog.",
       "properties": {
-        "title": {
-          "type": "string"
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Article entity."
         },
-        "slug": {
-          "type": "string"
+        "title": {
+          "type": "string",
+          "description": "Title of the article."
         },
         "content": {
-          "type": "string"
-        },
-        "excerpt": {
-          "type": "string"
-        },
-        "imageUrl": {
           "type": "string",
-          "format": "uri"
+          "description": "The main content of the article (likely HTML or Markdown)."
         },
-        "imageHint": {
-          "type": "string"
-        },
-        "author": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "avatarUrl": {
-              "type": "string",
-              "format": "uri"
-            }
-          }
-        },
-        "date": {
+        "authorId": {
           "type": "string",
-          "format": "date-time"
+          "description": "Reference to User who created the article. (Relationship: User 1:N Article - Creation)"
         },
-        "category": {
-          "type": "string"
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to Category the article belongs to. (Relationship: Category 1:N Article)"
         },
-        "tags": {
+        "tagIds": {
           "type": "array",
+          "description": "References to Tags associated with the article. (Relationship: Tag N:N Article)",
           "items": {
             "type": "string"
           }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the article was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the article was last updated.",
+          "format": "date-time"
         }
       },
       "required": [
+        "id",
         "title",
-        "slug",
         "content",
-        "author",
-        "date",
-        "category"
-      ]
-    },
-    "AdCampaign": {
-      "title": "Ad Campaign",
-      "description": "Represents a generated ad campaign.",
-      "type": "object",
-      "properties": {
-        "productName": {
-          "type": "string"
-        },
-        "productDescription": {
-          "type": "string"
-        },
-        "targetAudience": {
-          "type": "string"
-        },
-        "websiteUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "keywords": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "phoneNumber": {
-          "type": "string"
-        },
-        "headline": {
-          "type": "string"
-        },
-        "body": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "draft",
-            "active",
-            "paused",
-            "completed"
-          ]
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "performance": {
-          "type": "object",
-          "description": "Simulated performance metrics for the ad campaign.",
-          "properties": {
-            "impressions": {
-              "type": "number",
-              "description": "Estimated number of times the ad was shown."
-            },
-            "clicks": {
-              "type": "number",
-              "description": "Estimated number of clicks on the ad."
-            },
-            "ctr": {
-              "type": "number",
-              "description": "Estimated Click-Through Rate (clicks / impressions)."
-            }
-          },
-          "required": [
-            "impressions",
-            "clicks",
-            "ctr"
-          ]
-        }
-      },
-      "required": [
-        "productName",
-        "headline",
-        "body",
-        "status",
+        "authorId",
+        "categoryId",
         "createdAt",
-        "websiteUrl",
-        "keywords",
-        "targetAudience",
-        "performance"
+        "updatedAt"
       ]
     },
-    "Query": {
-      "title": "User Query",
-      "description": "Represents a query submitted by a user to the smart assistant.",
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
       "type": "object",
+      "description": "Represents a category for organizing blog articles.",
       "properties": {
-        "query": {
+        "id": {
           "type": "string",
-          "description": "The user's question."
+          "description": "Unique identifier for the Category entity."
         },
-        "createdAt": {
+        "name": {
           "type": "string",
-          "format": "date-time"
+          "description": "Name of the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the category."
         }
       },
       "required": [
-        "query",
-        "createdAt"
+        "id",
+        "name"
+      ]
+    },
+    "Tag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tag",
+      "type": "object",
+      "description": "Represents a tag associated with blog articles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tag entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the tag."
+        }
+      },
+      "required": [
+        "id",
+        "name"
       ]
     }
   },
   "auth": {
     "providers": [
-      "google.com",
-      "password"
+      "password",
+      "anonymous"
     ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/UserProfile"
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Path-based ownership ensures only the authenticated user can access their own profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, matching the Firebase Auth UID."
+            }
+          ]
+        }
       },
-      "description": "Stores public information about a user."
-    },
-    "/posts/{postId}": {
-      "schema": {
-        "$ref": "#/entities/Post"
+      {
+        "path": "/articles/{articleId}",
+        "definition": {
+          "entityName": "Article",
+          "schema": {
+            "$ref": "#/backend/entities/Article"
+          },
+          "description": "Stores blog articles. Includes 'authorId' for authorization. This denormalization enables querying articles by author and simplifies security rules.",
+          "params": [
+            {
+              "name": "articleId",
+              "description": "The unique identifier of the article."
+            }
+          ]
+        }
       },
-      "description": "Stores blog posts."
-    },
-    "/users/{userId}/campaigns/{campaignId}": {
-      "schema": {
-        "$ref": "#/entities/AdCampaign"
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores categories for articles. Accessible to all users for reading.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier of the category."
+            }
+          ]
+        }
       },
-      "description": "Stores ad campaigns created by a user."
-    },
-    "/queries/{queryId}": {
-      "schema": {
-        "$ref": "#/entities/Query"
+      {
+        "path": "/tags/{tagId}",
+        "definition": {
+          "entityName": "Tag",
+          "schema": {
+            "$ref": "#/backend/entities/Tag"
+          },
+          "description": "Stores tags for articles. Accessible to all users for reading.",
+          "params": [
+            {
+              "name": "tagId",
+              "description": "The unique identifier of the tag."
+            }
+          ]
+        }
       },
-      "description": "Stores queries made to the smart assistant."
-    }
+      {
+        "path": "/users/{userId}/favorites/{articleId}",
+        "definition": {
+          "entityName": "Favorite",
+          "schema": {
+            "$ref": "#/backend/entities/Article"
+          },
+          "description": "Stores references to articles favorited by the user. Path-based ownership ensures only the authenticated user can manage their own favorites.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, matching the Firebase Auth UID."
+            },
+            {
+              "name": "articleId",
+              "description": "The unique identifier of the article (only storing IDs, to reference data in 'articles')."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to optimize for security, scalability, and maintainability, adhering to the principles of Authorization Independence, Structural Segregation, and Access Modeling. User data is stored in a path-based ownership model under `/users/{userId}`. Articles are stored in a top-level `/articles` collection, with the author's ID denormalized into each article document to facilitate direct querying and authorization. Categories and Tags are stored in their respective top-level collections for global access. Favorite articles are handled as a subcollection `/users/{userId}/favorites/{articleId}` where access is controlled at the path level. This structure ensures that authorization rules do not require `get()` calls to parent documents, enabling atomic operations. The QAP is achieved by direct document access and query capabilities within each collection, avoiding the need for complex filtering rules. The Category and Tag entities are stored in root level collections for ease of retrieval and global association."
   }
 }
