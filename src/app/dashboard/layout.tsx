@@ -12,6 +12,7 @@ import {
   FileText,
   Lightbulb,
   Users,
+  FileEdit,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -56,7 +57,7 @@ export default function DashboardLayout({
   
   const adminNavItems = [
     { href: '/dashboard/admin/generate', label: 'توليد مقال', icon: PenSquare },
-    { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText },
+    { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
     { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
     { href: '/dashboard/admin/campaigns', label: 'كل الحملات', icon: Users },
   ];
@@ -126,7 +127,7 @@ export default function DashboardLayout({
                               <SidebarMenuItem key={item.href}>
                                   <Link href={item.href}>
                                       <SidebarMenuButton
-                                          isActive={pathname.startsWith(item.href)}
+                                          isActive={item.matchStartsWith ? pathname.startsWith(item.href) : pathname === item.href}
                                           tooltip={item.label}
                                       >
                                           <item.icon />

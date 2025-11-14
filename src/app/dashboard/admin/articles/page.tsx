@@ -34,9 +34,10 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Trash2, Loader2 } from 'lucide-react';
+import { FileText, Trash2, Loader2, FileEdit } from 'lucide-react';
 import type { Post } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function ManageArticlesPage() {
   const firestore = useFirestore();
@@ -122,32 +123,39 @@ export default function ManageArticlesPage() {
                     </TableCell>
                     <TableCell>{formatDate(post.date)}</TableCell>
                     <TableCell className="text-right">
-                       <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="ghost" size="icon" disabled={isDeleting === post.id}>
-                            {isDeleting === post.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            )}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              لا يمكن التراجع عن هذا الإجراء. سيؤدي هذا إلى حذف المقال بشكل دائم
-                              "{post.title}".
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(post.id)}>
-                              حذف
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/dashboard/admin/articles/${post.id}/edit`}>
+                            <FileEdit className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                         <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <Button variant="ghost" size="icon" disabled={isDeleting === post.id}>
+                              {isDeleting === post.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                لا يمكن التراجع عن هذا الإجراء. سيؤدي هذا إلى حذف المقال بشكل دائم
+                                "{post.title}".
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(post.id)}>
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
