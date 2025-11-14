@@ -50,15 +50,25 @@ export default function LoginForm() {
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-      // This case is unlikely for a login flow but good for robustness.
-      // A user logging in with Google for the first time should be handled by the signup flow.
+      const isFirstAdmin = user.email === 'hagaaty@gmail.com';
       await setDoc(userRef, {
         displayName: user.displayName,
         email: user.email,
         photoURL: user.photoURL,
-        balance: 2.00, // Welcome bonus
-        role: 'user'
-      }, { merge: true });
+        balance: 2.00, // Welcome bonus for signing up via Google on login page
+        role: isFirstAdmin ? 'admin' : 'user'
+      });
+      toast({
+          title: "تم إنشاء الحساب!",
+          description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
+      });
+    } else {
+        // If user exists, just ensure their profile info is up-to-date from Google
+        await setDoc(userRef, {
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+        }, { merge: true });
     }
   }
 
@@ -86,7 +96,6 @@ export default function LoginForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      // Use in-memory persistence for popup flows
       await setPersistence(auth, inMemoryPersistence);
       const result = await signInWithPopup(auth, provider);
       await checkAndCreateUserProfile(result.user);

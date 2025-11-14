@@ -32,21 +32,20 @@ export default function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const createUserProfile = async (user: User) => {
+  const createUserProfile = async (user: User, customDisplayName?: string) => {
     if (!firestore) return;
     const userRef = doc(firestore, 'users', user.uid);
     
-    // Check if the user document already exists
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-      // New user, create the profile with a $2 bonus and role
+      const displayName = customDisplayName || user.displayName;
       const isFirstAdmin = user.email === 'hagaaty@gmail.com';
       await setDoc(userRef, {
-        displayName: user.displayName,
+        displayName: displayName,
         email: user.email,
         photoURL: user.photoURL,
-        balance: 2.00, // Give $2 bonus to new users
+        balance: 2.00,
         role: isFirstAdmin ? 'admin' : 'user'
       });
        toast({
@@ -54,9 +53,8 @@ export default function SignupForm() {
           description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
       });
     } else {
-      // Existing user, just merge the latest profile info without changing balance or role
        await setDoc(userRef, {
-        displayName: user.displayName,
+        displayName: customDisplayName || user.displayName,
         email: user.email,
         photoURL: user.photoURL,
       }, { merge: true });
@@ -69,14 +67,19 @@ export default function SignupForm() {
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update the profile on Firebase Auth
       await updateProfile(userCredential.user, { displayName: fullName });
       
-      // We pass the updated user object to ensure displayName is included
-      const updatedUser = { ...userCredential.user, displayName: fullName, email };
-      await createUserProfile(updatedUser as User);
+      // Now create the profile in Firestore, passing the full name explicitly
+      await createUserProfile(userCredential.user, fullName);
+      
+      // Reload the user to make sure the displayName is fresh
+      await userCredential.user.reload();
 
       router.push('/dashboard');
     } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         variant: 'destructive',
         title: 'فشل إنشاء الحساب',
@@ -92,7 +95,6 @@ export default function SignupForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      // Use in-memory persistence for popup flows
       await setPersistence(auth, inMemoryPersistence);
       const result = await signInWithPopup(auth, provider);
       await createUserProfile(result.user);
