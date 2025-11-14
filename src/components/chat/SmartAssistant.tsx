@@ -52,10 +52,11 @@ export default function SmartAssistant() {
         
         const toolCalls = result.toolCalls();
         if (toolCalls.length > 0) {
-            const toolCall = toolCalls[0];
-            if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
-                router.push(toolCall.input.path);
-                setIsOpen(false); // Close the chat sheet after navigation
+            for (const toolCall of toolCalls) {
+                if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
+                    router.push(toolCall.input.path);
+                    setIsOpen(false); // Close the chat sheet after navigation
+                }
             }
         }
         
@@ -96,6 +97,7 @@ export default function SmartAssistant() {
     if (!firestore) return;
     const userMessage: Message = { role: 'user', content: query };
     setMessages(prev => [...prev, userMessage]);
+    setInput(''); // Clear input after clicking example
     setIsLoading(true);
 
     addDoc(collection(firestore, 'queries'), {
@@ -107,10 +109,11 @@ export default function SmartAssistant() {
       .then(result => {
         const toolCalls = result.toolCalls();
         if (toolCalls.length > 0) {
-            const toolCall = toolCalls[0];
-            if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
-                router.push(toolCall.input.path);
-                setIsOpen(false);
+            for (const toolCall of toolCalls) {
+                if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
+                    router.push(toolCall.input.path);
+                    setIsOpen(false);
+                }
             }
         }
 
