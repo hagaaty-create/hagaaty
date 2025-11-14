@@ -7,7 +7,10 @@ import {
   PenSquare,
   Home,
   LogOut,
-  BarChart
+  BarChart,
+  Shield,
+  FileText,
+  Lightbulb
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -18,6 +21,9 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarSeparator,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser, useAuth } from '@/firebase';
@@ -41,11 +47,16 @@ export default function DashboardLayout({
   }, [user, loading, router]);
 
 
-  const navItems = [
+  const userNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/generate', label: 'Generate Article', icon: PenSquare },
     { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
+  ];
+  
+  const adminNavItems = [
+    { href: '/dashboard/admin/generate', label: 'Generate Article', icon: PenSquare },
+    { href: '/dashboard/admin/articles', label: 'Manage Articles', icon: FileText },
+    { href: '/dashboard/admin/insights', label: 'Content Insights', icon: Lightbulb },
   ];
 
   const handleLogout = () => {
@@ -62,6 +73,10 @@ export default function DashboardLayout({
       </div>
     );
   }
+
+  // A simple check to show admin section. In a real app, this would be based on user roles.
+  const isAdmin = user?.email === 'hagaaty@gmail.com';
+
 
   return (
     <SidebarProvider>
@@ -81,7 +96,7 @@ export default function DashboardLayout({
             </SidebarHeader>
             <SidebarContent>
                 <SidebarMenu>
-                    {navItems.map((item) => (
+                    {userNavItems.map((item) => (
                         <SidebarMenuItem key={item.href}>
                             <Link href={item.href}>
                                 <SidebarMenuButton
@@ -95,6 +110,34 @@ export default function DashboardLayout({
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
+                
+                {isAdmin && (
+                  <>
+                  <SidebarSeparator />
+                  <SidebarGroup>
+                      <SidebarGroupLabel className="flex items-center gap-2">
+                          <Shield />
+                          <span>Admin</span>
+                      </SidebarGroupLabel>
+                      <SidebarMenu>
+                           {adminNavItems.map((item) => (
+                              <SidebarMenuItem key={item.href}>
+                                  <Link href={item.href}>
+                                      <SidebarMenuButton
+                                          isActive={pathname.startsWith(item.href)}
+                                          tooltip={item.label}
+                                      >
+                                          <item.icon />
+                                          <span>{item.label}</span>
+                                      </SidebarMenuButton>
+                                  </Link>
+                              </SidebarMenuItem>
+                          ))}
+                      </SidebarMenu>
+                  </SidebarGroup>
+                  </>
+                )}
+
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
