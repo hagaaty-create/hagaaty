@@ -40,19 +40,21 @@ export default function SignupForm() {
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-      // New user, create the profile with a $2 bonus
+      // New user, create the profile with a $2 bonus and role
+      const isFirstAdmin = user.email === 'hagaaty@gmail.com';
       await setDoc(userRef, {
         displayName: user.displayName,
         email: user.email,
         photoURL: user.photoURL,
         balance: 2.00, // Give $2 bonus to new users
+        role: isFirstAdmin ? 'admin' : 'user'
       });
        toast({
           title: "تم إنشاء الحساب!",
           description: "أهلاً بك! لقد حصلت على رصيد إضافي بقيمة 2 دولار.",
       });
     } else {
-      // Existing user, just merge the latest profile info without changing the balance
+      // Existing user, just merge the latest profile info without changing balance or role
        await setDoc(userRef, {
         displayName: user.displayName,
         email: user.email,
@@ -70,7 +72,7 @@ export default function SignupForm() {
       await updateProfile(userCredential.user, { displayName: fullName });
       
       // We pass the updated user object to ensure displayName is included
-      const updatedUser = { ...userCredential.user, displayName: fullName };
+      const updatedUser = { ...userCredential.user, displayName: fullName, email };
       await createUserProfile(updatedUser as User);
 
       router.push('/dashboard');

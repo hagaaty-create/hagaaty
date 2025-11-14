@@ -28,9 +28,14 @@ import {
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useDoc, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { doc } from 'firebase/firestore';
+
+type UserProfile = {
+  role?: 'admin' | 'user';
+}
 
 export default function DashboardLayout({
   children,
@@ -38,15 +43,23 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
 
+  const userProfileRef = useMemo(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+  
+  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userProfileRef);
+
   React.useEffect(() => {
-    if (!loading && !user) {
+    if (!userLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, userLoading, router]);
 
 
   const userNavItems = [
@@ -69,16 +82,22 @@ export default function DashboardLayout({
     }
   };
   
+  const loading = userLoading || profileLoading;
+
   if (loading || !user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Skeleton className="h-screen w-full" />
+      <div className="flex h-screen w-full bg-background">
+        <div className='hidden md:block'>
+          <Skeleton className="h-full w-[16rem]" />
+        </div>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+           <Skeleton className="h-full w-full" />
+        </main>
       </div>
     );
   }
 
-  // A simple check to show admin section. In a real app, this would be based on user roles.
-  const isAdmin = user?.email === 'hagaaty@gmail.com';
+  const isAdmin = userProfile?.role === 'admin';
 
 
   return (

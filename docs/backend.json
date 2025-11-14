@@ -22,11 +22,17 @@
         "balance": {
             "type": "number",
             "description": "The user's current account balance."
+        },
+        "role": {
+            "type": "string",
+            "description": "The user's role in the system.",
+            "enum": ["admin", "user"]
         }
       },
       "required": [
         "displayName",
-        "email"
+        "email",
+        "role"
       ]
     },
     "Post": {
