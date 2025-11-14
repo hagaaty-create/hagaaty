@@ -159,7 +159,12 @@
               "type": "number",
               "description": "Estimated Click-Through Rate (clicks / impressions)."
             }
-          }
+          },
+          "required": [
+            "impressions",
+            "clicks",
+            "ctr"
+          ]
         }
       },
       "required": [
@@ -170,7 +175,8 @@
         "createdAt",
         "websiteUrl",
         "keywords",
-        "targetAudience"
+        "targetAudience",
+        "performance"
       ]
     },
     "Query": {

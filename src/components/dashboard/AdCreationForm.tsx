@@ -26,7 +26,7 @@ type UserProfile = {
   balance?: number;
 }
 
-const AD_COST = 20.00; // Updated minimum ad cost
+const AD_COST = 20.00;
 
 
 export default function AdCreationForm() {
@@ -96,6 +96,12 @@ export default function AdCreationForm() {
     const handleSave = async () => {
         if (!generatedAd || !firestore || !user || !userProfileRef) return;
         setIsSaving(true);
+
+        // Generate simulated performance data
+        const impressions = Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
+        const clicks = Math.floor(impressions * (Math.random() * (0.05 - 0.01) + 0.01));
+        const ctr = clicks / impressions;
+
         try {
             // First, save the campaign
             await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
@@ -108,6 +114,11 @@ export default function AdCreationForm() {
                 ...generatedAd,
                 status: 'draft',
                 createdAt: serverTimestamp(),
+                performance: {
+                    impressions,
+                    clicks,
+                    ctr,
+                }
             });
 
             // Then, deduct the cost from the user's balance

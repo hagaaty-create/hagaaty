@@ -17,6 +17,11 @@ type AdCampaign = {
     headline: string;
     status: 'draft' | 'active' | 'paused' | 'completed';
     createdAt: Timestamp;
+    performance: {
+        impressions: number;
+        clicks: number;
+        ctr: number;
+    }
 };
 
 export default function CampaignsPage() {
@@ -61,6 +66,9 @@ export default function CampaignsPage() {
                                     <TableHead>المنتج</TableHead>
                                     <TableHead>العنوان الرئيسي</TableHead>
                                     <TableHead>الحالة</TableHead>
+                                    <TableHead className="text-right">مرات الظهور</TableHead>
+                                    <TableHead className="text-right">النقرات</TableHead>
+                                    <TableHead className="text-right">CTR</TableHead>
                                     <TableHead>تاريخ الإنشاء</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -71,6 +79,11 @@ export default function CampaignsPage() {
                                         <TableCell>{campaign.headline}</TableCell>
                                         <TableCell>
                                             <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>{campaign.status}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
+                                        <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>
+                                        <TableCell className="text-right font-mono">
+                                            {campaign.performance?.ctr ? `${(campaign.performance.ctr * 100).toFixed(2)}%` : 'N/A'}
                                         </TableCell>
                                         <TableCell>{formatDate(campaign.createdAt)}</TableCell>
                                     </TableRow>
