@@ -33,61 +33,6 @@ export type SmartAssistantChatOutput = z.infer<
   typeof SmartAssistantChatOutputSchema
 >;
 
-const getPublishedArticles = ai.defineTool(
-  {
-    name: 'getPublishedArticles',
-    description:
-      'يسترجع قائمة بمقالات المدونة المنشورة. استخدم هذا للرد على الأسئلة المتعلقة بمحتوى المدونة.',
-    inputSchema: z.object({
-      keywords: z
-        .array(z.string())
-        .describe('الكلمات الرئيسية للبحث عنها في عناوين المقالات أو الوسوم.'),
-    }),
-    outputSchema: z.array(
-      z.object({
-        title: z.string(),
-        content: z.string(),
-        category: z.string(),
-        tags: z.array(z.string()),
-      })
-    ),
-  },
-  async input => {
-    console.log(
-      `[getPublishedArticles] Searching for articles with keywords: ${input.keywords.join(', ')}`
-    );
-    const db = getFirestore();
-    const articlesRef = db.collection('posts');
-    const snapshot = await articlesRef.get();
-
-    if (snapshot.empty) {
-      return [];
-    }
-
-    let allPosts: Post[] = [];
-    snapshot.forEach(doc => {
-      allPosts.push({id: doc.id, ...doc.data()} as Post);
-    });
-
-    // Filter posts based on keywords (simple case-insensitive search)
-    const filteredPosts = allPosts.filter(post => {
-      const postContent =
-        `${post.title} ${post.content} ${post.category} ${post.tags.join(' ')}`.toLowerCase();
-      return input.keywords.some(keyword =>
-        postContent.includes(keyword.toLowerCase())
-      );
-    });
-
-    // Return a subset of fields
-    return filteredPosts.map(post => ({
-      title: post.title,
-      content: post.content.substring(0, 500) + '...', // Truncate for context
-      category: post.category,
-      tags: post.tags,
-    }));
-  }
-);
-
 export async function smartAssistantChat(
   input: SmartAssistantChatInput
 ): Promise<SmartAssistantChatOutput> {
@@ -98,14 +43,7 @@ const prompt = ai.definePrompt({
   name: 'smartAssistantChatPrompt',
   input: {schema: SmartAssistantChatInputSchema},
   output: {schema: SmartAssistantChatOutputSchema},
-  tools: [getPublishedArticles],
-  prompt: `أنت مساعد ذكي وودود لمدونة "حاجتي للذكاء الاصطناعي". هدفك هو الإجابة على أسئلة المستخدمين باللغة العربية بناءً على محتوى المدونة.
-
-أولاً، استخدم أداة 'getPublishedArticles' للعثور على المقالات ذات الصلة بناءً على استعلام المستخدم.
-
-بعد ذلك، استخدم محتوى المقالات التي تم استردادها لصياغة إجابة شاملة ومفيدة.
-
-إذا لم تتمكن من العثور على مقال ذي صلة، فاذكر بأدب أنك لم تتمكن من العثور على المعلومات في المدونة ولكن يمكنك المساعدة في أسئلة أخرى. لا تخترع معلومات.
+  prompt: `أنت مساعد ذكاء اصطناعي شامل وودود. هدفك هو الإجابة على أسئلة المستخدمين باللغة العربية بدقة وتقديم المساعدة في مجموعة واسعة من المهام. لديك إمكانية الوصول إلى معلومات شاملة. كن مفيداً ومبدعاً.
 
 استعلام المستخدم: {{{query}}}`,
 });
