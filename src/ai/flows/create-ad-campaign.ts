@@ -22,9 +22,14 @@ const CreateAdCampaignInputSchema = z.object({
 
 export type CreateAdCampaignInput = z.infer<typeof CreateAdCampaignInputSchema>;
 
+const AdCopySchema = z.object({
+    headline: z.string().describe('A catchy, short headline for the ad, in Arabic.'),
+    body: z.string().describe('The main body text of the ad, persuasive and informative, in Arabic.'),
+});
+
 const CreateAdCampaignOutputSchema = z.object({
-  headline: z.string().describe('A catchy, short headline for the ad, in Arabic.'),
-  body: z.string().describe('The main body text of the ad, persuasive and informative, in Arabic.'),
+  suggestionA: AdCopySchema.describe('The first ad copy suggestion (Variant A).'),
+  suggestionB: AdCopySchema.describe('A different, alternative ad copy suggestion (Variant B).'),
 });
 
 export type CreateAdCampaignOutput = z.infer<typeof CreateAdCampaignOutputSchema>;
@@ -39,7 +44,7 @@ const adCampaignPrompt = ai.definePrompt({
   name: 'createAdCampaignPrompt',
   input: {schema: CreateAdCampaignInputSchema},
   output: {schema: CreateAdCampaignOutputSchema},
-  prompt: `أنت خبير في كتابة الإعلانات لحملات جوجل الإعلانية باللغة العربية. مهمتك هي إنشاء نسخة إعلانية (عنوان ونص) لحملة إعلانية جديدة بناءً على التفاصيل التالية. يجب أن تكون النبرة احترافية، مقنعة، وجذابة للسوق العربي والخليجي.
+  prompt: `أنت خبير في كتابة الإعلانات لحملات جوجل الإعلانية باللغة العربية. مهمتك هي إنشاء نسختين إعلانيتين مختلفتين (اقتراح أ، اقتراح ب) لحملة إعلانية جديدة. يجب أن تكون كل نسخة فريدة في أسلوبها أو في الزاوية التي تتناولها لجذب شرائح مختلفة من الجمهور. يجب أن تكون النبرة احترافية، مقنعة، وجذابة للسوق العربي والخليجي.
 
 الهدف من الحملة: {{{adType}}}
 اسم المنتج/العنوان الرئيسي: {{{productName}}}
@@ -48,7 +53,7 @@ const adCampaignPrompt = ai.definePrompt({
 الكلمات الرئيسية: {{{keywords}}}
 الموقع الإلكتروني: {{{websiteUrl}}}
 
-قم بإنشاء عنوان إعلاني جذاب ونص إعلاني مقنع الآن. ركز على تحويل الهدف والجمهور إلى نسخة إعلانية فعالة.`,
+قم بإنشاء اقتراحين إعلانيين (أ و ب)، كل منهما يحتوي على عنوان ونص أساسي. ركز على تحويل الهدف والجمهور إلى نسختين إعلانيتين فعالتين ومتميزتين.`,
 });
 
 const createAdCampaignFlow = ai.defineFlow(

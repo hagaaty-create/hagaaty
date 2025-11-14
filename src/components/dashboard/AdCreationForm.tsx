@@ -5,18 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone } from "lucide-react";
+import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Circle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { useFirestore, useUser, useDoc } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { cn } from "@/lib/utils";
 
 
-type GeneratedAd = {
+type AdCopy = {
     headline: string;
     body: string;
+}
+
+type GeneratedAd = {
+    suggestionA: AdCopy;
+    suggestionB: AdCopy;
 }
 
 type UserProfile = {
@@ -40,6 +46,7 @@ export default function AdCreationForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [generatedAd, setGeneratedAd] = useState<GeneratedAd | null>(null);
+    const [selectedAd, setSelectedAd] = useState<AdCopy | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const firestore = useFirestore();
@@ -69,6 +76,7 @@ export default function AdCreationForm() {
 
         setIsLoading(true);
         setGeneratedAd(null);
+        setSelectedAd(null);
         setError(null);
 
         try {
@@ -82,6 +90,7 @@ export default function AdCreationForm() {
             });
             if (result) {
                 setGeneratedAd(result);
+                setSelectedAd(result.suggestionA); // Default to suggestion A
             } else {
                  throw new Error("فشل في إنشاء الحملة الإعلانية.");
             }
@@ -94,16 +103,14 @@ export default function AdCreationForm() {
     };
     
     const handleSave = async () => {
-        if (!generatedAd || !firestore || !user || !userProfileRef) return;
+        if (!selectedAd || !firestore || !user || !userProfileRef) return;
         setIsSaving(true);
 
-        // Generate simulated performance data
         const impressions = Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
         const clicks = Math.floor(impressions * (Math.random() * (0.05 - 0.01) + 0.01));
         const ctr = clicks / impressions;
 
         try {
-            // First, save the campaign
             await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
                 productName,
                 productDescription,
@@ -111,7 +118,7 @@ export default function AdCreationForm() {
                 websiteUrl,
                 keywords: keywords.split(',').map(k => k.trim()),
                 phoneNumber,
-                ...generatedAd,
+                ...selectedAd,
                 status: 'draft',
                 createdAt: serverTimestamp(),
                 performance: {
@@ -121,7 +128,6 @@ export default function AdCreationForm() {
                 }
             });
 
-            // Then, deduct the cost from the user's balance
             await updateDoc(userProfileRef, {
                 balance: increment(-AD_COST)
             });
@@ -130,7 +136,8 @@ export default function AdCreationForm() {
                 title: "تم حفظ الحملة!",
                 description: `تم حفظ حملتك الإعلانية الجديدة. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
             });
-            setGeneratedAd(null); // Clear the form after saving
+            setGeneratedAd(null);
+            setSelectedAd(null);
         } catch(e) {
             console.error("Error saving campaign: ", e);
             toast({
@@ -253,25 +260,58 @@ export default function AdCreationForm() {
             {generatedAd && (
                  <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl">مقترح الإعلان</CardTitle>
-                        <CardDescription>راجع نسخة الإعلان التي تم إنشاؤها. يمكنك تعديلها أو إطلاق الحملة مباشرة.</CardDescription>
+                        <CardTitle className="font-headline text-2xl">مقترحات الإعلان (A/B Test)</CardTitle>
+                        <CardDescription>راجع نسختي الإعلان المقترحتين. اختر النسخة التي تفضلها ثم قم بحفظ الحملة.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <Label className="text-sm font-semibold">العنوان الرئيسي المقترح</Label>
-                            <div className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">
-                                <p>{generatedAd.headline}</p>
-                            </div>
-                        </div>
-                         <div>
-                            <Label className="text-sm font-semibold">النص الأساسي المقترح</Label>
-                            <div className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">
-                                <p>{generatedAd.body}</p>
-                            </div>
-                        </div>
+                    <CardContent className="grid md:grid-cols-2 gap-6">
+                        
+                        <Card 
+                            className={cn("cursor-pointer transition-all", selectedAd === generatedAd.suggestionA ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
+                            onClick={() => setSelectedAd(generatedAd.suggestionA)}
+                        >
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>الاقتراح أ</span>
+                                    {selectedAd === generatedAd.suggestionA ? <CheckCircle className="h-5 w-5 text-primary"/> : <Circle className="h-5 w-5 text-muted-foreground"/>}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label className="text-sm font-semibold">العنوان</Label>
+                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionA.headline}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-sm font-semibold">النص</Label>
+                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionA.body}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card 
+                            className={cn("cursor-pointer transition-all", selectedAd === generatedAd.suggestionB ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
+                            onClick={() => setSelectedAd(generatedAd.suggestionB)}
+                        >
+                             <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>الاقتراح ب</span>
+                                    {selectedAd === generatedAd.suggestionB ? <CheckCircle className="h-5 w-5 text-primary"/> : <Circle className="h-5 w-5 text-muted-foreground"/>}
+                                </CardTitle>
+                            </CardHeader>
+                           <CardContent className="space-y-4">
+                                <div>
+                                    <Label className="text-sm font-semibold">العنوان</Label>
+                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionB.headline}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-sm font-semibold">النص</Label>
+                                    <p className="prose prose-sm max-w-none rounded-md border bg-muted p-3 mt-1">{generatedAd.suggestionB.body}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                     </CardContent>
                     <CardFooter>
-                         <Button onClick={handleSave} disabled={isSaving}>
+                         <Button onClick={handleSave} disabled={isSaving || !selectedAd}>
                              {isSaving ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
