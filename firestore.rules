@@ -65,8 +65,8 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false; // User listing is disallowed.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(resource.data.id) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(resource.data.id);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
 
     /**

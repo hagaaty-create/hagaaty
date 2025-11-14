@@ -61,6 +61,7 @@ export default function SignupForm() {
       // Create user profile document in Firestore
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
       await setDoc(userDocRef, {
+        id: userCredential.user.uid, // Add the user's UID as the id field
         displayName: fullName,
         email: email,
         role: userRole,
@@ -87,6 +88,8 @@ export default function SignupForm() {
             description = 'كلمة المرور ضعيفة جدًا. يجب أن تتكون من 6 أحرف على الأقل.';
         } else if (error.code === 'auth/api-key-not-valid') {
             description = 'مفتاح API غير صالح. يرجى التأكد من صحة إعدادات Firebase.';
+        } else if (error.code === 'permission-denied') {
+            description = 'تم رفض الإذن. تحقق من قواعد أمان Firestore الخاصة بك.';
         }
         console.error("Signup error: ", error.code, error.message);
         toast({
