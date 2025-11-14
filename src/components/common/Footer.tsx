@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Bot, Github, Twitter } from 'lucide-react';
+import { Bot, Mail, Github } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -14,10 +14,10 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Hagaaty AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="#" aria-label="Twitter">
-              <Twitter className="h-5 w-5 text-muted-foreground transition-colors hover:text-foreground" />
+            <Link href="mailto:hagaaty@gmail.com" aria-label="Support">
+              <Mail className="h-5 w-5 text-muted-foreground transition-colors hover:text-foreground" />
             </Link>
-            <Link href="#" aria-label="GitHub">
+            <Link href="https://github.com/firebase/studio" aria-label="GitHub" target="_blank">
               <Github className="h-5 w-5 text-muted-foreground transition-colors hover:text-foreground" />
             </Link>
           </div>
