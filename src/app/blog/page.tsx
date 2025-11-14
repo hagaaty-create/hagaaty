@@ -1,14 +1,63 @@
+'use client';
+
 import { ArticleCard } from '@/components/blog/ArticleCard';
 import { Button } from '@/components/ui/button';
-import { posts } from '@/lib/data';
+import { useCollection } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import type { Post } from '@/types';
+import { useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BlogPage() {
-  const categories = ['All', ...Array.from(new Set(posts.map(p => p.category)))];
-  const featuredPost = posts[0];
-  const recentPosts = posts.slice(1);
+  const firestore = useFirestore();
+  const postsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'posts');
+  }, [firestore]);
+
+  const { data: posts, loading } = useCollection<Post>(postsQuery);
+
+  const categories = useMemo(() => {
+    if (!posts) return [];
+    return ['All', ...Array.from(new Set(posts.map(p => p.category)))];
+  }, [posts]);
+  
+  const featuredPost = useMemo(() => posts?.[0], [posts]);
+  
+  if (loading) {
+      return (
+          <div className="container mx-auto px-4 py-8">
+              <section className="mb-16 text-center">
+                  <Skeleton className="h-12 w-1/2 mx-auto" />
+                  <Skeleton className="h-6 w-3/4 mx-auto mt-4" />
+              </section>
+              <section className="mb-16">
+                  <Skeleton className="h-8 w-1/4 mb-8" />
+                  <Skeleton className="w-full h-96" />
+              </section>
+              <section>
+                   <Skeleton className="h-8 w-1/4 mb-8" />
+                   <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                       <Skeleton className="w-full h-80" />
+                       <Skeleton className="w-full h-80" />
+                       <Skeleton className="w-full h-80" />
+                   </div>
+              </section>
+          </div>
+      )
+  }
+
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-3xl font-bold">No articles yet</h1>
+        <p className="text-muted-foreground mt-2">Check back later for new content!</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

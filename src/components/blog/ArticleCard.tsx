@@ -7,11 +7,22 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
 
 type ArticleCardProps = {
   post: Post;
   isFeatured?: boolean;
 };
+
+function formatDate(date: string | Timestamp) {
+    if (typeof date === 'string') {
+        return format(new Date(date), 'PPP');
+    }
+    if (date instanceof Timestamp) {
+        return format(date.toDate(), 'PPP');
+    }
+    return "Date not available";
+}
 
 export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
   return (
@@ -45,7 +56,7 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{post.author.name}</p>
-                <p className="text-xs text-muted-foreground">{format(new Date(post.date), 'PPP')}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(post.date)}</p>
               </div>
             </div>
             {isFeatured && (

@@ -1,4 +1,5 @@
-import { posts } from '@/lib/data';
+'use client';
+
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,7 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useDoc } from '@/firebase';
+import { useFirestore } from '@/firebase';
+import { doc, collection, query, where, getDocs } from 'firebase/firestore';
+import type { Post } from '@/types';
+import { useEffect, useMemo, useState } from 'react';
+import { Timestamp } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type ArticlePageProps = {
   params: {
@@ -14,14 +22,73 @@ type ArticlePageProps = {
   };
 };
 
-export function generateStaticParams() {
-  return posts.map(post => ({
-    slug: post.slug,
-  }));
+function formatDate(date: string | Timestamp) {
+    if (typeof date === 'string') {
+        return format(new Date(date), 'PPP');
+    }
+    if (date instanceof Timestamp) {
+        return format(date.toDate(), 'PPP');
+    }
+    return "Date not available";
 }
 
+
 export default function ArticlePage({ params }: ArticlePageProps) {
-  const post = posts.find(p => p.slug === params.slug);
+  const firestore = useFirestore();
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!firestore || !params.slug) return;
+
+    const fetchPost = async () => {
+      setLoading(true);
+      const postsRef = collection(firestore, 'posts');
+      const q = query(postsRef, where('slug', '==', params.slug));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const postDoc = querySnapshot.docs[0];
+        setPost({ id: postDoc.id, ...postDoc.data() } as Post);
+      } else {
+        setPost(null);
+      }
+      setLoading(false);
+    };
+
+    fetchPost();
+  }, [firestore, params.slug]);
+
+  if (loading) {
+    return (
+        <article className="container max-w-4xl mx-auto px-4 py-12">
+            <div className='mb-8'>
+                <Skeleton className="h-10 w-32" />
+            </div>
+             <header className="mb-8">
+                <Skeleton className="h-6 w-24 mb-4" />
+                <Skeleton className="h-12 w-full mb-2" />
+                <Skeleton className="h-10 w-3/4" />
+                <div className="mt-6 flex items-center gap-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className='space-y-2'>
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+            </header>
+            <Skeleton className="w-full aspect-[16/9] mb-8 rounded-lg" />
+            <div className="space-y-4">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-5/6" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-4/6" />
+            </div>
+        </article>
+    );
+  }
 
   if (!post) {
     notFound();
@@ -53,7 +120,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             <div>
               <p className="font-semibold">{post.author.name}</p>
               <p className="text-sm text-muted-foreground">
-                Published on {format(new Date(post.date), 'PPP')}
+                Published on {formatDate(post.date)}
               </p>
             </div>
           </div>
