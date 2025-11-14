@@ -79,34 +79,7 @@ export default function AutoMarketingPage() {
                     {!isLoading && !error && campaign && (
                         <div className="grid gap-8 lg:grid-cols-2">
                              <div className="space-y-6">
-                                {campaign.imageUrl && (
-                                    <Card>
-                                        <CardHeader>
-                                             <CardTitle className="flex items-center gap-2 text-lg">
-                                                الصورة المولدة للحملة
-                                             </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="relative aspect-video w-full rounded-lg overflow-hidden border shadow-sm">
-                                                <Image src={campaign.imageUrl} alt="Generated Campaign Image" fill className="object-cover" />
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
                                 <Card>
-                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-lg"><Twitter className="h-5 w-5 text-sky-500"/> منشور X (تويتر)</CardTitle>
-                                     </CardHeader>
-                                     <CardContent className="space-y-4">
-                                        <p className="whitespace-pre-wrap">{campaign.socialPosts.xPost.text}</p>
-                                        <div className="flex flex-wrap gap-1">
-                                            {campaign.socialPosts.xPost.hashtags.map(tag => <span key={tag} className="text-sm text-primary font-semibold">{tag}</span>)}
-                                        </div>
-                                     </CardContent>
-                                </Card>
-                            </div>
-                             <div className="space-y-6">
-                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg"><Milestone className="h-5 w-5 text-primary"/> المقال المستهدف</CardTitle>
                                     </CardHeader>
@@ -138,7 +111,34 @@ export default function AutoMarketingPage() {
                                         </ul>
                                      </CardContent>
                                 </Card>
-                             </div>
+                            </div>
+                             <div className="space-y-6">
+                                {campaign.imageUrl && (
+                                    <Card>
+                                        <CardHeader>
+                                             <CardTitle className="flex items-center gap-2 text-lg">
+                                                الصورة المولدة للحملة
+                                             </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="relative aspect-video w-full rounded-lg overflow-hidden border shadow-sm">
+                                                <Image src={campaign.imageUrl} alt="Generated Campaign Image" fill className="object-cover" />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                <Card>
+                                     <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg"><Twitter className="h-5 w-5 text-sky-500"/> منشور X (تويتر)</CardTitle>
+                                     </CardHeader>
+                                     <CardContent className="space-y-4">
+                                        <p className="whitespace-pre-wrap">{campaign.socialPosts.xPost.text}</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {campaign.socialPosts.xPost.hashtags.map(tag => <span key={tag} className="text-sm text-primary font-semibold">{tag}</span>)}
+                                        </div>
+                                     </CardContent>
+                                </Card>
+                            </div>
                         </div>
                     )}
                 </CardContent>
@@ -160,13 +160,13 @@ export default function AutoMarketingPage() {
 const CampaignSkeleton = () => (
     <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-6">
-            <Skeleton className="h-56 w-full" />
-            <Skeleton className="h-48 w-full" />
-        </div>
-        <div className="space-y-6">
             <Skeleton className="h-40 w-full" />
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-32 w-full" />
+        </div>
+        <div className="space-y-6">
+            <Skeleton className="h-56 w-full" />
+            <Skeleton className="h-48 w-full" />
         </div>
     </div>
 );
