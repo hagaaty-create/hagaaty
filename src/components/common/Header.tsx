@@ -19,8 +19,8 @@ export default function Header() {
   const pathname = usePathname();
   
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/blog', label: 'Blog' },
+    { href: '/', label: 'الرئيسية' },
+    { href: '/blog', label: 'المدونة' },
   ];
 
   const handleLogout = () => {
@@ -38,10 +38,10 @@ export default function Header() {
       return (
         <div className="hidden sm:flex items-center gap-2">
           <Button variant="ghost" asChild>
-            <Link href="/login">Log In</Link>
+            <Link href="/login">تسجيل الدخول</Link>
           </Button>
           <Button asChild>
-            <Link href="/signup">Sign Up</Link>
+            <Link href="/signup">إنشاء حساب</Link>
           </Button>
         </div>
       );
@@ -58,7 +58,7 @@ export default function Header() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
+          <DropdownMenuLabel className="font-normal text-right">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{user.displayName}</p>
               <p className="text-xs leading-none text-muted-foreground">
@@ -68,14 +68,14 @@ export default function Header() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/dashboard">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
+            <Link href="/dashboard" className='justify-end'>
+              <span>لوحة التحكم</span>
+              <LayoutDashboard className="ml-2 h-4 w-4" />
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
+          <DropdownMenuItem onClick={handleLogout} className='justify-end'>
+            <span>تسجيل الخروج</span>
+            <LogOut className="ml-2 h-4 w-4" />
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -93,7 +93,7 @@ export default function Header() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Bot className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg font-headline">Hagaaty</span>
+            <span className="font-bold text-lg font-headline">حاجتي</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             {navLinks.map((link) => (
@@ -106,8 +106,8 @@ export default function Header() {
 
         <div className="flex items-center gap-4">
           <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search articles..." className="pl-10 w-48 lg:w-64" />
+             <Input placeholder="ابحث عن مقالات..." className="pl-4 pr-10 w-48 lg:w-64" />
+             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
           <UserMenu />
 
@@ -115,15 +115,15 @@ export default function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">فتح القائمة</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="right">
                 <div className="flex flex-col h-full">
                     <div className="flex items-center justify-between border-b pb-4">
                          <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                             <Bot className="h-6 w-6 text-primary" />
-                            <span className="font-bold">Hagaaty</span>
+                            <span className="font-bold">حاجتي</span>
                         </Link>
                     </div>
                     <nav className="flex flex-col gap-4 mt-8">
@@ -135,14 +135,14 @@ export default function Header() {
                     </nav>
                     { !user ? (
                      <div className="mt-auto flex flex-col gap-4">
-                        <Button variant="outline" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Log In</Link></Button>
-                        <Button asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link></Button>
+                        <Button variant="outline" asChild><Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>تسجيل الدخول</Link></Button>
+                        <Button asChild><Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>إنشاء حساب</Link></Button>
                     </div>
                     ) : (
                       <div className="mt-auto">
                         <Button className="w-full" onClick={() => {handleLogout(); setIsMobileMenuOpen(false);}}>
-                           <LogOut className="mr-2 h-4 w-4" />
-                           <span>Log out</span>
+                           <LogOut className="ml-2 h-4 w-4" />
+                           <span>تسجيل الخروج</span>
                         </Button>
                       </div>
                     )

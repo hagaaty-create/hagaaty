@@ -4,7 +4,7 @@ import type { Post } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
@@ -61,7 +61,7 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
             </div>
             {isFeatured && (
                 <div className="flex items-center gap-2 text-primary font-semibold">
-                    Read More <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    اقرأ المزيد <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                 </div>
             )}
           </CardFooter>

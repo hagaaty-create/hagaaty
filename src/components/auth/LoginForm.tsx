@@ -37,8 +37,8 @@ export default function LoginForm() {
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
-        description: error.message,
+        title: 'فشل تسجيل الدخول',
+        description: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
       });
     } finally {
       setIsLoading(false);
@@ -55,8 +55,8 @@ export default function LoginForm() {
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Google Login Failed',
-        description: error.message,
+        title: 'فشل تسجيل الدخول بحساب جوجل',
+        description: 'حدث خطأ ما، يرجى المحاولة مرة أخرى.',
       });
     } finally {
       setIsGoogleLoading(false);
@@ -67,15 +67,15 @@ export default function LoginForm() {
   return (
     <Card className="mx-auto max-w-sm w-full">
       <CardHeader>
-        <CardTitle className="text-2xl font-headline">Login</CardTitle>
+        <CardTitle className="text-2xl font-headline">تسجيل الدخول</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          أدخل بريدك الإلكتروني أدناه لتسجيل الدخول إلى حسابك
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="grid gap-2 text-right">
+            <Label htmlFor="email">البريد الإلكتروني</Label>
             <Input
               id="email"
               type="email"
@@ -86,11 +86,11 @@ export default function LoginForm() {
               disabled={isLoading || isGoogleLoading}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 text-right">
             <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
-              <Link href="#" className="ml-auto inline-block text-sm underline">
-                Forgot your password?
+              <Label htmlFor="password">كلمة المرور</Label>
+              <Link href="#" className="mr-auto inline-block text-sm underline">
+                هل نسيت كلمة المرور؟
               </Link>
             </div>
             <Input 
@@ -103,23 +103,22 @@ export default function LoginForm() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Login
+            {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+            تسجيل الدخول
           </Button>
           <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
             {isGoogleLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
             ) : (
-              // You can add a Google icon here if you like
-              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.2 64.5C308.6 102.3 282.1 92 248 92c-73.4 0-134.3 59.4-134.3 132s60.9 132 134.3 132c77.9 0 119.3-57.8 123.4-86.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
+              <svg className="ml-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.2 64.5C308.6 102.3 282.1 92 248 92c-73.4 0-134.3 59.4-134.3 132s60.9 132 134.3 132c77.9 0 119.3-57.8 123.4-86.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
             )}
-            Login with Google
+            تسجيل الدخول بحساب جوجل
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
+          ليس لديك حساب؟{" "}
           <Link href="/signup" className="underline">
-            Sign up
+            أنشئ حسابًا
           </Link>
         </div>
       </CardContent>

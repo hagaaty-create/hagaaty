@@ -7,18 +7,18 @@ export default function Home() {
   const features = [
     {
       icon: <PenSquare className="h-8 w-8 text-primary" />,
-      title: 'AI-Powered Ad Creation',
-      description: 'Generate compelling ad copy and visuals in seconds. Let our AI craft campaigns that convert.',
+      title: 'إنشاء إعلانات بالذكاء الاصطناعي',
+      description: 'أنشئ نصوص إعلانية وصورًا جذابة في ثوانٍ. دع الذكاء الاصطناعي يصمم حملات تحقق أفضل النتائج.',
     },
     {
       icon: <Bot className="h-8 w-8 text-primary" />,
-      title: 'Autonomous Site Marketing',
-      description: 'Our AI agent analyzes the market and writes SEO-optimized articles to boost your site\'s ranking.',
+      title: 'تسويق ذاتي للموقع',
+      description: 'يقوم وكيلنا الذكي بتحليل السوق وكتابة مقالات محسّنة لمحركات البحث لتعزيز ترتيب موقعك.',
     },
     {
       icon: <BarChart className="h-8 w-8 text-primary" />,
-      title: 'Financial Analytics',
-      description: 'Track your spending, manage your budget, and withdraw your referral earnings with ease.',
+      title: 'تحليلات مالية',
+      description: 'تتبع إنفاقك، أدر ميزانيتك، واسحب أرباح الإحالة الخاصة بك بسهولة.',
     },
   ];
 
@@ -27,17 +27,17 @@ export default function Home() {
       {/* Hero Section */}
       <section className="mb-20 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight text-primary sm:text-5xl md:text-6xl font-headline">
-          Hagaaty: AI-Powered Advertising & Marketing
+          حاجتي: منصة الإعلان والتسويق بالذكاء الاصطناعي
         </h1>
         <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground sm:text-xl">
-          Launch, manage, and optimize your ad campaigns with a nearly autonomous AI. From ad creation to SEO, we handle it all.
+          أطلق وأدر وحسّن حملاتك الإعلانية باستخدام ذكاء اصطناعي شبه مستقل. من إنشاء الإعلانات إلى تحسين محركات البحث، نحن نتولى كل شيء.
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <Button asChild size="lg">
-            <Link href="/signup">Get Started</Link>
+            <Link href="/signup">ابدأ الآن</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link href="/dashboard">Go to Dashboard</Link>
+            <Link href="/dashboard">اذهب إلى لوحة التحكم</Link>
           </Button>
         </div>
       </section>
@@ -45,7 +45,7 @@ export default function Home() {
       {/* Features Section */}
       <section>
         <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
-          Everything You Need to Succeed
+          كل ما تحتاجه للنجاح
         </h2>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
