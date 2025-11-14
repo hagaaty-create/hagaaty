@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDoc, useFirestore, useUser } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useDoc, useFirestore, useUser, useCollection } from "@/firebase";
+import { doc, collection, query, orderBy } from "firebase/firestore";
 import { BarChart, PenSquare, Wallet, Zap, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -16,6 +16,15 @@ type UserProfile = {
   balance?: number;
 }
 
+type AdCampaign = {
+    id: string;
+    productName: string;
+    headline: string;
+    status: 'draft' | 'active' | 'paused' | 'completed';
+};
+
+const AD_COST = 1.00;
+
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -25,7 +34,25 @@ export default function DashboardPage() {
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
 
-  const { data: userProfile, loading } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile, loading: userLoading } = useDoc<UserProfile>(userProfileRef);
+
+  const campaignsQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'users', user.uid, 'campaigns'), orderBy('createdAt', 'desc'));
+  }, [user, firestore]);
+
+  const { data: campaigns, loading: campaignsLoading } = useCollection<AdCampaign>(campaignsQuery);
+  
+  const totalSpent = useMemo(() => {
+      if (!campaigns) return 0;
+      return campaigns.length * AD_COST;
+  }, [campaigns]);
+  
+  const activeCampaigns = useMemo(() => {
+      if (!campaigns) return 0;
+      // For now we count all campaigns as "active" for the dashboard display
+      return campaigns.length;
+  }, [campaigns]);
 
   return (
     <div className="grid gap-8">
@@ -41,7 +68,7 @@ export default function DashboardPage() {
                 <Wallet className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                {loading ? (
+                {userLoading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
                    <div className="text-2xl font-bold">${userProfile?.balance?.toFixed(2) || '0.00'}</div>
@@ -55,7 +82,11 @@ export default function DashboardPage() {
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                 {campaignsLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                 ) : (
+                    <div className="text-2xl font-bold">{activeCampaigns}</div>
+                 )}
                 <p className="text-xs text-muted-foreground">Ready to launch your first campaign?</p>
               </CardContent>
             </Card>
@@ -65,7 +96,11 @@ export default function DashboardPage() {
                 <BarChart className="h-4 w-4 text-muted-foreground" />
               </Header>
               <CardContent>
-                <div className="text-2xl font-bold">$0.00</div>
+                 {campaignsLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                 ) : (
+                    <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
+                 )}
                  <p className="text-xs text-muted-foreground">Across all campaigns</p>
               </CardContent>
             </Card>
