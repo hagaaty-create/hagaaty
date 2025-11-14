@@ -7,10 +7,7 @@ import {
   PenSquare,
   Home,
   LogOut,
-  BarChart,
-  FileText,
-  Lightbulb,
-  ShieldCheck
+  BarChart
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -21,9 +18,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarSeparator,
-  SidebarGroup,
-  SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser, useAuth } from '@/firebase';
@@ -52,11 +46,6 @@ export default function DashboardLayout({
     { href: '/dashboard/generate', label: 'Generate Article', icon: PenSquare },
     { href: '/dashboard/create-ad', label: 'Create Ad', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'My Campaigns', icon: BarChart },
-    { href: '/dashboard/insights', label: 'Insights', icon: Lightbulb },
-  ];
-
-  const adminNavItems = [
-    { href: '/dashboard/admin/articles', label: 'Manage Articles', icon: FileText },
   ];
 
   const handleLogout = () => {
@@ -106,28 +95,6 @@ export default function DashboardLayout({
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
-                <SidebarSeparator className='my-2' />
-                 <SidebarGroup>
-                    <SidebarGroupLabel className='flex items-center gap-2 text-sidebar-foreground/70'>
-                        <ShieldCheck />
-                        <span>Admin</span>
-                    </SidebarGroupLabel>
-                    <SidebarMenu>
-                        {adminNavItems.map((item) => (
-                            <SidebarMenuItem key={item.href}>
-                                <Link href={item.href}>
-                                    <SidebarMenuButton
-                                        isActive={pathname === item.href}
-                                        tooltip={item.label}
-                                    >
-                                        <item.icon />
-                                        <span>{item.label}</span>
-                                    </SidebarMenuButton>
-                                </Link>
-                            </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu>
-                 </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>

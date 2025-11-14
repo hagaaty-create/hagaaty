@@ -81,7 +81,7 @@ export default function GenerateArticleForm() {
             tags: generatedData.tags,
             author: {
                 name: user.displayName || "AI Admin",
-                avatarUrl: user.photoURL || PlaceHolderImages.find(p => p.id === '7')?.imageUrl || 'https://picsum.photos/seed/avatar-placeholder/40/40'
+                avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
             },
             imageUrl: randomImage.imageUrl,
             imageHint: randomImage.imageHint,
