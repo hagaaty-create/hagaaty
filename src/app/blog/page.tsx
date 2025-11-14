@@ -35,19 +35,24 @@ export default function BlogPage() {
                   <Skeleton className="h-12 w-1/2 mx-auto" />
                   <Skeleton className="h-6 w-3/4 mx-auto mt-4" />
               </section>
+              
               <section className="mb-16">
-                  <Skeleton className="h-8 w-1/4 mb-8" />
-                  <div className="grid gap-8 md:grid-cols-2">
-                    <Skeleton className="h-96 w-full" />
-                    <Skeleton className="h-96 w-full" />
-                  </div>
+                   <Skeleton className="h-10 w-1/3 mb-8" />
+                   <div className="grid gap-8 lg:grid-cols-2">
+                       <Skeleton className="h-[450px] w-full rounded-lg" />
+                        <div className="flex flex-col justify-between space-y-4">
+                           <Skeleton className="h-[215px] w-full rounded-lg" />
+                           <Skeleton className="h-[215px] w-full rounded-lg" />
+                       </div>
+                   </div>
               </section>
+
               <section>
-                   <Skeleton className="h-8 w-1/4 mb-8" />
+                   <Skeleton className="h-10 w-1/4 mb-8" />
                    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                       <Skeleton className="w-full h-80" />
-                       <Skeleton className="w-full h-80" />
-                       <Skeleton className="w-full h-80" />
+                       <Skeleton className="w-full h-96 rounded-lg" />
+                       <Skeleton className="w-full h-96 rounded-lg" />
+                       <Skeleton className="w-full h-96 rounded-lg" />
                    </div>
               </section>
           </div>

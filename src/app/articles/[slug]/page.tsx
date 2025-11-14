@@ -92,21 +92,21 @@ export default function ArticlePage({ params }: ArticlePageProps) {
     return (
         <article className="container max-w-4xl mx-auto px-4 py-12">
             <div className='mb-8'>
-                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-48" />
             </div>
-             <header className="mb-8">
-                <Skeleton className="h-6 w-24 mb-4" />
-                <Skeleton className="h-12 w-full mb-2" />
+             <header className="mb-8 space-y-4">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-10 w-3/4" />
-                <div className="mt-6 flex items-center gap-4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="mt-6 flex items-center gap-4 pt-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
                     <div className='space-y-2'>
                         <Skeleton className="h-4 w-32" />
                         <Skeleton className="h-4 w-48" />
                     </div>
                 </div>
             </header>
-            <Skeleton className="w-full aspect-[16/9] mb-8 rounded-lg" />
+            <Skeleton className="w-full aspect-video mb-8 rounded-lg" />
             <div className="space-y-4">
                 <Skeleton className="h-6 w-full" />
                 <Skeleton className="h-6 w-full" />
@@ -129,7 +129,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             <Button variant="ghost" asChild>
                 <Link href="/blog">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Blog
+                    العودة للمدونة
                 </Link>
             </Button>
         </div>
@@ -149,14 +149,14 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             <div>
               <p className="font-semibold">{post.author.name}</p>
               <p className="text-sm text-muted-foreground">
-                Published on {formatDate(post.date)}
+                نشر في {formatDate(post.date)}
               </p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="relative w-full aspect-[16/9] mb-8 rounded-lg overflow-hidden shadow-lg">
+      <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden shadow-lg">
         <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint}/>
       </div>
 
@@ -168,7 +168,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
 
       <footer className="mt-12">
         <div className="flex flex-wrap gap-2">
-            <span className="font-semibold">Tags:</span>
+            <span className="font-semibold">الوسوم:</span>
             {post.tags.map(tag => (
                 <Badge key={tag} variant="outline">{tag}</Badge>
             ))}
