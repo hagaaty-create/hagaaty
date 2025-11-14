@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview An AI agent for a smart assistant chat interface that can answer questions based on blog content.
+ * @fileOverview An AI agent for a smart assistant chat interface that can answer questions and navigate the user.
  *
  * - smartAssistantChat - A function that handles the smart assistant chat process.
  * - SmartAssistantChatInput - The input type for the smartAssistantChat function.
@@ -11,8 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {getFirestore} from 'firebase-admin/firestore';
-import {getApps, initializeApp, cert} from 'firebase-admin/app';
-import {Post} from '@/types';
+import {getApps, initializeApp} from 'firebase-admin/app';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
@@ -27,35 +26,36 @@ export type SmartAssistantChatInput = z.infer<
 >;
 
 const SmartAssistantChatOutputSchema = z.object({
-  response: z.string().describe('The response from the smart assistant.'),
+  response: z.string().describe('The text response from the smart assistant.'),
 });
 export type SmartAssistantChatOutput = z.infer<
   typeof SmartAssistantChatOutputSchema
 >;
 
-export async function smartAssistantChat(
-  input: SmartAssistantChatInput
-): Promise<SmartAssistantChatOutput> {
-  return smartAssistantChatFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'smartAssistantChatPrompt',
-  input: {schema: SmartAssistantChatInputSchema},
-  output: {schema: SmartAssistantChatOutputSchema},
-  prompt: `أنت مساعد ذكاء اصطناعي شامل وودود. هدفك هو الإجابة على أسئلة المستخدمين باللغة العربية بدقة وتقديم المساعدة في مجموعة واسعة من المهام. لديك إمكانية الوصول إلى معلومات شاملة. كن مفيداً ومبدعاً.
-
-استعلام المستخدم: {{{query}}}`,
-});
-
-const smartAssistantChatFlow = ai.defineFlow(
+const navigateTo = ai.defineTool(
   {
-    name: 'smartAssistantChatFlow',
-    inputSchema: SmartAssistantChatInputSchema,
-    outputSchema: SmartAssistantChatOutputSchema,
+    name: 'navigateTo',
+    description: 'يُستخدم لتوجيه المستخدم إلى صفحة معينة داخل التطبيق.',
+    inputSchema: z.object({
+      path: z.string().describe('المسار الذي سيتم توجيه المستخدم إليه، مثال: /login, /blog, /dashboard'),
+    }),
+    outputSchema: z.void(),
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async () => {
+    // This function doesn't need to do anything on the server.
+    // The client will handle the navigation.
   }
 );
+
+
+export async function smartAssistantChat(
+  input: SmartAssistantChatInput
+) {
+  return await ai.generate({
+    prompt: `أنت مساعد ذكاء اصطناعي شامل وودود. هدفك هو الإجابة على أسئلة المستخدمين باللغة العربية بدقة وتقديم المساعدة في مجموعة واسعة من المهام. كن مفيداً ومبدعاً. إذا طلب منك المستخدم الذهاب لصفحة معينة، فاستخدم أداة navigateTo.
+
+استعلام المستخدم: ${input.query}`,
+    tools: [navigateTo],
+    model: 'googleai/gemini-2.5-flash',
+  });
+}

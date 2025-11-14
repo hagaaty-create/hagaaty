@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 
 type Message = {
@@ -25,6 +26,8 @@ export default function SmartAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const firestore = useFirestore();
+  const router = useRouter();
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,16 +42,29 @@ export default function SmartAssistant() {
 
     try {
         // Log the query to Firestore first, don't wait for it
-        const queriesRef = collection(firestore, 'queries');
-        addDoc(queriesRef, {
+        addDoc(collection(firestore, 'queries'), {
             query: currentQuery,
             createdAt: serverTimestamp()
         }).catch(err => console.error("Failed to log query:", err));
         
         // Then get the response
         const result = await smartAssistantChat({ query: currentQuery });
-        const assistantMessage: Message = { role: 'assistant', content: result.response };
-        setMessages(prev => [...prev, assistantMessage]);
+        
+        const toolCalls = result.toolCalls();
+        if (toolCalls.length > 0) {
+            const toolCall = toolCalls[0];
+            if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
+                router.push(toolCall.input.path);
+                setIsOpen(false); // Close the chat sheet after navigation
+            }
+        }
+        
+        const textResponse = result.text;
+        if (textResponse) {
+          const assistantMessage: Message = { role: 'assistant', content: textResponse };
+          setMessages(prev => [...prev, assistantMessage]);
+        }
+
     } catch (error) {
       const errorMessage: Message = {
         role: 'assistant',
@@ -73,7 +89,7 @@ export default function SmartAssistant() {
   const exampleQueries = [
     "ما هو الذكاء الاصطناعي التوليدي؟",
     "كيف تعمل الحوسبة الكمومية؟",
-    "ما هي مبادئ تصميم واجهة المستخدم الجيدة؟"
+    "اعملي تسجيل دخول"
   ];
   
   const handleExampleQuery = (query: string) => {
@@ -89,7 +105,19 @@ export default function SmartAssistant() {
 
     smartAssistantChat({ query: query })
       .then(result => {
-        setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
+        const toolCalls = result.toolCalls();
+        if (toolCalls.length > 0) {
+            const toolCall = toolCalls[0];
+            if (toolCall.tool === 'navigateTo' && toolCall.input.path) {
+                router.push(toolCall.input.path);
+                setIsOpen(false);
+            }
+        }
+
+        const textResponse = result.text;
+        if (textResponse) {
+            setMessages(prev => [...prev, { role: 'assistant', content: textResponse }]);
+        }
       })
       .catch(err => {
         setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدثت مشكلة. يرجى المحاولة مرة أخرى.'}]);
@@ -122,7 +150,7 @@ export default function SmartAssistant() {
             {messages.length === 0 && (
                 <div className="text-center text-muted-foreground p-4 sm:p-8">
                     <Bot className="mx-auto h-12 w-12 mb-4 text-primary/50"/>
-                    <p className='mb-6'>مرحباً! أنا مساعد حاجتي للذكاء الاصطناعي. اسألني أي شيء عن المقالات في هذه المدونة.</p>
+                    <p className='mb-6'>مرحباً! أنا مساعد حاجتي للذكاء الاصطناعي. اسألني أي شيء أو اطلب مني أن آخذك إلى أي صفحة.</p>
                     <div className='flex flex-col items-center gap-2'>
                         {exampleQueries.map((q) => (
                            <Button 
