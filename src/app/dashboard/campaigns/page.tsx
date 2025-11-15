@@ -49,6 +49,7 @@ function CampaignsPageContent() {
     }
 
     const getStatusBadge = (campaign: AdCampaign) => {
+        // Special case for a new campaign that is being reviewed
         if (campaign.status === 'reviewing' && campaign.id === newCampaignId) {
             return <CampaignReviewProgress campaignId={campaign.id} campaignName={campaign.productName} />;
         }
