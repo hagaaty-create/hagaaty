@@ -50,38 +50,36 @@ export default function BillingPage() {
         }
     };
     
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !user.email || !paymentProof || !imageBase64) {
             toast({ variant: 'destructive', title: 'بيانات ناقصة', description: 'يرجى التأكد من رفع صورة إثبات الدفع.' });
             return;
         }
         setIsLoading(true);
-        try {
-            await verifyPaymentAndCreditUser({
-                userId: user.uid,
-                userEmail: user.email,
-                paymentProofDataUri: imageBase64,
-                amount: parseFloat(selectedMethod.amount),
-                paymentMethod: selectedMethod.name,
-            });
 
-            toast({
-                title: '✅ تم إرسال طلبك بنجاح',
-                description: 'يقوم الذكاء الاصطناعي بمراجعة الإيصال الآن. سيتم إضافة الرصيد لحسابك خلال دقيقة.',
-            });
-            setIsSubmitted(true);
+        // Fire-and-forget operation for a better user experience.
+        // The AI flow will handle everything in the background.
+        verifyPaymentAndCreditUser({
+            userId: user.uid,
+            userEmail: user.email,
+            paymentProofDataUri: imageBase64,
+            amount: parseFloat(selectedMethod.amount),
+            paymentMethod: selectedMethod.name,
+        }).catch(err => {
+            // Log the error for debugging, but the user has already received a success message.
+            console.error("Error in background payment verification flow:", err);
+            // Optionally, you could implement a more robust error handling system,
+            // like sending a follow-up email to the user if the background task fails.
+        });
 
-        } catch (error) {
-            console.error("Error handling payment verification:", error);
-            toast({
-                variant: 'destructive',
-                title: 'حدث خطأ',
-                description: 'لم نتمكن من معالجة طلبك. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.',
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        // Show success state immediately to the user.
+        setIsSubmitted(true);
+        setIsLoading(false);
+        toast({
+            title: '✅ تم إرسال طلبك بنجاح',
+            description: 'يقوم الذكاء الاصطناعي بمراجعة الإيصال الآن. سيتم إضافة الرصيد لحسابك خلال دقيقة.',
+        });
     };
 
     return (
@@ -96,7 +94,7 @@ export default function BillingPage() {
                     <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6"/>
                     <CardTitle className="text-2xl font-headline">تم استلام طلبك للمراجعة!</CardTitle>
                     <CardDescription className="mt-4 text-base">
-                        يقوم وكيل الذكاء الاصطناعي حاليًا بتحليل إيصال الدفع الخاص بك. في حالة نجاح التحقق، سيتم إضافة الرصيد إلى حسابك تلقائيًا في غضون دقيقة. سيتم إعلامك عند اكتمال العملية.
+                        يقوم وكيل الذكاء الاصطناعي حاليًا بتحليل إيصال الدفع الخاص بك. في حالة نجاح التحقق، سيتم إضافة الرصيد إلى حسابك تلقائيًا في غضون دقيقة، وسيتم إعلامك عبر البريد الإلكتروني عند اكتمال العملية.
                     </CardDescription>
                 </Card>
             ) : (

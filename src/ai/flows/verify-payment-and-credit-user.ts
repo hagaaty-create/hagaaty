@@ -53,9 +53,8 @@ const creditUserBalanceTool = ai.defineTool(
     }
 
     const userData = userDoc.data()!;
-    const referredByCode = userData.referredBy; // This should be the referral CODE, not UID.
+    const referredByCode = userData.referredBy; 
     
-    // We need to find the referrer by their code.
     let referrerRef: FirebaseFirestore.DocumentReference | null = null;
     if (referredByCode) {
         const referrerQuery = db.collection('users').where('referralCode', '==', referredByCode).limit(1);
@@ -65,19 +64,16 @@ const creditUserBalanceTool = ai.defineTool(
         }
     }
 
-
     // Transaction to ensure atomicity
     await db.runTransaction(async (transaction) => {
       // 1. Credit the new user's balance
       transaction.update(userRef, { balance: FieldValue.increment(amount) });
 
       // 2. Check if this user was referred and if it's their first deposit (check if their balance was ~2)
-      // We check for balance < 5 to consider the initial $2 welcome bonus.
-      if (referrerRef && userData.balance < 5) {
+      if (referrerRef && userData.balance < 5) { // Check for balance < 5 to consider the initial $2 welcome bonus.
         console.log(`[Tool] User ${userId} was referred by ${referrerRef.id}. Processing referral bonus.`);
         const commission = amount * 0.20; // 20% commission
         
-        // Add commission to the referrer's earnings
         transaction.update(referrerRef, { referralEarnings: FieldValue.increment(commission) });
         
         // Fire-and-forget notification to the referrer
@@ -148,7 +144,6 @@ const verifyPaymentFlow = ai.defineFlow(
     console.log(`[Flow] Starting payment verification for user ${input.userEmail}`);
     
     // IMPORTANT: This is a simulation.
-    // Here, we use the LLM to "act" as the verification system.
     await ai.generate({
       prompt: `أنت نظام آلي للتحقق من عمليات الدفع. لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'creditUserBalance' لإضافة الرصيد إلى حسابه، ثم استدع أداة 'sendAdminNotification' لإرسال إشعار للمسؤول.
 
