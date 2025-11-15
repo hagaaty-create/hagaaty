@@ -4,7 +4,7 @@ import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from "@
 import { doc, collection, query, where, getDocs, getCountFromServer } from "firebase/firestore";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Copy, Check, DollarSign, Users, Gift, Network, Bot, Loader2 } from "lucide-react";
+import { Share2, Copy, Check, DollarSign, Users, Gift, Network, Bot, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
 import { analyzeDownline, DownlineAnalysisInput } from "@/ai/flows/analyze-downline";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type UserProfile = {
   id: string;
@@ -23,6 +24,7 @@ type UserProfile = {
   referralEarnings?: number;
   referredBy?: string;
   createdAt?: Timestamp;
+  photoURL?: string;
 }
 
 type DownlineReport = {
@@ -30,13 +32,16 @@ type DownlineReport = {
     summary: string;
 }
 
-const commissionLevels = [
-    { level: 1, rate: "5.0%" },
-    { level: 2, rate: "2.5%" },
-    { level: 3, rate: "1.25%" },
-    { level: 4, rate: "0.625%" },
-    { level: 5, rate: "0.625%" },
-];
+const TreeNode = ({ user, isRoot = false }: { user: UserProfile, isRoot?: boolean }) => (
+    <div className="flex flex-col items-center">
+        <Avatar className={`h-16 w-16 border-4 ${isRoot ? 'border-primary' : 'border-border'}`}>
+            <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.id}`} alt={user.displayName} />
+            <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <p className="mt-2 text-sm font-semibold">{user.displayName}</p>
+        {isRoot && <p className="text-xs text-muted-foreground">(أنت)</p>}
+    </div>
+);
 
 
 export default function ReferralsPage() {
@@ -172,38 +177,40 @@ export default function ReferralsPage() {
         </CardContent>
       </Card>
 
-
-      <Card className="bg-primary/5 border-primary/20">
-          <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                  <Network className="h-6 w-6"/>
-                  <span>اكسب من شبكتك بالكامل (MLM)</span>
-              </CardTitle>
-              <CardDescription>
-                  لا تكسب فقط من أصدقائك، بل اكسب من أصدقاء أصدقائك حتى 5 مستويات. عندما يقوم أي شخص في شبكتك بشحن رصيده، ستحصل على عمولة.
-              </CardDescription>
-          </CardHeader>
-          <CardContent>
-              <Table>
-                  <TableHeader>
-                      <TableRow>
-                          <TableHead>المستوى</TableHead>
-                          <TableHead>نسبة العمولة</TableHead>
-                          <TableHead>مثال توضيحي</TableHead>
-                      </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {commissionLevels.map(item => (
-                          <TableRow key={item.level}>
-                              <TableCell className="font-bold">المستوى {item.level}</TableCell>
-                              <TableCell className="font-mono text-primary font-bold">{item.rate}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground">عندما يقوم عضو في هذا المستوى بشحن 100$، يكون ربحك هو {item.rate} من هذا المبلغ</TableCell>
-                          </TableRow>
-                      ))}
-                  </TableBody>
-              </Table>
-          </CardContent>
-      </Card>
+        <Card className="bg-primary/5 border-primary/20">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                    <Network className="h-6 w-6"/>
+                    <span>شجرة شبكتك (المستوى الأول)</span>
+                </CardTitle>
+                <CardDescription>
+                    هذا عرض مرئي للمستخدمين الذين قمت بدعوتهم مباشرة. كلما نمت هذه الشجرة، زادت أرباحك المحتملة من المستويات الأعمق.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center">
+                {userProfile && <TreeNode user={userProfile as UserProfile} isRoot />}
+                
+                {referrals && referrals.length > 0 && (
+                    <>
+                        <div className="w-px h-8 bg-border my-2"></div>
+                        <div className="flex justify-center flex-wrap gap-8 relative">
+                           <div className="absolute top-[-2rem] h-px w-full bg-border"></div>
+                            {referrals.map(ref => (
+                                <div key={ref.id} className="relative">
+                                    <div className="absolute top-[-2rem] left-1/2 -translate-x-1/2 w-px h-8 bg-border"></div>
+                                    <TreeNode user={ref} />
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+                 {(!referrals || referrals.length === 0) && !areReferralsLoading && (
+                    <div className="text-center py-8 text-muted-foreground">
+                        <p>شجرتك لم تبدأ في النمو بعد. ابدأ بدعوة الأصدقاء!</p>
+                    </div>
+                 )}
+            </CardContent>
+        </Card>
       
       <Card>
         <CardHeader>
