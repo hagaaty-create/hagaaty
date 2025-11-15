@@ -206,17 +206,17 @@ export default function ReferralsPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-3"><Bot className="h-6 w-6 text-primary"/> تحليل شبكتك بالذكاء الاصطناعي</CardTitle>
+          <CardTitle className="flex items-center gap-3"><Bot className="h-6 w-6 text-primary"/> تحليل المدرب الذكي</CardTitle>
         </CardHeader>
         <CardContent>
           {isAnalysisLoading ? (
             <div className="flex items-center gap-3 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>يقوم الوكيل بتحليل شبكتك الآن...</span>
+              <span>يقوم المدرب الذكي بتحليل شبكتك الآن...</span>
             </div>
           ) : downlineReport && (
             <div className="space-y-4">
-                <p className="text-base text-muted-foreground italic">"{downlineReport.summary}"</p>
+                <p className="text-base text-muted-foreground italic bg-muted/50 p-4 rounded-lg">"{downlineReport.summary}"</p>
                 <Table>
                   <TableHeader>
                     <TableRow>
