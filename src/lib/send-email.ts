@@ -31,5 +31,3 @@ export async function sendEmail({ to, subject, html }: EmailPayload): Promise<vo
   // to simulate a successful email send.
   return Promise.resolve();
 }
-
-    
