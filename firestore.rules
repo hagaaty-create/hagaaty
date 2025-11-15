@@ -4,14 +4,19 @@
  * Core Philosophy:
  * This ruleset enforces a user-ownership model for user profiles and campaigns,
  * and a public-read, admin-write model for articles, categories, and tags.
- * It includes specific logic for user point and balance management.
+ * It includes specific, fine-grained logic for user point and balance management
+ * to prevent unauthorized modifications.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // =================================================================
+    //  Helper Functions
+    // =================================================================
+
     /**
-     * @description Checks if the request is authenticated.
+     * @description Checks if the request is from an authenticated user.
      */
     function isSignedIn() {
       return request.auth != null;
@@ -26,99 +31,143 @@ service cloud.firestore {
 
     /**
      * @description Checks if the authenticated user is an admin.
-     * Admins are identified by a 'role' field in their user profile.
+     * Admins are identified by a 'role' field in their user profile document.
      */
     function isAdmin() {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-
-    /**
-     * @description Checks if the authenticated user is the owner of an existing document.
-     */
-    function isExistingOwner(ownerId) {
-        return isOwner(ownerId) && resource != null;
-    }
     
     /**
-     * @description Validates the fields that a user is allowed to update on their own profile.
-     * Prevents users from illegitimately changing their role, referral code, or earnings.
+     * @description Validates the fields that can be changed during user signup.
+     * Ensures all required fields are present and have the correct initial values.
      */
-    function hasAllowedUserUpdates() {
-        let incoming = request.resource.data;
-        let existing = resource.data;
-        
-        // Prevent changing immutable or admin-controlled fields
+    function hasValidSignupFields() {
+        let user = request.resource.data;
+        return user.id == request.auth.uid
+            && user.displayName is string
+            && user.email == request.auth.token.email
+            && (user.role == 'user' || (user.role == 'admin' && user.email == 'hagaaty@gmail.com'))
+            && user.balance == 2.00
+            && user.points == 0
+            && user.lastMarketingTriggerAt == null
+            && user.createdAt == request.time
+            && user.referralCode is string
+            && user.referralEarnings == 0
+            && (user.referredBy == null || user.referredBy is string);
+    }
+
+    /**
+     * @description Validates that immutable fields are not being changed by the user.
+     */
+    function hasAllowedUserUpdates(incoming, existing) {
         return incoming.id == existing.id
             && incoming.email == existing.email
             && incoming.role == existing.role
             && incoming.createdAt == existing.createdAt
             && incoming.referralCode == existing.referralCode
-            && incoming.referralEarnings == existing.referralEarnings
-            && incoming.referredBy == existing.referredBy;
+            && incoming.referralEarnings == existing.referralEarnings;
     }
+
+    /**
+     * @description Checks if a user is legitimately triggering the autonomous agent.
+     * - Points increase by exactly 10.
+     * - Balance and other sensitive fields are unchanged.
+     * - Timestamp is updated.
+     * - Cooldown of 24 hours is enforced.
+     */
+    function isTriggeringAgent(incoming, existing) {
+        let isCooldownOver = existing.lastMarketingTriggerAt == null || request.time > existing.lastMarketingTriggerAt + duration.time(24, 0, 0, 0);
+        return isCooldownOver
+            && incoming.points == existing.points + 10
+            && incoming.balance == existing.balance
+            && incoming.lastMarketingTriggerAt == request.time;
+    }
+
+    /**
+     * @description Checks if a user is cashing in points for a reward.
+     * - User must have enough points (>= 100).
+     * - Points decrease by 100.
+     * - Balance increases by 5.
+     * - Cooldown for agent trigger is also enforced as this happens during an agent trigger.
+     */
+    function isCashingInPoints(incoming, existing) {
+       let isCooldownOver = existing.lastMarketingTriggerAt == null || request.time > existing.lastMarketingTriggerAt + duration.time(24, 0, 0, 0);
+       return isCooldownOver
+            && (existing.points + 10) >= 100 // Check points before they are incremented
+            && incoming.points == existing.points + 10 - 100
+            && incoming.balance == existing.balance + 5
+            && incoming.lastMarketingTriggerAt == request.time;
+    }
+    
+     /**
+     * @description Checks if a user is being debited for creating an ad campaign.
+     * - Balance decreases by exactly 2.
+     * - Points and other fields are unchanged.
+     */
+    function isCreatingAdCampaign(incoming, existing) {
+      return incoming.balance == existing.balance - 2.00
+          && incoming.points == existing.points
+          && incoming.lastMarketingTriggerAt == existing.lastMarketingTriggerAt;
+    }
+    
+    /**
+     * @description Allows general profile updates (like displayName) that don't affect protected fields.
+     */
+    function isGeneralProfileUpdate(incoming, existing) {
+        return incoming.balance == existing.balance
+            && incoming.points == existing.points
+            && incoming.lastMarketingTriggerAt == existing.lastMarketingTriggerAt;
+    }
+
+
+    // =================================================================
+    //  Collection Rules
+    // =================================================================
 
     /**
      * @description Rules for user profiles.
      * @path /users/{userId}
      */
     match /users/{userId} {
+      // Admins can read any profile. Users can only read their own.
       allow get: if isOwner(userId) || isAdmin();
+      // Only admins can list all users.
       allow list: if isAdmin();
       
-      // Allow creation if the user is creating their own document.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      // Allow user creation if it's their own document and fields are valid.
+      allow create: if isOwner(userId) && hasValidSignupFields();
       
-      // Allow updates under specific, controlled conditions.
-      allow update: if isOwner(userId) && hasAllowedUserUpdates() && (
-        // Case 1: Triggering the marketing agent.
-        (
-          request.resource.data.points == resource.data.points + 10 &&
-          request.resource.data.balance == resource.data.balance &&
-          request.resource.data.lastMarketingTriggerAt == request.time &&
-          (resource.data.lastMarketingTriggerAt == null || request.time > resource.data.lastMarketingTriggerAt + duration.time(24, 0, 0, 0))
-        ) ||
-        // Case 2: Cashing in points for a reward.
-        (
-          request.resource.data.points == resource.data.points + 10 - 100 &&
-          request.resource.data.balance == resource.data.balance + 5 &&
-          (resource.data.points + 10) >= 100
-        ) ||
-        // Case 3: Debiting balance for creating an ad campaign.
-        (
-           request.resource.data.balance == resource.data.balance - 2 &&
-           request.resource.data.points == resource.data.points &&
-           request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
-        ) ||
-        // Case 4: General profile updates (like displayName) that don't affect protected fields.
-        (
-            request.resource.data.balance == resource.data.balance &&
-            request.resource.data.points == resource.data.points &&
-            request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
-        )
+      // Allow updates only under specific, controlled conditions.
+      allow update: if isOwner(userId) && hasAllowedUserUpdates(request.resource.data, resource.data) && (
+          isTriggeringAgent(request.resource.data, resource.data) ||
+          isCashingInPoints(request.resource.data, resource.data) ||
+          isCreatingAdCampaign(request.resource.data, resource.data) ||
+          isGeneralProfileUpdate(request.resource.data, resource.data)
       );
 
+      // Only admins can delete users.
       allow delete: if isAdmin();
 
       /**
        * @description Rules for user's ad campaigns.
-       * Users can manage their own campaigns. Admins can view all campaigns
-       * via collection group queries.
+       * Users can manage their own campaigns.
        */
       match /campaigns/{campaignId} {
           allow read, write: if isOwner(userId);
       }
     }
     
-    // Admins can read all campaigns for the main dashboard view.
+    /**
+     * @description Collection group query for campaigns.
+     * Admins can list all campaigns across all users for the main dashboard view.
+     */
     match /{path=**}/campaigns/{campaignId} {
-      allow get: if isAdmin();
-      allow list: if isAdmin();
+      allow get, list: if isAdmin();
     }
 
 
     /**
-     * @description Rules for articles. Publicly readable, but only admins
-     * can create, update, or delete.
+     * @description Rules for blog posts. Publicly readable, but only admins can write.
      */
     match /posts/{postId} {
       allow read: if true;
@@ -143,7 +192,7 @@ service cloud.firestore {
 
      /**
       * @description Rules for user queries from the smart assistant.
-      * Write-only for authenticated users to protect privacy.
+      * Write-only for any authenticated user to protect privacy. No one can read them.
       */
     match /queries/{queryId} {
       allow read, update, delete: if false;
