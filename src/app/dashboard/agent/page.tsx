@@ -18,8 +18,9 @@ type UserProfile = {
 };
 
 const COOLDOWN_HOURS = 24;
+const POINTS_PER_TRIGGER = 10;
 const POINTS_FOR_REWARD = 100;
-const REWARD_AMOUNT = 1;
+const REWARD_AMOUNT = 5;
 
 export default function AgentPage() {
   const [isAgentRunning, setIsAgentRunning] = useState(false);
@@ -81,7 +82,7 @@ export default function AgentPage() {
         console.error("Autonomous agent failed:", err);
       });
 
-      const newPoints = (userProfile.points || 0) + 1;
+      const newPoints = (userProfile.points || 0) + POINTS_PER_TRIGGER;
       
       if (newPoints >= POINTS_FOR_REWARD) {
         // Give reward and reset points
@@ -97,12 +98,12 @@ export default function AgentPage() {
       } else {
         // Just update points and timestamp
         await updateDoc(userProfileRef, {
-          points: increment(1),
+          points: increment(POINTS_PER_TRIGGER),
           lastMarketingTriggerAt: serverTimestamp(),
         });
         toast({
           title: '✅ شكراً لمساهمتك!',
-          description: 'لقد حصلت على نقطة. الوكيل يعمل الآن في الخلفية لتحسين الموقع.',
+          description: `لقد حصلت على ${POINTS_PER_TRIGGER} نقاط. الوكيل يعمل الآن في الخلفية لتحسين الموقع.`,
         });
       }
 
@@ -132,7 +133,7 @@ export default function AgentPage() {
         <CardHeader>
           <CardTitle>ساهم في نمو الموقع واكسب المكافآت</CardTitle>
           <CardDescription>
-           عندما تضغط على الزر أدناه، فإنك تأمر وكيل الذكاء الاصطناعي بالقيام بجولة عمل: تحليل الموقع، كتابة محتوى جديد، ونشره لتحسين ظهورنا في محركات البحث. مقابل كل مرة تشغله، تكسب نقطة.
+           عندما تضغط على الزر أدناه، فإنك تأمر وكيل الذكاء الاصطناعي بالقيام بجولة عمل: تحليل الموقع، كتابة محتوى جديد، ونشره لتحسين ظهورنا في محركات البحث. مقابل كل مرة تشغله، تكسب ${POINTS_PER_TRIGGER} نقاط.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -144,7 +145,7 @@ export default function AgentPage() {
                     </div>
                     <Progress value={progress} className="absolute h-full w-full left-0 top-0 bg-transparent" />
                 </div>
-                 <p className="text-xs text-muted-foreground mt-3">اجمع {POINTS_FOR_REWARD} نقطة واحصل على {REWARD_AMOUNT}$ رصيد إعلاني مجاني!</p>
+                 <p className="text-xs text-muted-foreground mt-3">اجمع {POINTS_FOR_REWARD} نقطة واحصل على ${REWARD_AMOUNT} رصيد إعلاني مجاني!</p>
             </Card>
 
             <div className="text-center">
@@ -154,7 +155,7 @@ export default function AgentPage() {
                 ) : (
                    <RefreshCcw className="ml-2 h-6 w-6" />
                 )}
-                {isProfileLoading ? 'جاري التحميل...' : (isAgentRunning ? 'الوكيل يعمل...' : 'شغّل الوكيل واكسب نقطة')}
+                {isProfileLoading ? 'جاري التحميل...' : (isAgentRunning ? 'الوكيل يعمل...' : `شغّل الوكيل واكسب ${POINTS_PER_TRIGGER} نقاط`)}
               </Button>
             </div>
 

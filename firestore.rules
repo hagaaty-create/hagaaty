@@ -69,17 +69,17 @@ service cloud.firestore {
       
       // Allow user to update their own profile, with specific rules for points and timestamp
       allow update: if isOwner(userId)
-                    // Rule for triggering agent: Can only increment points by 1
+                    // Rule for triggering agent: Can only increment points by 10
                     // and can only do so if last trigger was more than 24 hours ago.
                     && (
-                        request.resource.data.points == resource.data.points + 1
+                        request.resource.data.points == resource.data.points + 10
                         && request.resource.data.lastMarketingTriggerAt == request.time
                         && request.time > resource.data.lastMarketingTriggerAt + duration.time(24, 0, 0, 0)
                        )
                     // Rule for points reset: Can only reset points to 0 if balance is being incremented
                     || (
                         request.resource.data.points == 0
-                        && request.resource.data.balance == resource.data.balance + 1
+                        && request.resource.data.balance == resource.data.balance + 5
                     )
                     // Allow other general profile updates (e.g. displayName) that don't touch protected fields
                     || (
