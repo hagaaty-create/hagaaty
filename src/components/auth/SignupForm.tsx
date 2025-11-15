@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, serverTimestamp, collection, query, where, getDocs, FieldValue, limit } from "firebase/firestore";
+import { doc, serverTimestamp, collection, query, where, getDocs, FieldValue, limit, increment } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -86,13 +86,14 @@ function SignupFormComponent() {
           referrerDocRef = referrerDoc.ref;
           referrerAncestors = referrerDoc.data().ancestors || [];
 
-          // Award achievement to referrer (non-blocking)
+          // Award achievement to referrer and increment direct referrals count (non-blocking)
           updateDocumentNonBlocking(referrerDocRef, {
             achievements: FieldValue.arrayUnion({
               id: 'team_builder',
               name: 'بنّاء الفريق',
               awardedAt: serverTimestamp()
-            })
+            }),
+            directReferralsCount: increment(1)
           });
 
         } else {
@@ -129,6 +130,7 @@ function SignupFormComponent() {
         createdAt: serverTimestamp(),
         referralCode: generateReferralCode(6),
         referralEarnings: 0,
+        directReferralsCount: 0, // Initialize count
         referredBy: referralCode || null, // Store the referral code
         status: 'active',
         ancestors: newAncestors, // Store the calculated MLM upline

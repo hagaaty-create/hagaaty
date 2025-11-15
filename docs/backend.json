@@ -67,6 +67,10 @@
           },
           "maxItems": 5
         },
+        "directReferralsCount": {
+            "type": "number",
+            "description": "Total number of users directly referred by this user."
+        },
         "achievements": {
           "type": "array",
           "description": "A list of achievements (badges) earned by the user.",
@@ -101,6 +105,7 @@
         "createdAt",
         "status",
         "ancestors",
+        "directReferralsCount",
         "achievements"
       ]
     },

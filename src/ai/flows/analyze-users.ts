@@ -8,9 +8,9 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 
 
 // Initialize Firebase Admin SDK if not already initialized
@@ -37,42 +37,25 @@ export type LeaderboardData = z.infer<typeof LeaderboardDataSchema>;
 
 
 // Helper function to fetch and map users for a specific leaderboard
-async function getTopUsers(orderByField: string, valueField: string, limitCount: number = 10): Promise<z.infer<typeof UserSchema>[]> {
-    const usersRef = db.collection('users');
+async function getTopUsers(orderByField: string, limitCount: number = 10): Promise<z.infer<typeof UserSchema>[]> {
+    const usersRef = collection(db, 'users');
     const q = query(usersRef, orderBy(orderByField, 'desc'), limit(limitCount));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
         return [];
     }
-
-    const userPromises = snapshot.docs.map(async (doc) => {
+    
+    // Direct mapping without extra logic
+    return snapshot.docs.map(doc => {
         const data = doc.data();
-        let value = data[valueField];
-
-        // Special case for topReferrers, we need to count them
-        if (valueField === 'directReferrals') {
-            const referralsQuery = query(usersRef, where('referredBy', '==', data.referralCode));
-            const referralsSnapshot = await getDocs(referralsQuery);
-            value = referralsSnapshot.size;
-        }
-
         return {
             id: doc.id,
             displayName: data.displayName || 'مستخدم غير معروف',
             avatarUrl: data.photoURL || `https://i.pravatar.cc/150?u=${doc.id}`,
-            value: value || 0,
+            value: data[orderByField] || 0,
         };
     });
-
-    let users = await Promise.all(userPromises);
-
-    // If we were calculating directReferrals, we need to re-sort after counting
-    if (valueField === 'directReferrals') {
-        users.sort((a, b) => b.value - a.value);
-    }
-    
-    return users;
 }
 
 
@@ -87,9 +70,9 @@ const analyzeUsersFlow = ai.defineFlow(
     
     // We can run these in parallel to speed things up
     const [topBalances, topEarners, topReferrers] = await Promise.all([
-      getTopUsers('balance', 'balance'),
-      getTopUsers('referralEarnings', 'referralEarnings'),
-      getTopUsers('createdAt', 'directReferrals'), // Order by creation date initially, then re-sort by count
+      getTopUsers('balance'),
+      getTopUsers('referralEarnings'),
+      getTopUsers('directReferralsCount'),
     ]);
     
     console.log('[Flow] Successfully analyzed users for all leaderboards.');
