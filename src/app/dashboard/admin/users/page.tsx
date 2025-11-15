@@ -2,19 +2,20 @@
 
 import { useState } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Edit, Shield, UserX } from 'lucide-react';
+import { Users, Edit, Shield, UserX, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type UserProfile = {
   id: string;
@@ -97,6 +98,24 @@ export default function ManageUsersPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!firestore) return;
+    try {
+        await deleteDoc(doc(firestore, 'users', userId));
+        toast({
+            title: 'تم حذف المستخدم',
+            description: `تم حذف المستخدم ${userName} نهائيًا.`,
+        });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        toast({
+            variant: 'destructive',
+            title: 'فشل الحذف',
+            description: 'لا يمكن حذف المستخدم. يرجى التحقق من قواعد الأمان والمحاولة مرة أخرى.',
+        });
+    }
+  };
+
 
   const formatDate = (timestamp: Timestamp | null) => {
     if (!timestamp) return 'N/A';
@@ -153,13 +172,39 @@ export default function ManageUsersPage() {
                       ) : 'مستخدم'}
                     </TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(user)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleToggleSuspend(user)}>
-                        <UserX className="h-4 w-4 text-destructive" />
+                        <UserX className="h-4 w-4 text-orange-500" />
                       </Button>
+                       <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <Button variant="ghost" size="icon">
+                               <Trash2 className="h-4 w-4 text-destructive" />
+                             </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف المستخدم{" "}
+                                <strong>{user.displayName}</strong>{" "}
+                                بشكل دائم من قاعدة البيانات.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteUser(user.id, user.displayName)} 
+                                className={buttonVariants({ variant: "destructive" })}
+                              >
+                                نعم، احذف المستخدم
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
