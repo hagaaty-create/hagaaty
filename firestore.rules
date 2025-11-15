@@ -45,8 +45,8 @@ service cloud.firestore {
         let user = request.resource.data;
         // The 'referredBy' field is a referral *code*, not a UID. It's optional.
         let isReferredByValid = !('referredBy' in user) || user.referredBy == null || user.referredBy is string;
-        // The 'ancestors' field must be an empty list at signup.
-        let isAncestorsValid = 'ancestors' in user && user.ancestors is list && user.ancestors.size() == 0;
+        // The 'ancestors' field must be a list (can be empty or populated by client logic).
+        let isAncestorsValid = 'ancestors' in user && user.ancestors is list && user.ancestors.size() <= 5;
         
         return user.id == request.auth.uid
             && user.displayName is string
