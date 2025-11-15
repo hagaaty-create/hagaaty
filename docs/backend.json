@@ -58,6 +58,14 @@
             "type": "string",
             "description": "The status of the user account.",
             "enum": ["active", "suspended"]
+        },
+        "ancestors": {
+          "type": "array",
+          "description": "An ordered list of up to 5 user UIDs representing the MLM upline. The first element is the direct referrer.",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 5
         }
       },
       "required": [
@@ -68,7 +76,8 @@
         "balance",
         "points",
         "createdAt",
-        "status"
+        "status",
+        "ancestors"
       ]
     },
     "Article": {

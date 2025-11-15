@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview An AI flow to "verify" a payment receipt, credit the user's balance, and handle referral bonuses.
+ * @fileOverview An AI flow to "verify" a payment receipt, credit the user's balance, and handle MLM referral bonuses.
  *
  * - verifyPaymentAndCreditUser - The main flow function.
  * - VerifyPaymentInput - The input type for the flow.
@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue, DocumentReference } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { sendEmail } from '@/lib/send-email';
 import { notifyReferralBonus } from './notify-referral-bonus';
@@ -32,11 +32,22 @@ const VerifyPaymentInputSchema = z.object({
 });
 export type VerifyPaymentInput = z.infer<typeof VerifyPaymentInputSchema>;
 
-// Tool to credit the user's balance
-const creditUserBalanceTool = ai.defineTool(
+// Define the commission distribution for the 5-level MLM
+const COMMISSION_POOL_PERCENTAGE = 0.10; // 10%
+const LEVEL_DISTRIBUTION = [
+    0.50,  // Level 1: 50% of the pool
+    0.25,  // Level 2: 25% of the pool
+    0.125, // Level 3: 12.5% of the pool
+    0.0625, // Level 4: 6.25% of the pool
+    0.0625, // Level 5: 6.25% of the pool
+];
+
+
+// Tool to credit the user's balance and process the MLM commissions
+const creditUserAndProcessMLMTool = ai.defineTool(
   {
-    name: 'creditUserBalance',
-    description: "Updates a user's balance and checks for referral bonuses.",
+    name: 'creditUserAndProcessMLM',
+    description: "Updates a user's balance and distributes MLM commissions to their upline.",
     inputSchema: z.object({
       userId: z.string(),
       amount: z.number(),
@@ -44,52 +55,58 @@ const creditUserBalanceTool = ai.defineTool(
     outputSchema: z.void(),
   },
   async ({ userId, amount }) => {
-    console.log(`[Tool] Crediting user ${userId} with $${amount}`);
+    console.log(`[Tool] Crediting user ${userId} with $${amount} and processing MLM commissions.`);
     const userRef = db.collection('users').doc(userId);
-    const userDoc = await userRef.get();
-    
-    if (!userDoc.exists) {
-      throw new Error(`User with ID ${userId} not found.`);
-    }
 
-    const userData = userDoc.data()!;
-    const referredByCode = userData.referredBy; 
-    
-    let referrerRef: FirebaseFirestore.DocumentReference | null = null;
-    if (referredByCode) {
-        const referrerQuery = db.collection('users').where('referralCode', '==', referredByCode).limit(1);
-        const referrerSnapshot = await referrerQuery.get();
-        if (!referrerSnapshot.empty) {
-            referrerRef = referrerSnapshot.docs[0].ref;
-        }
-    }
-
-    // Transaction to ensure atomicity
+    // Use a transaction to ensure atomicity
     await db.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists) {
+        throw new Error(`User with ID ${userId} not found.`);
+      }
+      const userData = userDoc.data()!;
+
       // 1. Credit the new user's balance
       transaction.update(userRef, { balance: FieldValue.increment(amount) });
+      console.log(`[Tool] Credited user ${userId} with $${amount}.`);
 
-      // 2. Check if this user was referred and if it's their first deposit (check if their balance was ~2)
-      if (referrerRef && userData.balance < 5) { // Check for balance < 5 to consider the initial $2 welcome bonus.
-        console.log(`[Tool] User ${userId} was referred by ${referrerRef.id}. Processing referral bonus.`);
-        const commission = amount * 0.20; // 20% commission
-        
-        transaction.update(referrerRef, { referralEarnings: FieldValue.increment(commission) });
-        
-        // Fire-and-forget notification to the referrer
-        const referrerDoc = await transaction.get(referrerRef);
-        if (referrerDoc.exists()) {
-            const referrerData = referrerDoc.data()!;
-            notifyReferralBonus({
-                referrerEmail: referrerData.email,
-                newUserName: userData.displayName,
-                commissionAmount: commission,
-            }).catch(console.error);
+      // 2. Check if this is the user's first deposit and if they have an upline (ancestors)
+      // We check for a low balance to approximate a "first deposit" scenario
+      const isFirstDeposit = userData.balance < 5;
+      const ancestors = userData.ancestors as string[] | undefined;
+
+      if (isFirstDeposit && ancestors && ancestors.length > 0) {
+        console.log(`[Tool] User ${userId} has an upline. Processing MLM commissions.`);
+        const commissionPool = amount * COMMISSION_POOL_PERCENTAGE;
+
+        // Distribute commissions to each ancestor
+        for (let i = 0; i < ancestors.length && i < LEVEL_DISTRIBUTION.length; i++) {
+          const ancestorId = ancestors[i];
+          const commissionAmount = commissionPool * LEVEL_DISTRIBUTION[i];
+          const ancestorRef = db.collection('users').doc(ancestorId);
+
+          console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorId}`);
+          transaction.update(ancestorRef, { referralEarnings: FieldValue.increment(commissionAmount) });
+
+          // Fire-and-forget email notification to the referrer (only for the direct referrer for now)
+          if (i === 0) {
+             const ancestorDoc = await transaction.get(ancestorRef);
+             if (ancestorDoc.exists()) {
+                 const ancestorData = ancestorDoc.data()!;
+                 notifyReferralBonus({
+                     referrerEmail: ancestorData.email,
+                     newUserName: userData.displayName,
+                     commissionAmount: commissionAmount,
+                 }).catch(console.error);
+             }
+          }
         }
+      } else {
+        console.log(`[Tool] No MLM commission processed. First deposit: ${isFirstDeposit}, Ancestors: ${ancestors?.length || 0}`);
       }
     });
 
-    console.log(`[Tool] Successfully credited user ${userId} and handled referral logic.`);
+    console.log(`[Tool] Successfully credited user ${userId} and handled MLM logic.`);
   }
 );
 
@@ -118,7 +135,7 @@ const sendAdminNotificationTool = ai.defineTool(
           <li><strong>المبلغ:</strong> ${amount}$</li>
           <li><strong>طريقة الدفع:</strong> ${paymentMethod}</li>
         </ul>
-        <p>تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وإضافة الرصيد تلقائيًا.</p>
+        <p>تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وإضافة الرصيد وتوزيع عمولات الشبكة تلقائيًا.</p>
         <p><strong>إيصال الدفع المرفق:</strong></p>
         <img src="${paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px; border: 1px solid #ccc;"/>
       </div>
@@ -143,9 +160,8 @@ const verifyPaymentFlow = ai.defineFlow(
   async (input) => {
     console.log(`[Flow] Starting payment verification for user ${input.userEmail}`);
     
-    // IMPORTANT: This is a simulation.
     await ai.generate({
-      prompt: `أنت نظام آلي للتحقق من عمليات الدفع. لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'creditUserBalance' لإضافة الرصيد إلى حسابه، ثم استدع أداة 'sendAdminNotification' لإرسال إشعار للمسؤول.
+      prompt: `أنت نظام آلي للتحقق من عمليات الدفع وتوزيع عمولات التسويق الشبكي (MLM). لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'creditUserAndProcessMLM' لإضافة الرصيد إلى حسابه وتوزيع العمولات على شبكته، ثم استدع أداة 'sendAdminNotification' لإرسال إشعار للمسؤول.
 
 معلومات المستخدم:
 - البريد الإلكتروني: ${input.userEmail}
@@ -155,9 +171,9 @@ const verifyPaymentFlow = ai.defineFlow(
 
 قم باستدعاء الأدوات بالترتيب الصحيح.`,
       model: 'googleai/gemini-2.5-flash',
-      tools: [creditUserBalanceTool, sendAdminNotificationTool],
+      tools: [creditUserAndProcessMLMTool, sendAdminNotificationTool],
       toolConfig: {
-        creditUserBalance: {
+        creditUserAndProcessMLM: {
           userId: input.userId,
           amount: input.amount,
         },

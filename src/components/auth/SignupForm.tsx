@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -72,12 +72,38 @@ function SignupFormComponent() {
 
     setIsLoading(true);
     try {
+      // Step 1: Find the referrer by their code to get their ancestor list
+      let referrerAncestors: string[] = [];
+      let referrerUid: string | null = null;
+      if (referralCode) {
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('referralCode', '==', referralCode), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const referrerDoc = querySnapshot.docs[0];
+          referrerUid = referrerDoc.id;
+          referrerAncestors = referrerDoc.data().ancestors || [];
+        } else {
+            // Handle invalid referral code, maybe show a warning, but proceed with signup
+            toast({
+                variant: "destructive",
+                title: "رمز الإحالة غير صالح",
+                description: "لم يتم العثور على المستخدم صاحب الرمز. سيتم إنشاء حسابك بدون إحالة."
+            });
+        }
+      }
+
+      // Step 2: Create the user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       await updateProfile(userCredential.user, { displayName: fullName });
       
       const userRole = email === 'hagaaty@gmail.com' ? 'admin' : 'user';
 
+      // Step 3: Construct the new user's ancestor list
+      const newAncestors = referrerUid ? [referrerUid, ...referrerAncestors].slice(0, 5) : [];
+      
+      // Step 4: Create the user document in Firestore
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
       
       const userProfileData = {
@@ -93,6 +119,7 @@ function SignupFormComponent() {
         referralEarnings: 0,
         referredBy: referralCode || null, // Store the referral code
         status: 'active',
+        ancestors: newAncestors, // Store the calculated MLM upline
       };
       
       // Use non-blocking write for faster UX
