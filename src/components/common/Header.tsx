@@ -21,6 +21,7 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: 'الرئيسية' },
     { href: '/blog', label: 'المدونة' },
+    { href: '/services', label: 'الخدمات' },
   ];
 
   const handleLogout = () => {

@@ -1,0 +1,248 @@
+'use client';
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Check, Crown, ExternalLink, ImagePlus, Loader2, Mail, ShieldCheck, TrendingUp, Zap } from "lucide-react";
+import { useState } from "react";
+import { useUser } from '@/firebase';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+const agencyFeatures = [
+    {
+        icon: <ShieldCheck className="h-6 w-6 text-green-500" />,
+        text: "حسابات إعلانية موثقة ومحمية ضد الإغلاق العشوائي.",
+    },
+    {
+        icon: <Zap className="h-6 w-6 text-yellow-500" />,
+        text: "إمكانية فتح حسابات لوكالات جوجل، تيك توك، سناب شات، وفيسبوك.",
+    },
+    {
+        icon: <TrendingUp className="h-6 w-6 text-blue-500" />,
+        text: "انفاق بلا حدود واستهداف جميع دول العالم.",
+    },
+    {
+        icon: <Crown className="h-6 w-6 text-purple-500" />,
+        text: "شريك رسمي (Partner) للمنصات الإعلانية الكبرى.",
+    },
+];
+
+const paymentMethods = [
+    { name: "فودافون كاش", detail: "01000000000" },
+    { name: "محفظة بنكية", detail: "01000000001" },
+    { name: "USDT (TRC20)", detail: "YOUR_USDT_WALLET_ADDRESS" },
+];
+
+
+export default function ServicesPage() {
+    const [email, setEmail] = useState('');
+    const [paymentProof, setPaymentProof] = useState<File | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
+    const { user } = useUser();
+
+    // Set user email if logged in
+    useState(() => {
+        if (user?.email) {
+            setEmail(user.email);
+        }
+    });
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files[0]) {
+            const file = event.target.files[0];
+            // Basic validation for file type and size
+            if (!file.type.startsWith('image/')) {
+                toast({ variant: 'destructive', title: 'ملف غير صالح', description: 'يرجى رفع ملف صورة فقط.' });
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) { // 5MB
+                toast({ variant: 'destructive', title: 'الملف كبير جدًا', description: 'يجب أن يكون حجم الصورة أقل من 5 ميجابايت.' });
+                return;
+            }
+            setPaymentProof(file);
+        }
+    };
+    
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || !paymentProof) {
+            toast({ variant: 'destructive', title: 'بيانات ناقصة', description: 'يرجى إدخال بريدك الإلكتروني ورفع صورة إثبات الدفع.' });
+            return;
+        }
+        setIsLoading(true);
+        try {
+            // 1. Upload image to Firebase Storage
+            const storage = getStorage();
+            // Create a unique file name
+            const storageRef = ref(storage, `payment-proofs/${Date.now()}_${paymentProof.name}`);
+            const uploadResult = await uploadBytes(storageRef, paymentProof);
+            const downloadURL = await getDownloadURL(uploadResult.ref);
+
+            // 2. Prepare the mailto link
+            const subject = encodeURIComponent("طلب اشتراك جديد في وكالة حاجتي");
+            const body = encodeURIComponent(
+`مرحبًا فريق دعم حاجتي،
+
+أرغب في تفعيل اشتراكي السنوي في وكالة حاجتي الإعلانية.
+
+- البريد الإلكتروني الخاص بي: ${email}
+- رابط إثبات الدفع: ${downloadURL}
+
+يرجى مراجعة الطلب وإرسال بيانات تسجيل الدخول.
+
+شكرًا لكم.`
+            );
+            
+            // 3. Trigger the email client
+            window.location.href = `mailto:hagaaty@gmail.com?subject=${subject}&body=${body}`;
+            
+            toast({
+                title: 'تم فتح برنامج البريد',
+                description: 'تم تجهيز رسالتك. كل ما عليك هو الضغط على "إرسال" في برنامج البريد الإلكتروني الخاص بك.',
+            });
+
+            // Reset form
+            setEmail(user?.email || '');
+            setPaymentProof(null);
+
+        } catch (error) {
+            console.error("Error handling subscription:", error);
+            toast({
+                variant: 'destructive',
+                title: 'حدث خطأ',
+                description: 'لم نتمكن من معالجة طلبك. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+    return (
+        <div className="container mx-auto px-4 py-12">
+            {/* Hero Section */}
+            <section className="mb-20 text-center">
+                <Badge variant="outline" className="mb-4 text-sm font-semibold border-primary/50 text-primary bg-primary/10">
+                    حصريًا للمسوقين الطموحين
+                </Badge>
+                <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl font-headline">
+                    انضم إلى <span className="text-primary">وكالة حاجتي</span> الإعلانية
+                </h1>
+                <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground sm:text-xl">
+                    بـ 40$ سنويًا فقط، احصل على حسابات وكالة إعلانية موثقة ومحمية على أكبر المنصات، وانطلق بحملاتك بلا حدود وبأمان تام.
+                </p>
+            </section>
+
+            {/* Features Grid */}
+            <section className="mb-20">
+                <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
+                    لماذا تختار وكالة حاجتي؟
+                </h2>
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                    {agencyFeatures.map((feature, index) => (
+                        <Card key={index} className="text-center p-6 bg-card/50">
+                            <div className="flex justify-center items-center h-12 w-12 rounded-full bg-primary/10 mx-auto mb-4">
+                                {feature.icon}
+                            </div>
+                            <p className="text-foreground font-medium">{feature.text}</p>
+                        </Card>
+                    ))}
+                </div>
+            </section>
+
+            {/* How to Subscribe Section */}
+            <section>
+                 <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
+                    خطوات الاشتراك
+                </h2>
+                <div className="grid lg:grid-cols-2 gap-12 items-start">
+                    {/* Step 1 & 2 */}
+                    <div className="space-y-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-lg">1</span>
+                                    <span>دفع رسوم الاشتراك</span>
+                                </CardTitle>
+                                <CardDescription>
+                                    قم بتحويل مبلغ 40$ (أو ما يعادله بالعملة المحلية) إلى إحدى الوسائل التالية.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {paymentMethods.map(method => (
+                                    <div key={method.name} className="p-3 rounded-md border bg-muted/50">
+                                        <p className="font-semibold text-foreground">{method.name}</p>
+                                        <p className="text-muted-foreground font-mono text-sm">{method.detail}</p>
+                                    </div>
+                                ))}
+                                <p className="text-xs text-muted-foreground pt-2">بعد التحويل، يرجى أخذ لقطة شاشة أو حفظ إيصال الدفع. ستحتاجه في الخطوة التالية.</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div>
+                         <Card className="sticky top-24">
+                            <CardHeader>
+                               <CardTitle className="flex items-center gap-3">
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-lg">2</span>
+                                    <span>تأكيد الاشتراك</span>
+                                </CardTitle>
+                                <CardDescription>
+                                    املأ النموذج أدناه وأرفق إثبات الدفع. سيقوم فريقنا بمراجعة الطلب وتفعيل حسابك خلال ساعات.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">بريدك الإلكتروني</Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="your@email.com"
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
+                                            required
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="payment-proof">إثبات الدفع (صورة)</Label>
+                                        <div className="flex items-center gap-3">
+                                            <Input
+                                                id="payment-proof"
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                required
+                                                className="hidden"
+                                                disabled={isLoading}
+                                            />
+                                            <label htmlFor="payment-proof" className="w-full cursor-pointer">
+                                                <div className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground ring-offset-background hover:bg-accent hover:text-accent-foreground">
+                                                    <span>{paymentProof ? paymentProof.name : "اختر صورة..."}</span>
+                                                    <ImagePlus className="h-5 w-5" />
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <Button type="submit" className="w-full" disabled={isLoading || !email || !paymentProof}>
+                                        {isLoading ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Mail className="mr-2 h-4 w-4" />
+                                        )}
+                                        إرسال طلب الاشتراك
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+}
