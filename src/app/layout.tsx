@@ -8,6 +8,7 @@ import SmartAssistant from '@/components/chat/SmartAssistant';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { usePathname } from 'next/navigation';
 import RootLayoutClient from './layout-client';
+import GoogleAnalytics from '@/components/common/GoogleAnalytics';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -28,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${tajawal.variable} font-body antialiased`}>
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         <FirebaseClientProvider>
           <RootLayoutClient>{children}</RootLayoutClient>
         </FirebaseClientProvider>
