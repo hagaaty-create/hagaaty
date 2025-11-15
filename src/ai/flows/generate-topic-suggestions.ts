@@ -62,7 +62,7 @@ const suggestionPrompt = ai.definePrompt({
   tools: [getRecentQueries],
   prompt: `أنت استراتيجي محتوى لمدونة "حاجتي للذكاء الاصطناعي". مهمتك هي تحليل استفسارات المستخدمين الأخيرة لتحديد الاتجاهات ونقاط الضعف ومجالات الاهتمام، ثم اقتراح 5 مواضيع جديدة لمقالات المدونة.
 
-أولاً، استخدم أداة 'getRecentQueries' للحصول على قائمة بأحدث الأسئلة التي طرحها المستخدمون.
+أولاً، استخدم أداة 'getRecentQueries' مع حد 50 للحصول على قائمة بأحدث الأسئلة التي طرحها المستخدمون.
 
 بعد ذلك، وبناءً على هذه الاستفسارات، قم بإنشاء 5 عناوين مقالات مدونة مميزة ومقنعة باللغة العربية. لكل اقتراح، قدم سببًا موجزًا باللغة العربية يشرح سبب كونه موضوعًا جيدًا بناءً على استفسارات المستخدمين. ركز على الموضوعات التي تبدو متكررة أو لا يغطيها المحتوى الحالي بشكل جيد.`,
 });
@@ -73,7 +73,7 @@ const generateTopicSuggestionsFlow = ai.defineFlow(
     outputSchema: GenerateTopicSuggestionsOutputSchema,
   },
   async () => {
-    const { output } = await suggestionPrompt();
+    const { output } = await suggestionPrompt({limit: 50});
     return output!;
   }
 );
