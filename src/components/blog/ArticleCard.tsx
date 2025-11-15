@@ -84,7 +84,6 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
       </>
   );
 
-  // The entire card now links to the main blog page, not a specific article.
   return (
       <CardContainer>
           <Link href={`/blog`} className="contents">

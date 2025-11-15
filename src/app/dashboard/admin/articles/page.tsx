@@ -98,7 +98,7 @@ export default function ManageArticlesPage() {
         <CardHeader>
           <CardTitle>جميع منشورات المدونة</CardTitle>
           <CardDescription>
-            عرض أو حذف منشورات المدونة الحالية، والحصول على تحسينات SEO بالذكاء الاصطناعي.
+            عرض أو حذف منشورات المدونة الحالية.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -116,7 +116,6 @@ export default function ManageArticlesPage() {
                   <TableHead>العنوان</TableHead>
                   <TableHead>الفئة</TableHead>
                   <TableHead>التاريخ</TableHead>
-                  <TableHead>تحسينات SEO بواسطة AI</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -128,9 +127,6 @@ export default function ManageArticlesPage() {
                       <Badge variant="secondary">{post.category}</Badge>
                     </TableCell>
                     <TableCell>{formatDate(post.date)}</TableCell>
-                    <TableCell>
-                      <SeoAnalysis article={post} />
-                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                          <AlertDialog>
