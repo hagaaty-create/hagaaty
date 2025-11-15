@@ -87,7 +87,7 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
 
   return (
       <CardContainer>
-          <Link href={`/blog`} className="contents">
+          <Link href={`/blog/${post.slug}`} className="contents">
             {content}
           </Link>
       </CardContainer>
