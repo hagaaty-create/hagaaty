@@ -18,7 +18,7 @@ export default function BlogPage() {
     return query(collection(firestore, 'posts'), orderBy('date', 'desc'));
   }, [firestore]);
 
-  const { data: posts, loading } = useCollection<Post>(postsQuery);
+  const { data: posts, isLoading: loading } = useCollection<Post>(postsQuery);
 
   const categories = useMemo(() => {
     if (!posts) return [];
@@ -27,6 +27,7 @@ export default function BlogPage() {
   }, [posts]);
   
   const featuredPost = useMemo(() => posts?.[0], [posts]);
+  const otherPosts = useMemo(() => posts?.slice(1), [posts]);
   
   if (loading) {
       return (
@@ -37,12 +38,12 @@ export default function BlogPage() {
               </section>
               
               <section className="mb-16">
-                   <Skeleton className="h-10 w-1/3 mb-8" />
+                   <h2 className="text-3xl font-bold tracking-tight mb-8 font-headline"><Skeleton className="h-10 w-1/3" /></h2>
                     <Skeleton className="h-[450px] w-full rounded-lg" />
               </section>
 
               <section>
-                   <Skeleton className="h-10 w-1/4 mb-8" />
+                   <h2 className="text-3xl font-bold tracking-tight mb-8 font-headline"><Skeleton className="h-10 w-1/4" /></h2>
                    <div className="flex justify-center mb-8">
                      <Skeleton className="h-10 w-full max-w-md" />
                    </div>
@@ -106,7 +107,7 @@ export default function BlogPage() {
           {categories.map(category => (
             <TabsContent key={category} value={category}>
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {(category === 'الكل' ? posts : posts.filter(p => p.category === category)).map(post => (
+                {(category === 'الكل' ? otherPosts : otherPosts?.filter(p => p.category === category))?.map(post => (
                   <ArticleCard key={post.id} post={post} />
                 ))}
               </div>

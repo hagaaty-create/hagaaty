@@ -14,12 +14,15 @@ type ArticleCardProps = {
   isFeatured?: boolean;
 };
 
-function formatDate(date: string | Timestamp) {
+function formatDate(date: string | Date | Timestamp) {
     if (typeof date === 'string') {
         return format(new Date(date), 'PPP');
     }
     if (date instanceof Timestamp) {
         return format(date.toDate(), 'PPP');
+    }
+    if(date instanceof Date) {
+        return format(date, 'PPP');
     }
     return "Date not available";
 }
@@ -41,17 +44,19 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
           />
            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         </div>
-        <div className={cn("flex flex-col flex-1", isFeatured ? "lg:w-1/2" : "")}>
-          <CardHeader>
-            <Badge variant="default" className="w-fit mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-              {post.category}
-            </Badge>
-            <CardTitle className={cn("group-hover:text-primary transition-colors", isFeatured ? "text-3xl font-bold" : "text-xl font-semibold")}>{post.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <p className="text-muted-foreground line-clamp-3">{post.excerpt}</p>
-          </CardContent>
-          <CardFooter className="flex justify-between items-center mt-auto">
+        <div className={cn("flex flex-col flex-1", isFeatured ? "lg:w-1/2 p-4 justify-between" : "")}>
+          <div>
+            <CardHeader>
+              <Badge variant="default" className="w-fit mb-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                {post.category}
+              </Badge>
+              <CardTitle className={cn("group-hover:text-primary transition-colors", isFeatured ? "text-3xl font-bold" : "text-xl font-semibold")}>{post.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <p className={cn("text-muted-foreground", isFeatured ? "line-clamp-4 text-base" : "line-clamp-3")}>{post.excerpt}</p>
+            </CardContent>
+          </div>
+          <CardFooter className={cn("flex justify-between items-center", isFeatured ? "pt-4" : "mt-auto")}>
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8 border-2 border-primary/30">
                 <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
