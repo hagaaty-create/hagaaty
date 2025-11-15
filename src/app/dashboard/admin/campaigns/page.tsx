@@ -17,14 +17,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, DollarSign, MousePointerClick, Eye } from 'lucide-react';
+import { Users, DollarSign, MousePointerClick, Eye, BarChart as BarChartIcon } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collectionGroup, query, orderBy, getDocs, collection, where } from 'firebase/firestore';
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from "recharts";
 
 
 type AdCampaign = {
@@ -160,7 +160,8 @@ export default function AllCampaignsPage() {
                 <Users className="h-8 w-8 text-primary" />
                 <h1 className="text-3xl font-bold font-headline">جميع حملات المستخدمين</h1>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Skeleton className="h-[126px]" />
               <Skeleton className="h-[126px]" />
               <Skeleton className="h-[126px]" />
               <Skeleton className="h-[126px]" />
@@ -174,7 +175,7 @@ export default function AllCampaignsPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Users className="h-8 w-8 text-primary" />
+        <BarChartIcon className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold font-headline">جميع حملات المستخدمين</h1>
       </div>
 
@@ -233,7 +234,6 @@ export default function AllCampaignsPage() {
                   <div className="h-[400px] w-full">
                       <ChartContainer config={chartConfig} className="h-full w-full">
                           <RechartsBarChart data={chartData} accessibilityLayer>
-                              <CartesianGrid vertical={false} />
                               <XAxis
                                   dataKey="name"
                                   tickLine={false}
@@ -290,7 +290,7 @@ export default function AllCampaignsPage() {
                     <TableCell>
                       {getStatusBadge(campaign.status)}
                     </TableCell>
-                    <TableCell className="text-right font-mono">${campaign.budget?.toFixed(2) || 'N/A'}</TableCell>
+                    <TableCell className="text-right font-mono">${(campaign.budget || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell className="text-right font-mono">
