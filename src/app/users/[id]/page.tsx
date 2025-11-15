@@ -1,120 +1,188 @@
-'use server';
+'use client';
 
-import { doc, getDoc, Timestamp } from 'firebase/firestore';
-import { initializeFirebase as initializeServerFirebase } from '@/firebase/server-initialization';
-import { notFound } from 'next/navigation';
+import { analyzeUsers, type LeaderboardData } from '@/ai/flows/analyze-users';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Award, DollarSign, Trophy, Shield, Bot, Share2, PenSquare } from 'lucide-react';
-import { format } from 'date-fns';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useUser } from '@/firebase';
+import { Trophy, Award, DollarSign, Users, Crown, Loader2, Medal, Target } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-
-type UserProfile = {
+type UserRank = {
   id: string;
   displayName: string;
-  email: string;
-  photoURL?: string;
-  balance?: number;
-  referralEarnings?: number;
-  achievements?: { id: string, name: string, awardedAt: Timestamp }[];
-};
-
-type AchievementIconMap = {
-    [key: string]: React.ReactNode;
+  avatarUrl?: string;
+  value: number;
 }
 
-const achievementIcons: AchievementIconMap = {
-    'ad_pioneer': <PenSquare className="h-6 w-6 text-blue-500" />,
-    'team_builder': <Share2 className="h-6 w-6 text-green-500" />,
-    'ai_contributor': <Bot className="h-6 w-6 text-purple-500" />,
-    'reward_earner': <Award className="h-6 w-6 text-yellow-500" />,
+const LeaderboardCard = ({ title, icon, data, unit, isLoading, userRank, isChallenge = false }: { title: string, icon: React.ReactNode, data: UserRank[], unit: string, isLoading: boolean, userRank?: {rank: number, value: number}, isChallenge?: boolean }) => {
+    
+    const getMedalColor = (rank: number) => {
+        if (rank === 0) return "text-yellow-400";
+        if (rank === 1) return "text-gray-400";
+        if (rank === 2) return "text-amber-600";
+        return "text-muted-foreground";
+    };
+    
+    return (
+        <Card className={isChallenge ? 'border-primary/50 bg-primary/5' : ''}>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                    {icon}
+                    <span>{title}</span>
+                </CardTitle>
+                 {isChallenge && (
+                    <CardDescription>هذا هو محور المنافسة لهذا الأسبوع. أظهر للجميع من هو الأفضل!</CardDescription>
+                )}
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                     <div className="space-y-4">
+                        {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>الترتيب</TableHead>
+                                <TableHead>المستخدم</TableHead>
+                                <TableHead className="text-right">القيمة</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.map((user, index) => (
+                                <TableRow key={user.id}>
+                                    <TableCell className="w-12">
+                                        <div className="flex items-center justify-center">
+                                            {index < 3 ? (
+                                                <Medal className={`h-6 w-6 ${getMedalColor(index)}`} />
+                                            ) : (
+                                                <span className="font-bold text-lg text-muted-foreground">{index + 1}</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3 group">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={user.avatarUrl} alt={user.displayName} />
+                                                <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">{user.displayName}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-mono font-bold">
+                                        {unit === '$' ? `${unit}${user.value.toFixed(2)}` : `${user.value} ${unit}`}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+                 {userRank && userRank.rank > 10 && (
+                     <div className="mt-4 p-3 rounded-md bg-primary/10 border border-primary/20 text-center">
+                        <p className="text-sm font-semibold">ترتيبك: <span className="font-bold text-primary">{userRank.rank}</span> بقيمة <span className="font-bold text-primary">{userRank.value.toFixed(2)} {unit}</span></p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
 };
 
 
-async function getUserProfile(id: string): Promise<UserProfile | null> {
-  const { firestore } = initializeServerFirebase();
-  const userRef = doc(firestore, 'users', id);
-  const userSnap = await getDoc(userRef);
+export default function LeaderboardPage() {
+    const [leaderboards, setLeaderboards] = useState<LeaderboardData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const { user } = useUser();
 
-  if (!userSnap.exists()) {
-    return null;
-  }
+    useEffect(() => {
+        const fetchLeaderboards = async () => {
+            setIsLoading(true);
+            try {
+                const data = await analyzeUsers();
+                setLeaderboards(data);
+            } catch (error) {
+                console.error("Failed to fetch leaderboards:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-  return { id: userSnap.id, ...userSnap.data() } as UserProfile;
-}
+        fetchLeaderboards();
+    }, []);
 
-export default async function UserProfilePage({ params }: { params: { id: string } }) {
-  const userProfile = await getUserProfile(params.id);
+    const findUserRank = (data: UserRank[] | undefined) => {
+        if (!user || !data) return undefined;
+        const rankIndex = data.findIndex(u => u.id === user.uid);
+        if (rankIndex === -1) return undefined; // User not in top 10
+        
+        // Let's assume for now we only show rank if they are NOT in the top 10.
+        // A more complex implementation would fetch the user's specific rank.
+        // For this version, if they're in the list, their rank is visible.
+        // Let's simulate a rank for demonstration if they're not in the top 10
+        return { rank: rankIndex + 1, value: data[rankIndex].value };
+    };
+    
+    // In a real app, you would fetch the current user's specific rank if they are not in the top 10.
+    // For this demo, we'll just show a placeholder if they are not in the top list.
+    const userBalanceRank = { rank: 25, value: 50.50 };
+    const userEarningsRank = { rank: 15, value: 120.75 };
+    const userReferralsRank = { rank: 40, value: 5 };
 
-  if (!userProfile) {
-    notFound();
-  }
-  
-  const achievements = userProfile.achievements?.sort((a, b) => b.awardedAt.toMillis() - a.awardedAt.toMillis()) || [];
 
-  return (
-    <div className="container mx-auto max-w-4xl py-12 px-4">
-      <div className="flex flex-col items-center text-center space-y-4 mb-12">
-        <Avatar className="h-24 w-24 border-4 border-primary shadow-lg">
-          <AvatarImage src={userProfile.photoURL || `https://i.pravatar.cc/150?u=${userProfile.id}`} alt={userProfile.displayName} />
-          <AvatarFallback className="text-3xl">{userProfile.displayName.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <div>
-            <h1 className="text-4xl font-bold font-headline">{userProfile.displayName}</h1>
-            <p className="text-muted-foreground">{userProfile.email}</p>
+    return (
+        <div className="space-y-8">
+            <div className="flex items-center gap-4">
+                <Trophy className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl font-bold font-headline">لوحة الصدارة</h1>
+            </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle>ساحة الأبطال</CardTitle>
+                    <CardDescription>شاهد ترتيبك بين أفضل المسوقين والمستخدمين في المنصة. هل أنت مستعد للمنافسة على القمة؟</CardDescription>
+                </CardHeader>
+            </Card>
+
+            <Card className="border-amber-500/50 bg-amber-500/5">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-amber-600">
+                        <Target className="h-6 w-6" />
+                        <span>تحدي هذا الأسبوع</span>
+                    </CardTitle>
+                    <CardDescription>
+                        من يستطيع دعوة أكبر عدد من الأعضاء الجدد إلى فريقه هذا الأسبوع؟ الفائز يحصل على 50$ رصيد إعلاني إضافي!
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+            
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+                 <LeaderboardCard 
+                    title="ملوك الشبكة"
+                    icon={<Users className="h-6 w-6 text-blue-500" />}
+                    data={leaderboards?.topReferrers || []}
+                    unit="أعضاء"
+                    isLoading={isLoading}
+                    userRank={findUserRank(leaderboards?.topReferrers) || userReferralsRank}
+                    isChallenge={true}
+                />
+                 <LeaderboardCard 
+                    title="أعلى الأرباح"
+                    icon={<DollarSign className="h-6 w-6 text-green-500" />}
+                    data={leaderboards?.topEarners || []}
+                    unit="$"
+                    isLoading={isLoading}
+                    userRank={findUserRank(leaderboards?.topEarners) || userEarningsRank}
+                />
+                 <LeaderboardCard 
+                    title="أغنى المستخدمين"
+                    icon={<Crown className="h-6 w-6 text-yellow-500" />}
+                    data={leaderboards?.topBalances || []}
+                    unit="$"
+                    isLoading={isLoading}
+                    userRank={findUserRank(leaderboards?.topBalances) || userBalanceRank}
+                />
+            </div>
         </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">الرصيد الإعلاني</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">${(userProfile.balance || 0).toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">يستخدم لإطلاق الحملات الإعلانية.</p>
-            </CardContent>
-        </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">أرباح الشبكة</CardTitle>
-                <Trophy className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">${(userProfile.referralEarnings || 0).toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">الأرباح من عمولات فريقك.</p>
-            </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-             <Shield className="h-6 w-6 text-primary"/>
-             <span>الإنجازات</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {achievements.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {achievements.map((ach) => (
-                <div key={ach.id} className="flex flex-col items-center text-center p-4 border rounded-lg bg-muted/50 space-y-2">
-                  <div className="p-3 bg-primary/10 rounded-full">
-                     {achievementIcons[ach.id] || <Award className="h-6 w-6 text-primary" />}
-                  </div>
-                  <p className="font-bold text-sm">{ach.name}</p>
-                  <p className="text-xs text-muted-foreground">{format(ach.awardedAt.toDate(), 'PPP')}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>لم يحصل هذا المستخدم على أي إنجازات بعد.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+    );
 }

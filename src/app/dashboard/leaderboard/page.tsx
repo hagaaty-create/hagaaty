@@ -64,13 +64,13 @@ const LeaderboardCard = ({ title, icon, data, unit, isLoading, userRank, isChall
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Link href={`/users/${user.id}`} className="flex items-center gap-3 group">
+                                        <div className="flex items-center gap-3 group">
                                             <Avatar className="h-8 w-8">
                                                 <AvatarImage src={user.avatarUrl} alt={user.displayName} />
                                                 <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium group-hover:underline">{user.displayName}</span>
-                                        </Link>
+                                            <span className="font-medium">{user.displayName}</span>
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-right font-mono font-bold">
                                         {unit === '$' ? `${unit}${user.value.toFixed(2)}` : `${user.value} ${unit}`}
