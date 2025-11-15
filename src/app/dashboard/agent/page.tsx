@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 type UserProfile = {
   id: string;
@@ -71,55 +72,48 @@ export default function AgentPage() {
     return () => clearInterval(interval);
   }, [userProfile]);
 
-  const handleTriggerAgent = async () => {
+  const handleTriggerAgent = () => {
     if (!canTriggerAgent || !userProfileRef || !userProfile) return;
     setIsAgentRunning(true);
     setError(null);
-    try {
-      // Trigger the marketing agent in the background (fire and forget)
-      generateMarketingContent().catch(err => {
-        // Log agent error but don't block user feedback
-        console.error("Autonomous agent failed:", err);
-      });
+    
+    // Trigger the marketing agent in the background (fire and forget)
+    generateMarketingContent().catch(err => {
+      // Log agent error but don't block user feedback
+      console.error("Autonomous agent failed:", err);
+    });
 
-      const currentPoints = userProfile.points || 0;
-      const newPoints = currentPoints + POINTS_PER_TRIGGER;
-      
-      if (newPoints >= POINTS_FOR_REWARD) {
-        // Give reward and reset points
-        const remainingPoints = newPoints - POINTS_FOR_REWARD;
-        await updateDoc(userProfileRef, {
-          points: remainingPoints,
-          balance: increment(REWARD_AMOUNT),
-          lastMarketingTriggerAt: serverTimestamp(),
-        });
-        toast({
-          title: '🎉 تهانينا! لقد حصلت على مكافأة!',
-          description: `تمت إضافة ${REWARD_AMOUNT}$ إلى رصيدك الإعلاني.`,
-        });
-      } else {
-        // Just update points and timestamp
-        await updateDoc(userProfileRef, {
-          points: increment(POINTS_PER_TRIGGER),
-          lastMarketingTriggerAt: serverTimestamp(),
-        });
-        toast({
-          title: '✅ شكراً لمساهمتك!',
-          description: `لقد حصلت على ${POINTS_PER_TRIGGER} نقاط. الوكيل يعمل الآن في الخلفية لتحسين الموقع.`,
-        });
-      }
+    const currentPoints = userProfile.points || 0;
+    const newPoints = currentPoints + POINTS_PER_TRIGGER;
+    
+    let updateData: any;
 
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    if (newPoints >= POINTS_FOR_REWARD) {
+      // Give reward and reset points
+      const remainingPoints = newPoints - POINTS_FOR_REWARD;
+      updateData = {
+        points: remainingPoints,
+        balance: increment(REWARD_AMOUNT),
+        lastMarketingTriggerAt: serverTimestamp(),
+      };
       toast({
-        variant: 'destructive',
-        title: 'حدث خطأ',
-        description: 'لم نتمكن من تسجيل مساهمتك. يرجى المحاولة مرة أخرى.',
+        title: '🎉 تهانينا! لقد حصلت على مكافأة!',
+        description: `تمت إضافة ${REWARD_AMOUNT}$ إلى رصيدك الإعلاني.`,
       });
-    } finally {
-      setIsAgentRunning(false);
+    } else {
+      // Just update points and timestamp
+      updateData = {
+        points: increment(POINTS_PER_TRIGGER),
+        lastMarketingTriggerAt: serverTimestamp(),
+      };
+      toast({
+        title: '✅ شكراً لمساهمتك!',
+        description: `لقد حصلت على ${POINTS_PER_TRIGGER} نقاط. الوكيل يعمل الآن في الخلفية لتحسين الموقع.`,
+      });
     }
+
+    updateDocumentNonBlocking(userProfileRef, updateData);
+    setIsAgentRunning(false); // UI can be unlocked immediately
   };
   
   const points = userProfile?.points || 0;
