@@ -9,7 +9,7 @@ import ArticlePageClient from './page-client';
 import { Timestamp } from 'firebase/firestore';
 
 // Correct type definition for Next.js App Router page props
-type Props = {
+type PageProps = {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
@@ -43,7 +43,7 @@ async function getPost(slug: string): Promise<Post | null> {
 }
 
 export async function generateMetadata(
-  { params }: Props,
+  { params }: PageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const post = await getPost(params.slug);
@@ -78,7 +78,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params }: Props) {
+export default async function ArticlePage({ params }: PageProps) {
   const post = await getPost(params.slug);
 
   if (!post) {
