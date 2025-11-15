@@ -4,7 +4,7 @@ import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@
 import { doc, collection, query, where, getDocs } from "firebase/firestore";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Copy, Check, DollarSign, Users, Gift } from "lucide-react";
+import { Share2, Copy, Check, DollarSign, Users, Gift, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +23,15 @@ type UserProfile = {
   referredBy?: string;
   createdAt?: Timestamp;
 }
+
+const commissionLevels = [
+    { level: 1, rate: "5.0%" },
+    { level: 2, rate: "2.5%" },
+    { level: 3, rate: "1.25%" },
+    { level: 4, rate: "0.625%" },
+    { level: 5, rate: "0.625%" },
+];
+
 
 export default function ReferralsPage() {
   const { user } = useUser();
@@ -92,20 +101,41 @@ export default function ReferralsPage() {
       </div>
       <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-6 w-6"/>
-                  اكسب المال عن طريق دعوة الأصدقاء
+              <CardTitle className="flex items-center gap-3">
+                  <Network className="h-6 w-6"/>
+                  <span>اكسب من شبكتك بالكامل (MLM)</span>
               </CardTitle>
               <CardDescription>
-                  شارك رابط الإحالة الخاص بك. عندما يقوم صديقك بالتسجيل وشحن رصيده، ستحصل على عمولة 20% من قيمة شحنه الأول.
+                  لا تكسب فقط من أصدقائك، بل اكسب من أصدقاء أصدقائك حتى 5 مستويات. عندما يقوم أي شخص في شبكتك بشحن رصيده، ستحصل على عمولة.
               </CardDescription>
           </CardHeader>
+          <CardContent>
+              <Table>
+                  <TableHeader>
+                      <TableRow>
+                          <TableHead>المستوى</TableHead>
+                          <TableHead>نسبة العمولة</TableHead>
+                          <TableHead>مثال توضيحي</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {commissionLevels.map(item => (
+                          <TableRow key={item.level}>
+                              <TableCell className="font-bold">المستوى {item.level}</TableCell>
+                              <TableCell className="font-mono text-primary font-bold">{item.rate}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">عندما يقوم عضو في هذا المستوى بشحن 100$، يكون ربحك هو {item.rate} من هذا المبلغ</TableCell>
+                          </TableRow>
+                      ))}
+                  </TableBody>
+              </Table>
+          </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
           <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">إجمالي أرباح الإحالة</CardTitle>
+                  <CardTitle className="text-sm font-medium">إجمالي أرباح الشبكة</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -115,24 +145,24 @@ export default function ReferralsPage() {
           </Card>
            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">إجمالي الإحالات الناجحة</CardTitle>
+                  <CardTitle className="text-sm font-medium">الإحالات المباشرة</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                   <div className="text-2xl font-bold">{referrals?.length || 0}</div>
-                  <p className="text-xs text-muted-foreground">مستخدم جديد انضم من خلالك</p>
+                  <p className="text-xs text-muted-foreground">مستخدم جديد انضم مباشرة من خلالك</p>
               </CardContent>
           </Card>
       </div>
 
        <Card>
           <CardHeader>
-              <CardTitle>رمز الإحالة الخاص بك</CardTitle>
-              <CardDescription>شارك هذا الرمز أو الرابط أدناه مع أصدقائك ليبدأوا في التسجيل.</CardDescription>
+              <CardTitle>أدوات بناء الشبكة</CardTitle>
+              <CardDescription>شارك هذا الرمز أو الرابط أدناه مع أصدقائك ليبدأوا في التسجيل وبناء فريقك.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
               <div>
-                  <Label htmlFor="referral-code">رمز الإحالة</Label>
+                  <Label htmlFor="referral-code">رمز الإحالة الخاص بك</Label>
                   <div className="flex items-center gap-2">
                       <Input id="referral-code" value={userProfile?.referralCode || "جاري التحميل..."} readOnly />
                       <Button variant="outline" size="icon" onClick={() => copyToClipboard(userProfile?.referralCode || '')} disabled={!userProfile?.referralCode}>
@@ -154,8 +184,8 @@ export default function ReferralsPage() {
 
       <Card>
            <CardHeader>
-              <CardTitle>قائمة المستخدمين الذين قمت بدعوتهم</CardTitle>
-              <CardDescription>هنا يمكنك تتبع من قام بالتسجيل باستخدام الرمز الخاص بك.</CardDescription>
+              <CardTitle>قائمة المستخدمين الذين دعوتهم مباشرة (المستوى 1)</CardTitle>
+              <CardDescription>هنا يمكنك تتبع من قام بالتسجيل باستخدام الرمز الخاص بك. أرباحك لا تقتصر عليهم فقط!</CardDescription>
           </CardHeader>
           <CardContent>
               {referrals && referrals.length > 0 ? (
@@ -180,7 +210,7 @@ export default function ReferralsPage() {
               ) : (
                   <div className="text-center py-12 text-muted-foreground">
                       <p>لم يقم أي شخص بالتسجيل باستخدام رمزك بعد.</p>
-                      <p>ابدأ بمشاركة رمزك الآن!</p>
+                      <p>ابدأ بمشاركة رمزك الآن وابدأ في بناء شبكتك!</p>
                   </div>
               )}
           </CardContent>
