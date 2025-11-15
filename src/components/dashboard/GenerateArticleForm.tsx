@@ -16,6 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "../ui/input";
 import Image from 'next/image';
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useRouter } from "next/navigation";
+
 
 type GeneratedData = {
     article: string;
@@ -54,6 +57,7 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
+    const router = useRouter();
     
     const startGeneration = async (topic: string) => {
         if (!topic.trim()) return;
@@ -119,39 +123,34 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
 
       const slug = generatedData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
 
-      try {
-        await addDoc(collection(firestore, 'posts'), {
-            title: generatedData.title,
-            slug: slug,
-            content: generatedData.article,
-            excerpt: generatedData.article.substring(0, 150) + '...',
-            category: generatedData.category,
-            tags: generatedData.tags,
-            author: {
-                name: user.displayName || "AI Admin",
-                avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
-            },
-            imageUrl: generatedData.imageUrl,
-            imageHint: generatedData.imageHint,
-            date: serverTimestamp(),
-        });
-        toast({
-            title: "تم حفظ المقال!",
-            description: "تم نشر المقال الجديد في مدونتك.",
-        });
-        setGeneratedData(null);
-        setPrompt('');
-      } catch(e) {
-          console.error("Error saving article: ", e);
-          toast({
-            variant: "destructive",
-            title: "فشل الحفظ",
-            description: "لم نتمكن من حفظ المقال في قاعدة البيانات.",
-          });
-      } finally {
-        setIsSaving(false);
-      }
+      const articleData = {
+          title: generatedData.title,
+          slug: slug,
+          content: generatedData.article,
+          excerpt: generatedData.article.substring(0, 150) + '...',
+          category: generatedData.category,
+          tags: generatedData.tags,
+          author: {
+              name: user.displayName || "AI Admin",
+              avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
+          },
+          imageUrl: generatedData.imageUrl,
+          imageHint: generatedData.imageHint,
+          date: serverTimestamp(),
+      };
 
+      addDocumentNonBlocking(collection(firestore, 'posts'), articleData);
+
+      toast({
+        title: "جاري حفظ المقال...",
+        description: "سيتم نشر المقال الجديد في الخلفية.",
+      });
+
+      setGeneratedData(null);
+      setPrompt('');
+      setIsSaving(false);
+
+      router.push('/dashboard/admin/articles');
     }
 
     return (

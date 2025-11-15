@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 type AdCopy = {
@@ -113,45 +114,36 @@ export default function AdCreationForm() {
         const clicks = Math.min(100, Math.floor(impressions * (Math.random() * (0.08 - 0.02) + 0.02))); // 2% to 8% CTR, max 100 clicks
         const ctr = impressions > 0 ? clicks / impressions : 0;
 
-        try {
-            const newCampaignRef = await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
-                productName,
-                productDescription,
-                targetAudience,
-                websiteUrl,
-                keywords: keywords.split(',').map(k => k.trim()),
-                phoneNumber,
-                ...selectedAd,
-                status: 'reviewing', // Set status to reviewing
-                createdAt: serverTimestamp(),
-                performance: {
-                    impressions,
-                    clicks,
-                    ctr,
-                }
-            });
+        const newCampaignData = {
+            productName,
+            productDescription,
+            targetAudience,
+            websiteUrl,
+            keywords: keywords.split(',').map(k => k.trim()),
+            phoneNumber,
+            ...selectedAd,
+            status: 'reviewing',
+            createdAt: serverTimestamp(),
+            performance: {
+                impressions,
+                clicks,
+                ctr,
+            }
+        };
 
-            await updateDoc(userProfileRef, {
-                balance: increment(-AD_COST)
-            });
+        const campaignsCollection = collection(firestore, 'users', user.uid, 'campaigns');
+        const newCampaignRef = await addDocumentNonBlocking(campaignsCollection, newCampaignData);
+        
+        updateDocumentNonBlocking(userProfileRef, {
+            balance: increment(-AD_COST)
+        });
 
-            toast({
-                title: "تم إرسال الحملة للمراجعة!",
-                description: `سيقوم الذكاء الاصطناعي بمراجعة حملتك. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
-            });
-            
-            router.push(`/dashboard/campaigns?newCampaignId=${newCampaignRef.id}`);
-
-        } catch(e) {
-            console.error("Error saving campaign: ", e);
-            toast({
-              variant: "destructive",
-              title: "فشل الحفظ",
-              description: "لم نتمكن من حفظ الحملة في قاعدة البيانات.",
-            });
-        } finally {
-            setIsSaving(false);
-        }
+        toast({
+            title: "تم إرسال الحملة للمراجعة!",
+            description: `سيقوم الذكاء الاصطناعي بمراجعة حملتك. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
+        });
+        
+        router.push(`/dashboard/campaigns?newCampaignId=${newCampaignRef.id}`);
     }
 
     const canGenerate = useMemo(() => {

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -36,10 +37,10 @@ export default function SmartAssistantEmbed() {
     setIsLoading(true);
 
     try {
-        addDoc(collection(firestore, 'queries'), {
+        addDocumentNonBlocking(collection(firestore, 'queries'), {
             query: currentQuery,
             createdAt: serverTimestamp()
-        }).catch(err => console.error("Failed to log query:", err));
+        });
         
         const result = await smartAssistantChat({ query: currentQuery });
         
@@ -82,10 +83,10 @@ export default function SmartAssistantEmbed() {
     setInput('');
     setIsLoading(true);
 
-    addDoc(collection(firestore, 'queries'), {
+    addDocumentNonBlocking(collection(firestore, 'queries'), {
         query: query,
         createdAt: serverTimestamp()
-    }).catch(err => console.error("Failed to log query:", err));
+    });
 
     smartAssistantChat({ query: query })
       .then(result => {

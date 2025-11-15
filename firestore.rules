@@ -2,27 +2,9 @@
  * @fileoverview Firestore Security Rules for the Hagaaty AI Blog.
  *
  * Core Philosophy:
- * This ruleset enforces a user-ownership model for user profiles and favorites,
- * and a public-read, owner-write model for articles. Categories and tags are
- * publicly readable.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profiles, accessible only by the user themselves.
- * - /articles/{articleId}: Stores articles, publicly readable, but only the author
- *   can modify or delete them.
- * - /categories/{categoryId}: Stores categories, publicly readable.
- * - /tags/{tagId}: Stores tags, publicly readable.
- * - /users/{userId}/favorites/{articleId}: Stores user's favorite articles. Accessible only by the user themselves.
- * - /users/{userId}/campaigns/{campaignId}: Stores ad campaigns created by the user. Accessible only by the user themselves.
- * - /queries/{queryId}: Stores user queries from the smart assistant. Write-only for users.
- *
- * Key Security Decisions:
- * - User listing is disallowed for privacy.
- * - Categories and tags are globally readable.
- * - Articles use an 'authorId' field for ownership validation.
- *
- * Denormalization for Authorization:
- * - Articles denormalize 'authorId' to enable simple ownership checks.
+ * This ruleset enforces a user-ownership model for user profiles and campaigns,
+ * and a public-read, admin-write model for articles, categories, and tags.
+ * It includes specific logic for user point and balance management.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -43,150 +25,126 @@ service cloud.firestore {
     }
 
     /**
+     * @description Checks if the authenticated user is an admin.
+     * Admins are identified by a 'role' field in their user profile.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    /**
      * @description Checks if the authenticated user is the owner of an existing document.
-     * @details Combines the ownership check with a resource existence check.
      */
     function isExistingOwner(ownerId) {
-        return isSignedIn() && request.auth.uid == ownerId && resource != null;
+        return isOwner(ownerId) && resource != null;
+    }
+    
+    /**
+     * @description Validates the fields that a user is allowed to update on their own profile.
+     * Prevents users from illegitimately changing their role, referral code, or earnings.
+     */
+    function hasAllowedUserUpdates() {
+        let incoming = request.resource.data;
+        let existing = resource.data;
+        
+        // Prevent changing immutable or admin-controlled fields
+        return incoming.id == existing.id
+            && incoming.email == existing.email
+            && incoming.role == existing.role
+            && incoming.createdAt == existing.createdAt
+            && incoming.referralCode == existing.referralCode
+            && incoming.referralEarnings == existing.referralEarnings
+            && incoming.referredBy == existing.referredBy;
     }
 
     /**
      * @description Rules for user profiles.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' creates their profile.
-     *   Request Auth: {uid: 'user123'}
-     *   Request Data: {id: 'user123', email: 'test@example.com', username: 'testuser'}
-     * @allow (get, update, delete) User with ID 'user123' reads, updates, or deletes their profile.
-     *   Request Auth: {uid: 'user123'}
-     * @deny (create) User with ID 'user123' attempts to create a profile with a mismatched ID.
-     *   Request Auth: {uid: 'user123'}
-     *   Request Data: {id: 'user456', email: 'test@example.com', username: 'testuser'}
-     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // User listing is disallowed.
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      
+      // Allow creation if the user is creating their own document.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       
-      // Allow user to update their own profile, with specific rules for points and timestamp
-      allow update: if isOwner(userId)
-                    // Rule for triggering agent: Can only increment points by 10 and can only do so if last trigger was more than 24 hours ago.
-                    && (
-                        request.resource.data.points == resource.data.points + 10
-                        && request.resource.data.lastMarketingTriggerAt == request.time
-                        && (resource.data.lastMarketingTriggerAt == null || request.time > resource.data.lastMarketingTriggerAt + duration.time(24, 0, 0, 0))
-                       )
-                    // Rule for points reset: Can reset points and increment balance by 5 if they have enough points.
-                    || (
-                        request.resource.data.points == resource.data.points + 10 - 100
-                        && request.resource.data.balance == resource.data.balance + 5
-                        && resource.data.points + 10 >= 100
-                    )
-                     // Allow other general profile updates (e.g. displayName) that don't touch protected fields
-                    || (
-                        request.resource.data.points == resource.data.points
-                        && request.resource.data.balance == resource.data.balance
-                        && request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
-                    )
-                     // Allow balance to be debited for creating an ad
-                    || (
-                        request.resource.data.balance == resource.data.balance - 2
-                    );
+      // Allow updates under specific, controlled conditions.
+      allow update: if isOwner(userId) && hasAllowedUserUpdates() && (
+        // Case 1: Triggering the marketing agent.
+        (
+          request.resource.data.points == resource.data.points + 10 &&
+          request.resource.data.balance == resource.data.balance &&
+          request.resource.data.lastMarketingTriggerAt == request.time &&
+          (resource.data.lastMarketingTriggerAt == null || request.time > resource.data.lastMarketingTriggerAt + duration.time(24, 0, 0, 0))
+        ) ||
+        // Case 2: Cashing in points for a reward.
+        (
+          request.resource.data.points == resource.data.points + 10 - 100 &&
+          request.resource.data.balance == resource.data.balance + 5 &&
+          (resource.data.points + 10) >= 100
+        ) ||
+        // Case 3: Debiting balance for creating an ad campaign.
+        (
+           request.resource.data.balance == resource.data.balance - 2 &&
+           request.resource.data.points == resource.data.points &&
+           request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
+        ) ||
+        // Case 4: General profile updates (like displayName) that don't affect protected fields.
+        (
+            request.resource.data.balance == resource.data.balance &&
+            request.resource.data.points == resource.data.points &&
+            request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
+        )
+      );
 
-      allow delete: if isOwner(userId);
+      allow delete: if isAdmin();
 
       /**
        * @description Rules for user's ad campaigns.
-       * @path /users/{userId}/campaigns/{campaignId}
-       * @allow (get, list, create, update, delete) User can manage their own campaigns.
-       * @principle Enforces document ownership for all operations.
+       * Users can manage their own campaigns. Admins can view all campaigns
+       * via collection group queries.
        */
       match /campaigns/{campaignId} {
           allow read, write: if isOwner(userId);
       }
     }
+    
+    // Admins can read all campaigns for the main dashboard view.
+    match /{path=**}/campaigns/{campaignId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+    }
 
 
     /**
-     * @description Rules for articles.
-     * @path /articles/{articleId}
-     * @allow (get, list) Any user can read any article.
-     * @allow (create) User with ID 'user123' creates an article with themselves as the author.
-     *   Request Auth: {uid: 'user123'}
-     *   Request Data: {authorId: 'user123', title: 'My Article', content: '...'}
-     * @allow (update, delete) User with ID 'user123' updates or deletes their own article.
-     *   Request Auth: {uid: 'user123'}
-     * @deny (create) User with ID 'user123' creates an article with a different author ID.
-     *   Request Auth: {uid: 'user123'}
-     *   Request Data: {authorId: 'user456', title: 'My Article', content: '...'}
-     * @deny (update, delete) User with ID 'user456' attempts to update or delete an article authored by 'user123'.
-     *   Request Auth: {uid: 'user456'}
-     * @principle Public read access with owner-only writes.
+     * @description Rules for articles. Publicly readable, but only admins
+     * can create, update, or delete.
      */
-    match /articles/{articleId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.authorId);
-      allow delete: if isExistingOwner(resource.data.authorId);
+    match /posts/{postId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     /**
-     * @description Rules for categories.
-     * @path /categories/{categoryId}
-     * @allow (get, list) Any user can read any category.
-     * @deny (create, update, delete) No one can create, update, or delete categories.
-     * @principle Public read access, no write access.
+     * @description Rules for categories. Public read, admin write.
      */
     match /categories/{categoryId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     /**
-     * @description Rules for tags.
-     * @path /tags/{tagId}
-     * @allow (get, list) Any user can read any tag.
-     * @deny (create, update, delete) No one can create, update, or delete tags.
-     * @principle Public read access, no write access.
+     * @description Rules for tags. Public read, admin write.
      */
     match /tags/{tagId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
      /**
-      * @description Rules for user's favorite articles.
-      * @path /users/{userId}/favorites/{articleId}
-      * @allow (create) User with ID 'user123' adds an article to their favorites.
-      *   Request Auth: {uid: 'user123'}
-      * @allow (get, list, delete) User with ID 'user123' reads, lists, or deletes their own favorites.
-      *   Request Auth: {uid: 'user123'}
-      * @deny (create, get, list, delete) User with ID 'user456' attempts to manage favorites for user 'user123'.
-      *   Request Auth: {uid: 'user456'}
-      * @principle Enforces document ownership for writes and reads.
+      * @description Rules for user queries from the smart assistant.
+      * Write-only for authenticated users to protect privacy.
       */
-    match /users/{userId}/favorites/{articleId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if false; // Updates are not allowed on favorites.
-      allow delete: if isOwner(userId);
-    }
-
-    /**
-     * @description Rules for user queries.
-     * @path /queries/{queryId}
-     * @allow (create) Any authenticated user can create a query document.
-     * @deny (read, update, delete) No one can read, update, or delete queries to protect privacy.
-     * @principle Write-only access for authenticated users.
-     */
     match /queries/{queryId} {
       allow read, update, delete: if false;
       allow create: if isSignedIn();

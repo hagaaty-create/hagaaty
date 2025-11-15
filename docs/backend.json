@@ -15,16 +15,18 @@
           "description": "User's email address.",
           "format": "email"
         },
-        "username": {
+        "displayName": {
           "type": "string",
-          "description": "User's chosen username."
+          "description": "User's full name."
         },
-        "favoriteArticleIds": {
-          "type": "array",
-          "description": "References to Articles favorited by the User. (Relationship: User 1:N Article - Favorites)",
-          "items": {
-            "type": "string"
-          }
+        "role": {
+          "type": "string",
+          "description": "User role, either 'user' or 'admin'.",
+          "enum": ["user", "admin"]
+        },
+        "balance": {
+          "type": "number",
+          "description": "User's advertising credit balance."
         },
         "points": {
           "type": "number",
@@ -34,12 +36,33 @@
           "type": "string",
           "description": "Timestamp of the last time the user triggered the marketing agent.",
           "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "description": "Timestamp of when the user account was created.",
+            "format": "date-time"
+        },
+        "referralCode": {
+            "type": "string",
+            "description": "The unique code assigned to this user for referrals."
+        },
+        "referralEarnings": {
+            "type": "number",
+            "description": "Total earnings from the referral program."
+        },
+        "referredBy": {
+            "type": "string",
+            "description": "The referral code of the user who referred this user."
         }
       },
       "required": [
         "id",
         "email",
-        "username"
+        "displayName",
+        "role",
+        "balance",
+        "points",
+        "createdAt"
       ]
     },
     "Article": {
@@ -214,26 +237,23 @@
         }
       },
       {
-        "path": "/users/{userId}/favorites/{articleId}",
+        "path": "/users/{userId}/campaigns/{campaignId}",
         "definition": {
-          "entityName": "Favorite",
-          "schema": {
-            "$ref": "#/backend/entities/Article"
-          },
-          "description": "Stores references to articles favorited by the user. Path-based ownership ensures only the authenticated user can manage their own favorites.",
+          "entityName": "Campaign",
+          "description": "Stores ad campaigns created by a specific user.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user, matching the Firebase Auth UID."
+              "description": "The unique identifier of the user who owns the campaign."
             },
             {
-              "name": "articleId",
-              "description": "The unique identifier of the article (only storing IDs, to reference data in 'articles')."
+              "name": "campaignId",
+              "description": "The unique identifier of the campaign."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to optimize for security, scalability, and maintainability, adhering to the principles of Authorization Independence, Structural Segregation, and Access Modeling. User data is stored in a path-based ownership model under `/users/{userId}`. Articles are stored in a top-level `/articles` collection, with the author's ID denormalized into each article document to facilitate direct querying and authorization. Categories and Tags are stored in their respective top-level collections for global access. Favorite articles are handled as a subcollection `/users/{userId}/favorites/{articleId}` where access is controlled at the path level. This structure ensures that authorization rules do not require `get()` calls to parent documents, enabling atomic operations. The QAP is achieved by direct document access and query capabilities within each collection, avoiding the need for complex filtering rules. The Category and Tag entities are stored in root level collections for ease of retrieval and global association."
+    "reasoning": "The Firestore structure is designed to optimize for security, scalability, and maintainability. User data is stored under `/users/{userId}` with path-based ownership. Admin roles are included to grant wider access for management. Articles, Categories, and Tags are in top-level collections for easy querying and public access. Ad campaigns are a subcollection under the user who created them (`/users/{userId}/campaigns/{campaignId}`), ensuring that users can only access their own campaigns, while admins can use collection group queries to view all campaigns across all users."
   }
 }
