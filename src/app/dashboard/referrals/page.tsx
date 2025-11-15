@@ -1,7 +1,7 @@
 'use client';
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { doc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, collection, query, where, getDocs, getCountFromServer } from "firebase/firestore";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share2, Copy, Check, DollarSign, Users, Gift, Network, Bot, Loader2 } from "lucide-react";
@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
-import { analyzeDownline, type AnalyzeDownlineOutput } from "@/ai/flows/analyze-downline";
+import { analyzeDownline, DownlineAnalysisInput } from "@/ai/flows/analyze-downline";
 
 type UserProfile = {
   id: string;
@@ -22,6 +22,11 @@ type UserProfile = {
   referralEarnings?: number;
   referredBy?: string;
   createdAt?: Timestamp;
+}
+
+type DownlineReport = {
+    levels: { level: number; count: number; }[];
+    summary: string;
 }
 
 const commissionLevels = [
@@ -38,7 +43,7 @@ export default function ReferralsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [downlineAnalysis, setDownlineAnalysis] = useState<AnalyzeDownlineOutput | null>(null);
+  const [downlineReport, setDownlineReport] = useState<DownlineReport | null>(null);
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(true);
 
   const userProfileRef = useMemoFirebase(() => {
@@ -56,17 +61,50 @@ export default function ReferralsPage() {
   const { data: referrals, isLoading: areReferralsLoading } = useCollection<UserProfile>(referralsQuery);
   
   useEffect(() => {
-    if (user) {
+    const fetchAndAnalyzeDownline = async () => {
+      if (!user || !firestore) return;
+
       setIsAnalysisLoading(true);
-      analyzeDownline({ userId: user.uid })
-        .then(setDownlineAnalysis)
-        .catch(err => {
-          console.error("Failed to analyze downline:", err);
-          toast({ variant: 'destructive', title: 'فشل تحليل الشبكة' });
-        })
-        .finally(() => setIsAnalysisLoading(false));
-    }
-  }, [user, toast]);
+      try {
+        const usersRef = collection(firestore, 'users');
+        const levelPromises = [];
+        // Fetch count for each of the 5 levels
+        for (let i = 0; i < 5; i++) {
+            const q = query(usersRef, where(`ancestors.${i}`, '==', user.uid));
+            levelPromises.push(getCountFromServer(q));
+        }
+
+        const levelSnapshots = await Promise.all(levelPromises);
+        const levelCounts = levelSnapshots.map((snapshot, index) => ({
+          level: index + 1,
+          count: snapshot.data().count,
+        }));
+        
+        // Ensure we always have 5 levels, even if some are 0
+        const fullLevelData: {level: number, count: number}[] = Array.from({length: 5}, (_, i) => {
+            const found = levelCounts.find(l => l.level === i + 1);
+            return found || { level: i + 1, count: 0 };
+        });
+
+        // Now, call the AI flow with the data we fetched on the client
+        const analysisInput: DownlineAnalysisInput = { levels: fullLevelData };
+        const result = await analyzeDownline(analysisInput);
+
+        setDownlineReport({
+            levels: fullLevelData,
+            summary: result.summary,
+        });
+
+      } catch (err) {
+        console.error("Failed to analyze downline:", err);
+        toast({ variant: 'destructive', title: 'فشل تحليل الشبكة', description: 'لم نتمكن من تحليل شبكتك. قد يكون هذا بسبب مشكلة في الاتصال.'});
+      } finally {
+        setIsAnalysisLoading(false);
+      }
+    };
+    
+    fetchAndAnalyzeDownline();
+  }, [user, firestore, toast]);
 
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !userProfile?.referralCode) return '';
@@ -87,9 +125,9 @@ export default function ReferralsPage() {
     return format(timestamp.toDate(), 'PPP');
   };
   
-  const isLoading = isProfileLoading || (!!userProfile && areReferralsLoading) || isAnalysisLoading;
+  const isLoading = isProfileLoading || areReferralsLoading || isAnalysisLoading;
 
-  if (isLoading && !downlineAnalysis) {
+  if (isLoading && !downlineReport) {
     return (
         <div className="space-y-8">
              <div className="flex items-center gap-4">
@@ -155,18 +193,18 @@ export default function ReferralsPage() {
               <Loader2 className="h-5 w-5 animate-spin" />
               <span>يقوم الوكيل بتحليل شبكتك الآن...</span>
             </div>
-          ) : downlineAnalysis && (
+          ) : downlineReport && (
             <div className="space-y-4">
-                <p className="text-base text-muted-foreground italic">"{downlineAnalysis.summary}"</p>
+                <p className="text-base text-muted-foreground italic">"{downlineReport.summary}"</p>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {downlineAnalysis.levels.map(l => <TableHead key={l.level} className="text-center">المستوى {l.level}</TableHead>)}
+                      {downlineReport.levels.map(l => <TableHead key={l.level} className="text-center">المستوى {l.level}</TableHead>)}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                       {downlineAnalysis.levels.map(l => (
+                       {downlineReport.levels.map(l => (
                           <TableCell key={l.level} className="text-center font-bold text-2xl">
                               {l.count}
                            </TableCell>
