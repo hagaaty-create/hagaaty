@@ -48,7 +48,39 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
   const handleGenerateAudio = async () => {
     setIsGeneratingAudio(true);
     try {
-        const audioResult = await generateAudio({ text: `عنوان المقال: ${post.title}. ${post.content}`});
+        // Use marked to parse the markdown into plain text for a cleaner TTS experience.
+        const plainText = marked.parse(post.content, {
+            walkTokens(token) {
+                // Return false to remove the token from the output
+                if (token.type === 'space') {
+                    return false;
+                }
+            },
+            renderer: {
+                // Return the text content of the token
+                text(text) {
+                    return text;
+                },
+                 // Add a newline after each paragraph
+                paragraph(text) {
+                    return text + '\n\n';
+                },
+                // Add a newline after each heading
+                heading(text, level) {
+                    return text + '\n\n';
+                },
+                // Return the text of the list item
+                listitem(text) {
+                    return ' - ' + text + '\n';
+                },
+                 // Return the body of the list
+                list(body, ordered, start) {
+                    return body + '\n';
+                }
+            }
+        });
+
+        const audioResult = await generateAudio({ text: `عنوان المقال: ${post.title}. \n\n ${plainText}`});
         setAudioUrl(audioResult.audioUrl);
     } catch (error) {
         console.error("Failed to generate audio:", error);
