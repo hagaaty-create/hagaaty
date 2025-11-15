@@ -289,7 +289,12 @@ export default function ReferralsPage() {
               <CardDescription>هنا يمكنك تتبع من قام بالتسجيل باستخدام الرمز الخاص بك. أرباحك لا تقتصر عليهم فقط!</CardDescription>
           </CardHeader>
           <CardContent>
-              {referrals && referrals.length > 0 ? (
+              {areReferralsLoading ? (
+                  <div className="space-y-2">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                  </div>
+              ) : referrals && referrals.length > 0 ? (
                   <Table>
                       <TableHeader>
                           <TableRow>
