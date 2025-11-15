@@ -65,7 +65,6 @@ export default function LoginForm() {
         } else if (error.code === 'auth/invalid-email') {
             description = 'البريد الإلكتروني الذي أدخلته غير صالح.';
         }
-        console.error("Login error: ", error.code, error.message);
         toast({
             variant: 'destructive',
             title: title,
