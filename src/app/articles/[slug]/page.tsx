@@ -7,12 +7,10 @@ import type { Post } from '@/types';
 import { Metadata } from 'next';
 import ArticlePageClient from './page-client';
 
-// This is the correct type definition that Next.js expects for Server Components.
-// It explicitly defines `params` and `searchParams` which are passed by Next.js.
-interface PageProps {
+type PageProps = {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
-}
+};
 
 async function getPost(slug: string): Promise<Post | null> {
   const { firestore } = initializeFirebase();
@@ -27,7 +25,6 @@ async function getPost(slug: string): Promise<Post | null> {
   const postDoc = querySnapshot.docs[0];
   const postData = postDoc.data();
   
-  // Ensure the date is serializable (string) before sending to the client component.
   let date: string;
   if (postData.date instanceof Timestamp) {
     date = postData.date.toDate().toISOString();
@@ -36,7 +33,6 @@ async function getPost(slug: string): Promise<Post | null> {
   } else if (postData.date instanceof Date) {
     date = postData.date.toISOString();
   } else {
-    // Provide a valid fallback if the date is missing or in an unexpected format.
     date = new Date().toISOString(); 
   }
 
@@ -78,8 +74,6 @@ export async function generateMetadata(
   };
 }
 
-// The default export is the page component itself.
-// It directly receives the props object with `params` and `searchParams`.
 export default async function ArticlePage({ params }: PageProps) {
   const post = await getPost(params.slug);
 

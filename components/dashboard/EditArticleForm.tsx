@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
     const [title, setTitle] = useState(post.title);
     const [content, setContent] = useState(post.content);
     const [category, setCategory] = useState(post.category);
-    const [tags, setTags] = useState(post.tags.join(', '));
+    const [tags, setTags] = useState(Array.isArray(post.tags) ? post.tags.join(', ') : '');
     const [isSaving, setIsSaving] = useState(false);
     
     const firestore = useFirestore();
@@ -56,9 +56,8 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
 
         // Optimistically navigate away
         router.push('/dashboard/admin/articles');
-        router.refresh(); // Tell Next.js to refetch server components for the target page
+        router.refresh(); 
         
-        // We don't set isSaving to false here because we've already navigated away.
     };
     
     return (
@@ -74,14 +73,18 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                 />
             </div>
             <div className="grid w-full gap-2">
-                <Label htmlFor="content">المحتوى</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="content">المحتوى</Label>
+                    <Badge variant="outline">Markdown</Badge>
+                </div>
                 <Textarea
                     id="content"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     rows={20}
                     disabled={isSaving}
-                    className="prose dark:prose-invert prose-p:leading-relaxed"
+                    className="prose dark:prose-invert prose-p:leading-relaxed font-mono"
+                    dir="ltr"
                 />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -95,13 +98,19 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                     />
                 </div>
                  <div className="grid w-full gap-2">
-                    <Label htmlFor="tags">الوسوم (مفصولة بفاصلة)</Label>
-                    <Input
-                        id="tags"
+                    <Label htmlFor="tags-input">الوسوم (مفصولة بفاصلة)</Label>
+                     <Input
+                        id="tags-input"
                         value={tags}
                         onChange={(e) => setTags(e.target.value)}
                         disabled={isSaving}
+                        placeholder="أضف الوسوم هنا..."
                     />
+                     <div className="flex flex-wrap items-center gap-2 pt-2 min-h-[20px]">
+                         {tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-sm">{tag}</Badge>
+                        ))}
+                    </div>
                 </div>
             </div>
             <Button type="submit" disabled={isSaving}>
