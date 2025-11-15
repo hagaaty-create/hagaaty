@@ -50,39 +50,32 @@ export default function BillingPage() {
         }
     };
     
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !user.email || !paymentProof || !imageBase64) {
             toast({ variant: 'destructive', title: 'بيانات ناقصة', description: 'يرجى التأكد من رفع صورة إثبات الدفع.' });
             return;
         }
         setIsLoading(true);
-        try {
-            // This is a fire-and-forget operation from the user's perspective.
-            // The AI flow will handle everything in the background.
-            verifyPaymentAndCreditUser({
-                userId: user.uid,
-                userEmail: user.email,
-                paymentProofDataUri: imageBase64,
-                amount: parseFloat(selectedMethod.amount),
-                paymentMethod: selectedMethod.name,
-            }).catch(err => {
-                // Log the error, but the user has already received a success message.
-                console.error("Error in background payment verification flow:", err);
-            });
 
-            setIsSubmitted(true); // Show success state immediately
+        // Fire-and-forget operation for a better user experience.
+        // The AI flow will handle everything in the background.
+        verifyPaymentAndCreditUser({
+            userId: user.uid,
+            userEmail: user.email,
+            paymentProofDataUri: imageBase64,
+            amount: parseFloat(selectedMethod.amount),
+            paymentMethod: selectedMethod.name,
+        }).catch(err => {
+            // Log the error for debugging, but the user has already received a success message.
+            console.error("Error in background payment verification flow:", err);
+            // Optionally, you could implement a more robust error handling system,
+            // like sending a follow-up email to the user if the background task fails.
+        });
 
-        } catch (error) {
-            // This catch block is less likely to be hit unless there's an immediate client-side error.
-            console.error("Error initiating payment verification:", error);
-            toast({
-                variant: 'destructive',
-                title: 'حدث خطأ',
-                description: 'لم نتمكن من إرسال طلبك. يرجى المحاولة مرة أخرى.',
-            });
-            setIsLoading(false);
-        }
+        // Show success state immediately to the user.
+        setIsSubmitted(true);
+        setIsLoading(false);
     };
 
     return (
