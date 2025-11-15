@@ -132,8 +132,7 @@ const generatePromotionalArticlesFlow = ai.defineFlow(
   {
     name: 'generatePromotionalArticlesFlow',
     outputSchema: z.object({
-      generatedCount: z.number(),
-      generatedTitles: z.array(z.string()),
+      triggeredCount: z.number(),
     }),
   },
   async () => {
@@ -146,28 +145,26 @@ const generatePromotionalArticlesFlow = ai.defineFlow(
     }
     const topics = output.topics;
     
-    console.log(`[Flow] Generated ${topics.length} topics. Starting individual article generation...`);
+    console.log(`[Flow] Generated ${topics.length} topics. Triggering individual article generation in the background...`);
 
-    // 2. For each topic, trigger the generation and saving flow in parallel.
-    // We don't need to wait for them to finish, as they run in the background.
-    const generationPromises = topics.map(topic => generateAndSaveArticleFlow(topic));
-    
-    // While we don't block the user, for this specific batch operation, 
-    // we'll wait for all to complete to return a final status.
-    await Promise.all(generationPromises);
+    // 2. For each topic, trigger the generation and saving flow.
+    // We do not await them. This is a "fire-and-forget" operation.
+    topics.forEach(topic => {
+      generateAndSaveArticleFlow(topic).catch(err => {
+        // Log errors from background tasks for debugging
+        console.error(`[Background-Flow-Error] Failed to generate article for topic "${topic.title}":`, err);
+      });
+    });
 
-    console.log('[Flow] All 5 promotional articles have been generated and saved.');
+    console.log('[Flow] All 5 promotional article generation flows have been triggered.');
     
     return {
-      generatedCount: topics.length,
-      generatedTitles: topics.map(t => t.title),
+      triggeredCount: topics.length,
     };
   }
 );
 
 
-export async function generatePromotionalArticles(): Promise<{ generatedCount: number, generatedTitles: string[] }> {
-  // This is a fire-and-forget call from the client's perspective, 
-  // but we return the promise for server-side usage or potential future waiting.
+export async function generatePromotionalArticles(): Promise<{ triggeredCount: number }> {
   return generatePromotionalArticlesFlow();
 }

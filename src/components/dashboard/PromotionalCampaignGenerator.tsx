@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 
 export default function PromotionalCampaignGenerator() {
     const [isLoading, setIsLoading] = useState(false);
-    const [result, setResult] = useState<{ generatedCount: number; generatedTitles: string[] } | null>(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
     const router = useRouter();
@@ -19,29 +19,27 @@ export default function PromotionalCampaignGenerator() {
 
     const handleGenerate = async () => {
         setIsLoading(true);
-        setResult(null);
+        setIsSubmitted(false);
         setError(null);
-        toast({
-            title: "🚀 جاري إطلاق حملة الترويج الذاتي...",
-            description: "يقوم الذكاء الاصطناعي الآن بكتابة 5 مقالات. قد يستغرق هذا بعض الوقت.",
-        });
 
         try {
-            const response = await generatePromotionalArticles();
-            setResult(response);
+            await generatePromotionalArticles();
+            setIsSubmitted(true);
             toast({
-                title: "✅ نجاح!",
-                description: `تم توليد ونشر ${response.generatedCount} مقالات جديدة بنجاح في المدونة.`,
+                title: "✅ تم إطلاق الحملة بنجاح!",
+                description: "الوكيل يعمل الآن في الخلفية. سيتم نشر المقالات في مدونتك خلال الدقائق القليلة القادمة.",
             });
-            // Refresh the articles list page to show new content
-            router.refresh();
+            // Refresh the articles list page after a delay to allow content to be generated
+            setTimeout(() => {
+                router.refresh();
+            }, 5000); // 5 seconds delay before refreshing
 
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "حدث خطأ غير معروف أثناء إنشاء المقالات.";
+            const errorMessage = err instanceof Error ? err.message : "حدث خطأ غير معروف أثناء بدء إنشاء المقالات.";
             setError(errorMessage);
             toast({
                 variant: 'destructive',
-                title: "فشل إنشاء الحملة",
+                title: "فشل إطلاق الحملة",
                 description: errorMessage,
             });
             console.error(err);
@@ -56,7 +54,7 @@ export default function PromotionalCampaignGenerator() {
                 {isLoading ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        الوكيل يعمل... (قد يستغرق الأمر دقيقة)
+                        جاري إطلاق الوكيل...
                     </>
                 ) : (
                     <>
@@ -74,17 +72,12 @@ export default function PromotionalCampaignGenerator() {
                 </Alert>
             )}
 
-            {result && (
+            {isSubmitted && !isLoading && (
                 <Alert variant="default" className="border-green-500 text-green-700">
                     <CheckCircle className="h-4 w-4" />
-                    <AlertTitle className="text-green-800">اكتملت الحملة بنجاح!</AlertTitle>
+                    <AlertTitle className="text-green-800">الوكيل يعمل الآن!</AlertTitle>
                     <AlertDescription>
-                        <p>تم نشر {result.generatedCount} مقالات جديدة في مدونتك:</p>
-                        <ul className="list-disc pl-5 mt-2 text-sm">
-                            {result.generatedTitles.map((title, index) => (
-                                <li key={index}>{title}</li>
-                            ))}
-                        </ul>
+                        <p>بدأ الذكاء الاصطناعي في كتابة ونشر 5 مقالات جديدة. يمكنك متابعة ظهورها في <a href="/blog" target="_blank" className="underline font-bold">صفحة المدونة</a> خلال لحظات.</p>
                     </AlertDescription>
                 </Alert>
             )}
