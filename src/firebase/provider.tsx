@@ -147,16 +147,35 @@ export const useFirebaseApp = (): FirebaseApp => {
   return firebaseApp;
 };
 
-type MemoFirebase <T> = T & {__memo?: boolean};
+// A helper type that "tags" a memoized value.
+type Memoized<T> = T & { __memo: true };
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
-  const memoized = useMemo(factory, deps);
-  
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
-  (memoized as MemoFirebase<T>).__memo = true;
-  
-  return memoized;
+/**
+ * A custom hook that works like React.useMemo but also "tags" the returned
+ * value with a hidden property. This allows other hooks like useCollection
+ * and useDoc to verify that they are receiving a memoized value, preventing
+ * accidental infinite loops.
+ *
+ * @param factory The function that creates the value to be memoized.
+ * @param deps The dependency array for useMemo.
+ * @returns The memoized value, tagged for verification.
+ */
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
+    const memoized = useMemo(factory, deps);
+
+    // Tag the object if it's a non-null object. Primitives can't be tagged.
+    if (memoized && typeof memoized === 'object') {
+        Object.defineProperty(memoized, '__memo', {
+            value: true,
+            writable: false,
+            configurable: true,
+            enumerable: false
+        });
+    }
+    
+    return memoized as T;
 }
+
 
 /**
  * Hook specifically for accessing the authenticated user's state.

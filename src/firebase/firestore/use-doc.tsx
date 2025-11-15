@@ -24,22 +24,25 @@ export interface UseDocResult<T> {
   error: FirestoreError | Error | null; // Error object, or null.
 }
 
+// Helper type to check for our memoization tag
+type MemoizedRef = DocumentReference<DocumentData> & { __memo?: boolean };
+
+
 /**
  * React hook to subscribe to a single Firestore document in real-time.
  * Handles nullable references.
  * 
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *
+ * CRITICAL: The `docRef` passed to this hook MUST be memoized, ideally using
+ * the `useMemoFirebase` hook. This prevents re-creating the reference on every
+ * render, which would cause an infinite loop of subscriptions.
  *
  * @template T Optional type for document data. Defaults to any.
  * @param {DocumentReference<DocumentData> | null | undefined} docRef -
- * The Firestore DocumentReference. Waits if null/undefined.
+ * The Firestore DocumentReference, created with `useMemoFirebase`.
  * @returns {UseDocResult<T>} Object with data, isLoading, error.
  */
 export function useDoc<T = any>(
-  memoizedDocRef: (DocumentReference<DocumentData> & {__memo?: boolean}) | null | undefined,
+  docRef: MemoizedRef | null | undefined,
 ): UseDocResult<T> {
   type StateDataType = WithId<T> | null;
 
@@ -48,7 +51,19 @@ export function useDoc<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
-    if (!memoizedDocRef) {
+    // Check for memoization tag if the reference is not null.
+    if (docRef && !docRef.__memo) {
+      console.error(
+        'useDoc Error: The DocumentReference passed to useDoc was not memoized with useMemoFirebase. This can lead to severe performance issues and infinite loops. Path:',
+        docRef.path
+      );
+      // Throw an error in development to halt execution and force a fix.
+      if (process.env.NODE_ENV === 'development') {
+          throw new Error(`useDoc Error: DocumentReference for path "${docRef.path}" is not memoized. Use useMemoFirebase.`);
+      }
+    }
+
+    if (!docRef) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -57,10 +72,9 @@ export function useDoc<T = any>(
 
     setIsLoading(true);
     setError(null);
-    // Optional: setData(null); // Clear previous data instantly
 
     const unsubscribe = onSnapshot(
-      memoizedDocRef,
+      docRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
@@ -74,7 +88,7 @@ export function useDoc<T = any>(
       (error: FirestoreError) => {
         const contextualError = new FirestorePermissionError({
           operation: 'get',
-          path: memoizedDocRef.path,
+          path: docRef.path,
         })
 
         setError(contextualError)
@@ -87,11 +101,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Re-run if the memoizedDocRef changes.
-
-  if(memoizedDocRef && !memoizedDocRef.__memo) {
-    throw new Error('docRef in useDoc was not properly memoized using useMemoFirebase');
-  }
+  }, [docRef]); // Re-run if the memoized docRef changes.
 
   return { data, isLoading, error };
 }
