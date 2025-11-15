@@ -1,8 +1,15 @@
+
+'use client';
 import GenerateArticleForm from "@/components/dashboard/GenerateArticleForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PenSquare } from "lucide-react";
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function GenerateArticlePage() {
+function GenerateArticlePageContent() {
+    const searchParams = useSearchParams();
+    const topic = searchParams.get('topic');
+
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-4">
@@ -15,9 +22,19 @@ export default function GenerateArticlePage() {
                     <CardDescription>استخدم الذكاء الاصطناعي لكتابة مقال جديد للمدونة بناءً على فكرة بسيطة.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <GenerateArticleForm />
+                    <GenerateArticleForm prefilledTopic={topic} />
                 </CardContent>
             </Card>
         </div>
     );
 }
+
+
+export default function GenerateArticlePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <GenerateArticlePageContent />
+        </Suspense>
+    );
+}
+

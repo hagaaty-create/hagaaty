@@ -6,11 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbulb, Loader2, RefreshCw, Wand2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function InsightsPage() {
     const [suggestions, setSuggestions] = useState<GenerateTopicSuggestionsOutput['suggestions']>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     const fetchSuggestions = async () => {
         setIsLoading(true);
@@ -29,6 +31,11 @@ export default function InsightsPage() {
     useEffect(() => {
         fetchSuggestions();
     }, []);
+    
+    const handleGenerateClick = (title: string) => {
+        const params = new URLSearchParams({ topic: title });
+        router.push(`/dashboard/admin/generate?${params.toString()}`);
+    };
 
     return (
         <div className="space-y-8">
@@ -70,15 +77,23 @@ export default function InsightsPage() {
                          <div className="space-y-6">
                             {suggestions.map((suggestion, index) => (
                                 <Card key={index} className="bg-muted/50 border-l-4 border-primary/50">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg font-semibold flex items-center gap-3">
-                                            <Wand2 className="h-5 w-5 text-primary" />
-                                            {suggestion.title}
-                                        </CardTitle>
+                                    <CardHeader className="flex flex-row items-start justify-between gap-4">
+                                        <div>
+                                            <CardTitle className="text-lg font-semibold flex items-center gap-3">
+                                                <Wand2 className="h-5 w-5 text-primary" />
+                                                {suggestion.title}
+                                            </CardTitle>
+                                            <CardDescription className="pt-2 pl-8">{suggestion.reason}</CardDescription>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleGenerateClick(suggestion.title)}
+                                            className="shrink-0"
+                                        >
+                                            <Wand2 className="mr-2 h-4 w-4"/>
+                                            توليد المقال
+                                        </Button>
                                     </CardHeader>
-                                    <CardContent>
-                                        <p className="text-sm text-muted-foreground pl-8">{suggestion.reason}</p>
-                                    </CardContent>
                                 </Card>
                             ))}
                         </div>

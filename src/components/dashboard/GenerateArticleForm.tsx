@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, Wand2, Image as ImageIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useFirestore, useUser } from "@/firebase";
@@ -40,9 +40,12 @@ const stepMessages = {
     [GenerationStep.GeneratingImage]: "جاري توليد صورة فريدة...",
 };
 
+type GenerateArticleFormProps = {
+    prefilledTopic?: string | null;
+}
 
-export default function GenerateArticleForm() {
-    const [prompt, setPrompt] = useState('');
+export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleFormProps) {
+    const [prompt, setPrompt] = useState(prefilledTopic || '');
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [step, setStep] = useState<GenerationStep>(GenerationStep.Idle);
@@ -51,10 +54,9 @@ export default function GenerateArticleForm() {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!prompt.trim()) return;
+    
+    const startGeneration = async (topic: string) => {
+        if (!topic.trim()) return;
 
         setIsLoading(true);
         setGeneratedData(null);
@@ -63,7 +65,7 @@ export default function GenerateArticleForm() {
         try {
             // Step 1: Generate Article
             setStep(GenerationStep.GeneratingArticle);
-            const articleResult = await generateBlogArticle({ prompt });
+            const articleResult = await generateBlogArticle({ prompt: topic });
             if (!articleResult || !articleResult.article) throw new Error("فشل في توليد محتوى المقال.");
             
             const firstLine = articleResult.article.split('\n')[0].replace(/#/g, '').trim();
@@ -96,6 +98,19 @@ export default function GenerateArticleForm() {
         } finally {
             setIsLoading(false);
         }
+    };
+    
+    // Automatically start generation if a topic is pre-filled from URL
+    useEffect(() => {
+        if (prefilledTopic) {
+            startGeneration(prefilledTopic);
+        }
+    }, [prefilledTopic]);
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        startGeneration(prompt);
     };
     
     const handleSave = async () => {
