@@ -36,6 +36,7 @@ import { useUser, useAuth, useDoc, useFirestore, useMemoFirebase } from '@/fireb
 import { Skeleton } from '@/components/ui/skeleton';
 import React, { useMemo } from 'react';
 import { doc } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 
 type UserProfile = {
   role?: 'admin' | 'user';

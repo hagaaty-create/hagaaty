@@ -70,7 +70,7 @@ export default function AllCampaignsPage() {
           usersMap.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
       });
 
-      // 2. Fetch all campaigns
+      // 2. Fetch all campaigns using collectionGroup
       const campaignsQuery = query(
         collectionGroup(firestore, 'campaigns'),
         orderBy('createdAt', 'desc')
@@ -80,7 +80,7 @@ export default function AllCampaignsPage() {
       // 3. Map user data to campaigns
       const campaignsData = campaignsSnapshot.docs.map(doc => {
         const data = doc.data();
-        const userId = doc.ref.parent.parent?.id;
+        const userId = doc.ref.parent.parent?.id; // Get the user ID from the path
         const user = userId ? usersMap.get(userId) : undefined;
         
         return {

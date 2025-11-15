@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, FileText, BarChart, PenSquare, Shield, Loader2, ArrowLeft } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
 
   const allUsersQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'users'), [firestore]);
   const allPostsQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'posts'), [firestore]);
-  const allCampaignsQuery = useMemoFirebase(() => !firestore ? null : collection(firestore, 'campaigns'), [firestore]);
+  const allCampaignsQuery = useMemoFirebase(() => !firestore ? null : collectionGroup(firestore, 'campaigns'), [firestore]);
 
 
   // Data fetching
