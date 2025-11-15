@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useUser } from '@/firebase';
 import { Trophy, Award, DollarSign, Users, Crown, Loader2, Medal, Target } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 type UserRank = {
   id: string;
