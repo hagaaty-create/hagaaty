@@ -22,6 +22,7 @@ import {
   Trophy,
   Banknote,
   Video,
+  Key,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -101,6 +102,7 @@ export default function DashboardLayout({
     { href: '/dashboard/admin/users', label: 'إدارة المستخدمين', icon: Users, matchStartsWith: true },
     { href: '/dashboard/admin/campaigns', label: 'جميع الحملات', icon: BarChart },
     { href: '/dashboard/admin/auto-marketing', label: 'التسويق الآلي', icon: Megaphone },
+    { href: '/dashboard/admin/test-api', label: 'اختبار API', icon: Key },
   ];
 
   const handleLogout = () => {
