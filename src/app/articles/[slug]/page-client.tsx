@@ -76,9 +76,9 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
       </div>
 
       <div className="prose prose-lg dark:prose-invert max-w-none text-foreground/90 prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground">
-        {post.content.split('\n\n').map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-        ))}
+        <pre className='whitespace-pre-wrap font-body text-base'>
+          {post.content}
+        </pre>
       </div>
 
       <footer className="mt-12">
