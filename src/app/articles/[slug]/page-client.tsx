@@ -77,13 +77,13 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
 
       <div 
         className="prose prose-lg dark:prose-invert max-w-none text-foreground/90 prose-p:leading-relaxed prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground"
-        dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }}
+        dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />').replace(/\\n/g, '<br />') }}
        />
 
       <footer className="mt-12">
         <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">الوسوم:</span>
-            {post.tags.map(tag => (
+            {Array.isArray(post.tags) && post.tags.map(tag => (
                 <Badge key={tag} variant="outline">{tag}</Badge>
             ))}
         </div>

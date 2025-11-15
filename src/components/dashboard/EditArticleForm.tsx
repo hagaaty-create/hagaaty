@@ -5,12 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFirestore } from "@/firebase";
-import { doc, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
+import { Badge } from "../ui/badge";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type EditArticleFormProps = {
@@ -21,7 +22,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
     const [title, setTitle] = useState(post.title);
     const [content, setContent] = useState(post.content);
     const [category, setCategory] = useState(post.category);
-    const [tags, setTags] = useState(post.tags.join(', '));
+    const [tags, setTags] = useState(Array.isArray(post.tags) ? post.tags.join(', ') : '');
     const [isSaving, setIsSaving] = useState(false);
     
     const firestore = useFirestore();
@@ -45,7 +46,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           date: serverTimestamp(), // To update the modification date
         };
 
-        // Non-blocking update using set with merge to correctly update the document
+        // Non-blocking update
         setDocumentNonBlocking(postRef, updatedData, { merge: true });
 
         toast({
@@ -73,7 +74,10 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                 />
             </div>
             <div className="grid w-full gap-2">
-                <Label htmlFor="content">المحتوى</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="content">المحتوى</Label>
+                    <Badge variant="outline">Markdown</Badge>
+                </div>
                 <Textarea
                     id="content"
                     value={content}
