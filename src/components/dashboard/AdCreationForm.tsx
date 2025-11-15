@@ -144,6 +144,7 @@ export default function AdCreationForm() {
         });
         
         router.push(`/dashboard/campaigns?newCampaignId=${newCampaignRef.id}`);
+        router.refresh();
     }
 
     const canGenerate = useMemo(() => {

@@ -117,41 +117,43 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
         startGeneration(prompt);
     };
     
-    const handleSave = async () => {
-      if (!generatedData || !firestore || !user || !generatedData.imageUrl) return;
-      setIsSaving(true);
+    const handleSave = () => {
+        if (!generatedData || !firestore || !user || !generatedData.imageUrl) return;
+        setIsSaving(true);
 
-      const slug = generatedData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
+        const slug = generatedData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
 
-      const articleData = {
-          title: generatedData.title,
-          slug: slug,
-          content: generatedData.article,
-          excerpt: generatedData.article.substring(0, 150) + '...',
-          category: generatedData.category,
-          tags: generatedData.tags,
-          author: {
-              name: user.displayName || "AI Admin",
-              avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
-          },
-          imageUrl: generatedData.imageUrl,
-          imageHint: generatedData.imageHint,
-          date: serverTimestamp(),
-      };
+        const articleData = {
+            title: generatedData.title,
+            slug: slug,
+            content: generatedData.article,
+            excerpt: generatedData.article.substring(0, 150) + '...',
+            category: generatedData.category,
+            tags: generatedData.tags,
+            author: {
+                name: user.displayName || "AI Admin",
+                avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
+            },
+            imageUrl: generatedData.imageUrl,
+            imageHint: generatedData.imageHint,
+            date: serverTimestamp(),
+        };
 
-      addDocumentNonBlocking(collection(firestore, 'posts'), articleData);
+        const postsCollection = collection(firestore, 'posts');
+        addDocumentNonBlocking(postsCollection, articleData);
 
-      toast({
-        title: "جاري حفظ المقال...",
-        description: "سيتم نشر المقال الجديد في الخلفية.",
-      });
+        toast({
+            title: "جاري حفظ المقال...",
+            description: "سيتم نشر المقال الجديد في الخلفية.",
+        });
 
-      setGeneratedData(null);
-      setPrompt('');
-      setIsSaving(false);
-
-      router.push('/dashboard/admin/articles');
-    }
+        // Optimistically clear the form and navigate away
+        setGeneratedData(null);
+        setPrompt('');
+        setIsSaving(false); // Can be set to false immediately
+        router.push('/dashboard/admin/articles');
+        router.refresh();
+    };
 
     return (
         <div className="space-y-6">
