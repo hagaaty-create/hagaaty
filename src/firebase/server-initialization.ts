@@ -16,6 +16,6 @@ if (getApps().length === 0) {
 
 firestore = getFirestore(app);
 
-export function initializeFirebase(): { app: FirebaseApp; firestore: Firestore } {
+export const initializeFirebase = (): { app: FirebaseApp; firestore: Firestore } => {
   return { app, firestore };
 }
