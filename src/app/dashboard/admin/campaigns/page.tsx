@@ -61,7 +61,6 @@ export default function AllCampaignsPage() {
     const fetchAllCampaignsAndUsers = async () => {
       setLoading(true);
       
-      // 1. Fetch all users and create a map
       const usersRef = collection(firestore, 'users');
       const usersSnapshot = await getDocs(usersRef);
       const usersMap = new Map<string, UserProfile>();
@@ -69,17 +68,15 @@ export default function AllCampaignsPage() {
           usersMap.set(doc.id, { id: doc.id, ...doc.data() } as UserProfile);
       });
 
-      // 2. Fetch all campaigns using collectionGroup
       const campaignsQuery = query(
         collectionGroup(firestore, 'campaigns'),
         orderBy('createdAt', 'desc')
       );
       const campaignsSnapshot = await getDocs(campaignsQuery);
       
-      // 3. Map user data to campaigns
       const campaignsData = campaignsSnapshot.docs.map(doc => {
         const data = doc.data();
-        const userId = doc.ref.parent.parent?.id; // Get the user ID from the path
+        const userId = doc.ref.parent.parent?.id; 
         const user = userId ? usersMap.get(userId) : undefined;
         
         return {
@@ -127,7 +124,7 @@ export default function AllCampaignsPage() {
         name: c.productName.substring(0, 15) + '...',
         impressions: c.performance.impressions,
         clicks: c.performance.clicks
-    })).slice(0, 10).reverse(); // Show last 10 campaigns, oldest first in chart
+    })).slice(0, 10).reverse(); 
     
     const impressions = campaigns.reduce((acc, c) => acc + c.performance.impressions, 0);
     const clicks = campaigns.reduce((acc, c) => acc + c.performance.clicks, 0);
@@ -153,7 +150,7 @@ export default function AllCampaignsPage() {
     if (timestamp instanceof Timestamp) {
       return format(timestamp.toDate(), 'PPP');
     }
-    return format(new Date(timestamp), 'PPP');
+    return 'Invalid Date';
   };
 
   if (loading) {
@@ -181,7 +178,17 @@ export default function AllCampaignsPage() {
         <h1 className="text-3xl font-bold font-headline">جميع حملات المستخدمين</h1>
       </div>
 
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">إجمالي الحملات</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                  <div className="text-2xl font-bold">{totalCampaigns}</div>
+                  <p className="text-xs text-muted-foreground">حملة تم إنشاؤها</p>
+              </CardContent>
+          </Card>
           <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">إجمالي الإنفاق</CardTitle>
@@ -189,7 +196,7 @@ export default function AllCampaignsPage() {
               </CardHeader>
               <CardContent>
                   <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">على {totalCampaigns} حملة</p>
+                  <p className="text-xs text-muted-foreground">عبر جميع الحملات</p>
               </CardContent>
           </Card>
           <Card>

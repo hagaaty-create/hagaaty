@@ -74,8 +74,6 @@ export default function DashboardLayout({
   const isAdmin = userProfile?.role === 'admin';
 
   React.useEffect(() => {
-      // If the user is an admin and they land on the base user dashboard,
-      // redirect them to the admin dashboard.
       if (!profileLoading && isAdmin && pathname === '/dashboard') {
           router.replace('/dashboard/admin');
       }
@@ -101,8 +99,8 @@ export default function DashboardLayout({
     { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
     { href: '/dashboard/admin/users', label: 'إدارة المستخدمين', icon: Users, matchStartsWith: true },
-    { href: '/dashboard/admin/campaigns', label: 'جميع الحملات', icon: BarChart, matchStartsWith: true },
-    { href: '/dashboard/admin/auto-marketing', label: 'التسويق الآلي', icon: Megaphone, matchStartsWith: true },
+    { href: '/dashboard/admin/campaigns', label: 'جميع الحملات', icon: BarChart },
+    { href: '/dashboard/admin/auto-marketing', label: 'التسويق الآلي', icon: Megaphone },
   ];
 
   const handleLogout = () => {
@@ -127,7 +125,6 @@ export default function DashboardLayout({
     );
   }
 
-  // Don't render the user dashboard for admins, they will be redirected
   if (isAdmin && pathname === '/dashboard') {
     return (
          <div className="flex h-screen w-full bg-background items-center justify-center">
@@ -135,7 +132,6 @@ export default function DashboardLayout({
         </div>
     );
   }
-
 
   return (
     <SidebarProvider>
@@ -155,11 +151,28 @@ export default function DashboardLayout({
             </SidebarHeader>
             <SidebarContent>
               <SidebarMenu>
-                 {isAdmin ? (
+                 <SidebarGroup>
+                    {isAdmin && <SidebarGroupLabel>المستخدم</SidebarGroupLabel>}
+                    {userNavItems.map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                            <Link href={item.href}>
+                                <SidebarMenuButton
+                                    isActive={pathname === item.href}
+                                    tooltip={item.label}
+                                    size='lg'
+                                >
+                                    <item.icon />
+                                    <span>{item.label}</span>
+                                </SidebarMenuButton>
+                            </Link>
+                        </SidebarMenuItem>
+                    ))}
+                  </SidebarGroup>
+                 
+                 {isAdmin && (
                    <SidebarGroup>
                       <SidebarGroupLabel className="flex items-center gap-2">
-                          <Shield />
-                          <span>مسؤول</span>
+                          <span>المسؤول</span>
                       </SidebarGroupLabel>
                       <SidebarMenu>
                            {adminNavItems.map((item) => (
@@ -177,23 +190,6 @@ export default function DashboardLayout({
                               </SidebarMenuItem>
                           ))}
                       </SidebarMenu>
-                  </SidebarGroup>
-                 ) : (
-                  <SidebarGroup>
-                      {userNavItems.map((item) => (
-                          <SidebarMenuItem key={item.href}>
-                              <Link href={item.href}>
-                                  <SidebarMenuButton
-                                      isActive={pathname === item.href}
-                                      tooltip={item.label}
-                                      size='lg'
-                                  >
-                                      <item.icon />
-                                      <span>{item.label}</span>
-                                  </SidebarMenuButton>
-                              </Link>
-                          </SidebarMenuItem>
-                      ))}
                   </SidebarGroup>
                  )}
               </SidebarMenu>

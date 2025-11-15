@@ -1,12 +1,7 @@
 import type { Metadata } from 'next';
 import { Tajawal } from 'next/font/google';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/common/Header';
-import Footer from '@/components/common/Footer';
-import SmartAssistant from '@/components/chat/SmartAssistant';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { usePathname } from 'next/navigation';
 import RootLayoutClient from './layout-client';
 import GoogleAnalytics from '@/components/common/GoogleAnalytics';
 

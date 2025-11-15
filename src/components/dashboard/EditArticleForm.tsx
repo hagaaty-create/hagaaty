@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
@@ -56,9 +56,8 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
 
         // Optimistically navigate away
         router.push('/dashboard/admin/articles');
-        router.refresh(); // Tell Next.js to refetch server components for the target page
+        router.refresh(); 
         
-        // We don't set isSaving to false here because we've already navigated away.
     };
     
     return (
@@ -84,7 +83,8 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                     onChange={(e) => setContent(e.target.value)}
                     rows={20}
                     disabled={isSaving}
-                    className="prose dark:prose-invert prose-p:leading-relaxed"
+                    className="prose dark:prose-invert prose-p:leading-relaxed font-code"
+                    dir="ltr"
                 />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -99,12 +99,18 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                 </div>
                  <div className="grid w-full gap-2">
                     <Label htmlFor="tags">الوسوم (مفصولة بفاصلة)</Label>
-                    <Input
-                        id="tags"
-                        value={tags}
-                        onChange={(e) => setTags(e.target.value)}
-                        disabled={isSaving}
-                    />
+                    <div className="p-2 border rounded-md min-h-[40px] flex flex-wrap gap-2 items-center">
+                        {tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-sm">{tag}</Badge>
+                        ))}
+                        <input
+                            id="tags"
+                            value={tags}
+                            onChange={(e) => setTags(e.target.value)}
+                            disabled={isSaving}
+                            className="bg-transparent outline-none flex-1 min-w-[100px]"
+                        />
+                    </div>
                 </div>
             </div>
             <Button type="submit" disabled={isSaving}>
