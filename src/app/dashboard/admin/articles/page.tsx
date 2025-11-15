@@ -38,7 +38,6 @@ import { FileText, Trash2, Loader2, FileEdit, Sparkles } from 'lucide-react';
 import type { Post } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import SeoAnalysis from '@/components/dashboard/SeoAnalysis';
 
 export default function ManageArticlesPage() {
   const firestore = useFirestore();
