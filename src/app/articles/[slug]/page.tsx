@@ -1,14 +1,13 @@
 'use server';
 
 import { notFound } from 'next/navigation';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import type { Post } from '@/types';
 import { Metadata, ResolvingMetadata } from 'next';
 import ArticlePageClient from './page-client';
-import { Timestamp } from 'firebase/firestore';
 
-// This is the correct type definition for this page's props.
+// This is the correct type definition that Next.js expects.
 type PageProps = {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -27,7 +26,7 @@ async function getPost(slug: string): Promise<Post | null> {
   const postDoc = querySnapshot.docs[0];
   const postData = postDoc.data();
   
-  // Ensure the date is serializable (string)
+  // Ensure the date is serializable (string) before sending to the client component.
   let date: string;
   if (postData.date instanceof Timestamp) {
     date = postData.date.toDate().toISOString();
@@ -36,7 +35,8 @@ async function getPost(slug: string): Promise<Post | null> {
   } else if (postData.date instanceof Date) {
     date = postData.date.toISOString();
   } else {
-    date = new Date().toISOString(); // Fallback
+    // Provide a valid fallback if the date is missing or in an unexpected format.
+    date = new Date().toISOString(); 
   }
 
   return { id: postDoc.id, ...postData, date } as Post;
@@ -78,6 +78,7 @@ export async function generateMetadata(
   };
 }
 
+// The default export is the page component itself.
 export default async function ArticlePage({ params }: PageProps) {
   const post = await getPost(params.slug);
 
