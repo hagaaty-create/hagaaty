@@ -13,6 +13,7 @@ import {
   Lightbulb,
   Users,
   Megaphone,
+  ImageIcon,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -70,6 +71,7 @@ export default function DashboardLayout({
   
   const adminNavItems = [
     { href: '/dashboard/admin/generate', label: 'توليد مقال', icon: PenSquare },
+    { href: '/dashboard/admin/generate-image', label: 'مولد الصور', icon: ImageIcon },
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
     { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
     { href: '/dashboard/admin/campaigns', label: 'كل الحملات', icon: Users },
