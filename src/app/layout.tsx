@@ -12,7 +12,7 @@ import GoogleAnalytics from '@/components/common/GoogleAnalytics';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
-  weight: ['400', '700'],
+  weight: ['400', '500', '700', '800'],
   variable: '--font-tajawal',
 });
 
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className="light" suppressHydrationWarning>
       <body className={`${tajawal.variable} font-body antialiased`}>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         <FirebaseClientProvider>
