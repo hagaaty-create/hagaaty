@@ -69,23 +69,27 @@ service cloud.firestore {
       
       // Allow user to update their own profile, with specific rules for points and timestamp
       allow update: if isOwner(userId)
-                    // Rule for triggering agent: Can only increment points by 10
-                    // and can only do so if last trigger was more than 24 hours ago.
+                    // Rule for triggering agent: Can only increment points by 10 and can only do so if last trigger was more than 24 hours ago.
                     && (
                         request.resource.data.points == resource.data.points + 10
                         && request.resource.data.lastMarketingTriggerAt == request.time
                         && request.time > resource.data.lastMarketingTriggerAt + duration.time(24, 0, 0, 0)
                        )
-                    // Rule for points reset: Can only reset points to 0 if balance is being incremented
+                    // Rule for points reset: Can reset points and increment balance by 5 if they have enough points.
                     || (
-                        request.resource.data.points == 0
+                        request.resource.data.points == resource.data.points + 10 - 100
                         && request.resource.data.balance == resource.data.balance + 5
+                        && resource.data.points + 10 >= 100
                     )
-                    // Allow other general profile updates (e.g. displayName) that don't touch protected fields
+                     // Allow other general profile updates (e.g. displayName) that don't touch protected fields
                     || (
                         request.resource.data.points == resource.data.points
                         && request.resource.data.balance == resource.data.balance
                         && request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
+                    )
+                     // Allow balance to be debited for creating an ad
+                    || (
+                        request.resource.data.balance == resource.data.balance - 2
                     );
 
       allow delete: if isOwner(userId);

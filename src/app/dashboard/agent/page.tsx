@@ -82,12 +82,14 @@ export default function AgentPage() {
         console.error("Autonomous agent failed:", err);
       });
 
-      const newPoints = (userProfile.points || 0) + POINTS_PER_TRIGGER;
+      const currentPoints = userProfile.points || 0;
+      const newPoints = currentPoints + POINTS_PER_TRIGGER;
       
       if (newPoints >= POINTS_FOR_REWARD) {
         // Give reward and reset points
+        const remainingPoints = newPoints - POINTS_FOR_REWARD;
         await updateDoc(userProfileRef, {
-          points: 0,
+          points: remainingPoints,
           balance: increment(REWARD_AMOUNT),
           lastMarketingTriggerAt: serverTimestamp(),
         });
