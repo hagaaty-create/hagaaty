@@ -130,7 +130,7 @@ function SignupFormComponent() {
         createdAt: serverTimestamp(),
         referralCode: generateReferralCode(6),
         referralEarnings: 0,
-        directReferralsCount: 0, // Initialize count
+        directReferralsCount: 0,
         referredBy: referralCode || null, // Store the referral code
         status: 'active',
         ancestors: newAncestors, // Store the calculated MLM upline

@@ -212,7 +212,7 @@ service cloud.firestore {
       // Allow updates only under specific, controlled conditions.
       // System-level updates (crediting balance, adding referral earnings) are handled by backend functions with admin privileges
       // and do not go through these client-side rules. These rules are for user-initiated updates.
-      allow update: if ( (isOwner(userId) && hasAllowedUserUpdates(request.resource.data, resource.data) && (
+      allow update: if ( (isOwner(userId) && resource.data.status != 'suspended' && hasAllowedUserUpdates(request.resource.data, resource.data) && (
                           isTriggeringAgent(request.resource.data, resource.data) ||
                           isCashingInPoints(request.resource.data, resource.data) ||
                           isCreatingAdCampaign(request.resource.data, resource.data) ||
@@ -260,7 +260,7 @@ service cloud.firestore {
        */
       match /comments/{commentId} {
         allow read: if isSignedIn();
-        allow create: if isSignedIn() && isValidCommentData(request.resource.data);
+        allow create: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != 'suspended' && isValidCommentData(request.resource.data);
         allow delete: if (isSignedIn() && isOwner(resource.data.authorId)) || isAdmin();
       }
     }
@@ -287,7 +287,7 @@ service cloud.firestore {
       */
     match /queries/{queryId} {
       allow read, update, delete: if false;
-      allow create: if isSignedIn();
+      allow create: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != 'suspended';
     }
   }
 }
