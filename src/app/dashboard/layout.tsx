@@ -65,6 +65,15 @@ export default function DashboardLayout({
     }
   }, [user, userLoading, router]);
 
+  const isAdmin = userProfile?.role === 'admin';
+
+  React.useEffect(() => {
+      // If the user is an admin and they land on the base user dashboard,
+      // redirect them to the admin dashboard.
+      if (!profileLoading && isAdmin && pathname === '/dashboard') {
+          router.replace('/dashboard/admin');
+      }
+  }, [isAdmin, profileLoading, pathname, router]);
 
   const userNavItems = [
     { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
@@ -76,6 +85,7 @@ export default function DashboardLayout({
   ];
   
   const adminNavItems = [
+    { href: '/dashboard/admin', label: 'لوحة تحكم المسؤول', icon: Shield },
     { href: '/dashboard/admin/generate', label: 'توليد مقال', icon: PenSquare },
     { href: '/dashboard/admin/generate-image', label: 'مولد الصور', icon: ImageIcon },
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
@@ -107,7 +117,14 @@ export default function DashboardLayout({
     );
   }
 
-  const isAdmin = userProfile?.role === 'admin';
+  // Don't render the user dashboard for admins, they will be redirected
+  if (isAdmin && pathname === '/dashboard') {
+    return (
+         <div className="flex h-screen w-full bg-background items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+  }
 
 
   return (
@@ -128,27 +145,8 @@ export default function DashboardLayout({
             </SidebarHeader>
             <SidebarContent>
               <SidebarMenu>
-                <SidebarGroup>
-                    {userNavItems.map((item) => (
-                        <SidebarMenuItem key={item.href}>
-                            <Link href={item.href}>
-                                <SidebarMenuButton
-                                    isActive={pathname === item.href}
-                                    tooltip={item.label}
-                                    size='lg'
-                                >
-                                    <item.icon />
-                                    <span>{item.label}</span>
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarGroup>
-                
-                {isAdmin && (
-                  <>
-                  <SidebarSeparator />
-                  <SidebarGroup>
+                 {isAdmin ? (
+                   <SidebarGroup>
                       <SidebarGroupLabel className="flex items-center gap-2">
                           <Shield />
                           <span>مسؤول</span>
@@ -170,8 +168,24 @@ export default function DashboardLayout({
                           ))}
                       </SidebarMenu>
                   </SidebarGroup>
-                  </>
-                )}
+                 ) : (
+                  <SidebarGroup>
+                      {userNavItems.map((item) => (
+                          <SidebarMenuItem key={item.href}>
+                              <Link href={item.href}>
+                                  <SidebarMenuButton
+                                      isActive={pathname === item.href}
+                                      tooltip={item.label}
+                                      size='lg'
+                                  >
+                                      <item.icon />
+                                      <span>{item.label}</span>
+                                  </SidebarMenuButton>
+                              </Link>
+                          </SidebarMenuItem>
+                      ))}
+                  </SidebarGroup>
+                 )}
               </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
