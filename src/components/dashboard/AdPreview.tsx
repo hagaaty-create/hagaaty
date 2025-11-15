@@ -13,7 +13,7 @@ type AdCampaign = {
     websiteUrl: string;
     status: 'draft' | 'reviewing' | 'active' | 'paused' | 'completed';
     createdAt: Timestamp;
-    budget: number;
+    budget?: number; // Make budget optional to reflect potential missing data
     performance: {
         impressions: number;
         clicks: number;
@@ -78,7 +78,7 @@ export default function AdPreview({ campaign }: AdPreviewProps) {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <p className="font-bold text-lg">${campaign.budget.toFixed(2)}</p>
+                        <p className="font-bold text-lg">${(campaign.budget || 0).toFixed(2)}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -107,5 +107,3 @@ export default function AdPreview({ campaign }: AdPreviewProps) {
         </div>
     );
 }
-
-    
