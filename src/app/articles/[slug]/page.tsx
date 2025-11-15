@@ -21,7 +21,7 @@ import ArticleAudioGenerator from '@/components/blog/ArticleAudioGenerator';
 async function getPost(slug: string): Promise<Post | null> {
   const { firestore } = initializeFirebase();
   const postsRef = collection(firestore, 'posts');
-  const q = query(postsRef, where('slug', '==', slug));
+  const q = query(postsRef, where('slug', '==', slug), limit(1));
   const querySnapshot = await getDocs(q);
 
   if (querySnapshot.empty) {
