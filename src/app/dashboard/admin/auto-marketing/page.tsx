@@ -172,7 +172,7 @@ export default function AutoMarketingPage() {
                         ) : (
                             <Send className="mr-2 h-4 w-4" />
                         )}
-                        موافقة ونشر (محاكاة)
+                        {isPublishing ? 'جاري النشر...' : 'موافقة ونشر (محاكاة)'}
                     </Button>
                 </CardFooter>
             </Card>

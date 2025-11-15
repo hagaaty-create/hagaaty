@@ -19,6 +19,7 @@ type UserProfile = {
 export default function MarketingToolsPage() {
     const [campaign, setCampaign] = useState<GenerateAffiliateMaterialOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isPublishing, setIsPublishing] = useState<Record<string, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
     const { toast } = useToast();
@@ -38,6 +39,7 @@ export default function MarketingToolsPage() {
     }, [userProfile]);
 
     const fetchMarketingCampaign = async () => {
+        if (!referralLink) return;
         setIsLoading(true);
         setError(null);
         try {
@@ -51,7 +53,6 @@ export default function MarketingToolsPage() {
         }
     };
     
-    // Fetch campaign on initial load
     useEffect(() => {
         if(referralLink) {
             fetchMarketingCampaign();
@@ -63,6 +64,14 @@ export default function MarketingToolsPage() {
         toast({ title: 'تم نسخ المحتوى!' });
         setCopiedStates(prev => ({ ...prev, [id]: true }));
         setTimeout(() => setCopiedStates(prev => ({ ...prev, [id]: false })), 2000);
+    };
+
+    const handlePublish = (platform: string) => {
+        setIsPublishing(prev => ({ ...prev, [platform]: true }));
+        setTimeout(() => {
+            toast({ title: `تم النشر على ${platform} (محاكاة)` });
+            setIsPublishing(prev => ({ ...prev, [platform]: false }));
+        }, 1500);
     };
     
     const handleDownload = () => {
@@ -82,7 +91,7 @@ export default function MarketingToolsPage() {
                     <Sparkles className="h-8 w-8 text-primary" />
                     <h1 className="text-3xl font-bold font-headline">أدوات التسويق بالذكاء الاصطناعي</h1>
                 </div>
-                 <Button onClick={fetchMarketingCampaign} disabled={isLoading} variant="outline">
+                 <Button onClick={fetchMarketingCampaign} disabled={isLoading || isProfileLoading || !referralLink} variant="outline">
                     <RefreshCw className={`ml-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     توليد حملة جديدة
                 </Button>
@@ -92,7 +101,7 @@ export default function MarketingToolsPage() {
                 <CardHeader>
                     <CardTitle>مركزك الإبداعي للتسويق</CardTitle>
                     <CardDescription>
-                        يقوم وكيل الذكاء الاصطناعي الشخصي الخاص بك بإنشاء حملات تسويقية جاهزة للنشر. استخدم هذه المواد لجذب عملاء جدد ومسوقين آخرين لشبكتك. لا تنسَ إضافة رابط الإحالة الخاص بك!
+                        يقوم وكيل الذكاء الاصطناعي الشخصي الخاص بك بإنشاء حملات تسويقية جاهزة للنشر. استخدم هذه المواد لجذب عملاء جدد ومسوقين آخرين لشبكتك.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -102,7 +111,7 @@ export default function MarketingToolsPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-2">
-                                <Input value={referralLink} readOnly />
+                                {isProfileLoading ? <Skeleton className="h-10 w-full" /> : <Input value={referralLink} readOnly />}
                                 <Button variant="outline" size="icon" onClick={() => copyToClipboard(referralLink, 'referralLink')} disabled={!referralLink}>
                                     {copiedStates['referralLink'] ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                 </Button>
@@ -159,10 +168,14 @@ export default function MarketingToolsPage() {
                              <CardContent className="space-y-4">
                                 <p className="whitespace-pre-wrap text-sm text-muted-foreground">{campaign.xPost}</p>
                              </CardContent>
-                             <CardFooter>
+                             <CardFooter className="flex gap-2">
                                 <Button onClick={() => copyToClipboard(campaign.xPost, 'xPost')} variant="outline" size="sm">
                                     {copiedStates['xPost'] ? <Check className="ml-2 h-4 w-4" /> : <Copy className="ml-2 h-4 w-4" />}
-                                    نسخ المنشور
+                                    نسخ
+                                </Button>
+                                <Button onClick={() => handlePublish('X')} size="sm" disabled={isPublishing['xPost']}>
+                                    {isPublishing['xPost'] ? <Loader2 className="ml-2 h-4 w-4 animate-spin"/> : <Send className="ml-2 h-4 w-4" />}
+                                    نشر
                                 </Button>
                              </CardFooter>
                         </Card>
@@ -176,10 +189,14 @@ export default function MarketingToolsPage() {
                              <CardContent className="space-y-4">
                                 <p className="whitespace-pre-wrap text-sm text-muted-foreground">{campaign.facebookPost}</p>
                              </CardContent>
-                             <CardFooter>
-                                 <Button onClick={() => copyToClipboard(campaign.facebookPost, 'fbPost')} variant="outline" size="sm">
+                              <CardFooter className="flex gap-2">
+                                <Button onClick={() => copyToClipboard(campaign.facebookPost, 'fbPost')} variant="outline" size="sm">
                                     {copiedStates['fbPost'] ? <Check className="ml-2 h-4 w-4" /> : <Copy className="ml-2 h-4 w-4" />}
-                                    نسخ المنشور
+                                    نسخ
+                                </Button>
+                                 <Button onClick={() => handlePublish('Facebook')} size="sm" disabled={isPublishing['fbPost']}>
+                                    {isPublishing['fbPost'] ? <Loader2 className="ml-2 h-4 w-4 animate-spin"/> : <Send className="ml-2 h-4 w-4" />}
+                                    نشر
                                 </Button>
                              </CardFooter>
                         </Card>
