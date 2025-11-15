@@ -8,7 +8,7 @@ import { Metadata, ResolvingMetadata } from 'next';
 import ArticlePageClient from './page-client';
 import { Timestamp } from 'firebase/firestore';
 
-// Correct type definition for Next.js App Router page props
+// This is the correct type definition for this page's props.
 type PageProps = {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -78,7 +78,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params }: PageProps) {
   const post = await getPost(params.slug);
 
   if (!post) {
