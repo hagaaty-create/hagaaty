@@ -11,7 +11,7 @@ import { doc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type EditArticleFormProps = {
   post: Post;
@@ -45,8 +45,8 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           date: serverTimestamp(), // To update the modification date
         };
 
-        // Non-blocking update
-        updateDocumentNonBlocking(postRef, updatedData);
+        // Non-blocking update using set with merge to correctly update the document
+        setDocumentNonBlocking(postRef, updatedData, { merge: true });
 
         toast({
             title: "جاري حفظ التحديثات...",
