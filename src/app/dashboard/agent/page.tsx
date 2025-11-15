@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Bot, Gift, Loader2, Award, Info, RefreshCcw, Milestone, Lightbulb, Twitter, Send } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, increment, Timestamp, FieldValue } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import Image from 'next/image';
@@ -18,6 +18,7 @@ type UserProfile = {
   points: number;
   balance: number;
   lastMarketingTriggerAt?: Timestamp;
+  achievements?: { id: string, name: string }[];
 };
 
 const COOLDOWN_HOURS = 24;
@@ -115,32 +116,63 @@ export default function AgentPage() {
         setCampaignResult(result);
         setCurrentStep(agentSteps.length); // Mark as complete
 
+        const hasContributedBefore = userProfile.achievements?.some(a => a.id === 'ai_contributor');
+        
         // Update user points and timestamp after successful campaign generation
         const currentPoints = userProfile.points || 0;
         const newPoints = currentPoints + POINTS_PER_TRIGGER;
         
-        let updateData: any;
+        let updateData: any = {
+             lastMarketingTriggerAt: serverTimestamp(),
+        };
+
+        let achievementsToAward = [];
+
+        if (!hasContributedBefore) {
+            achievementsToAward.push({
+                id: 'ai_contributor',
+                name: 'مساهم في الذكاء',
+                awardedAt: serverTimestamp()
+            });
+            toast({ title: '🏆 إنجاز جديد!', description: "لقد حصلت على شارة 'مساهم في الذكاء'!" });
+        }
+        
         if (newPoints >= POINTS_FOR_REWARD) {
           const remainingPoints = newPoints - POINTS_FOR_REWARD;
           updateData = {
+            ...updateData,
             points: remainingPoints,
             balance: increment(REWARD_AMOUNT),
-            lastMarketingTriggerAt: serverTimestamp(),
           };
+
+          if (!userProfile.achievements?.some(a => a.id === 'reward_earner')) {
+            achievementsToAward.push({
+                id: 'reward_earner',
+                name: 'صائد المكافآت',
+                awardedAt: serverTimestamp()
+            });
+             toast({ title: '🏆 إنجاز جديد!', description: "لقد حصلت على شارة 'صائد المكافآت'!" });
+          }
+
           toast({
             title: '🎉 تهانينا! لقد حصلت على مكافأة!',
             description: `تمت إضافة ${REWARD_AMOUNT}$ إلى رصيدك الإعلاني.`,
           });
         } else {
           updateData = {
+            ...updateData,
             points: increment(POINTS_PER_TRIGGER),
-            lastMarketingTriggerAt: serverTimestamp(),
           };
           toast({
             title: '✅ شكراً لمساهمتك!',
             description: `لقد حصلت على ${POINTS_PER_TRIGGER} نقاط.`,
           });
         }
+
+        if (achievementsToAward.length > 0) {
+            updateData.achievements = FieldValue.arrayUnion(...achievementsToAward);
+        }
+
         updateDocumentNonBlocking(userProfileRef, updateData);
 
     } catch (err) {
