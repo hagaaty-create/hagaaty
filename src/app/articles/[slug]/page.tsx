@@ -2,7 +2,7 @@
 'use server';
 
 import { notFound } from 'next/navigation';
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp, limit } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import type { Post } from '@/types';
 import { Metadata } from 'next';
@@ -45,7 +45,6 @@ async function getPost(slug: string): Promise<Post | null> {
   return { id: postDoc.id, ...postData, date } as Post;
 }
 
-// Correctly typed props for generateMetadata
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPost(params.slug);
 
@@ -93,7 +92,6 @@ function formatDate(date: string | Date | Timestamp) {
     return "Date not available";
 }
 
-// Correctly typed props for the page component itself
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
 
