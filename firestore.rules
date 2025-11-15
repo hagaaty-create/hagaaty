@@ -97,7 +97,8 @@ service cloud.firestore {
             && incoming.ancestors == existing.ancestors
             && incoming.points == existing.points // Only system logic can change this
             && incoming.lastMarketingTriggerAt == existing.lastMarketingTriggerAt // Only system logic can change this
-            && (incoming.status == 'active' || incoming.status == 'suspended');
+            && (incoming.status == 'active' || incoming.status == 'suspended')
+            && incoming.achievements == existing.achievements; // Admin cannot manually change achievements
     }
 
     /**

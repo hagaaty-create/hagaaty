@@ -60,14 +60,6 @@ const WelcomeCard = ({ balance }: { balance?: number }) => (
     </Card>
 );
 
-const allPossibleAchievements = [
-    { id: 'ad_pioneer', name: 'رائد الإعلانات', icon: PenSquare, description: 'أنشئ حملتك الإعلانية الأولى' },
-    { id: 'team_builder', name: 'بنّاء الفريق', icon: Users, description: 'قم بدعوة صديقك الأول' },
-    { id: 'ai_contributor', name: 'مساهم في الذكاء', icon: Bot, description: 'شغّل الوكيل المستقل لأول مرة' },
-    { id: 'reward_earner', name: 'صائد المكافآت', icon: Gift, description: 'اجمع 100 نقطة واحصل على مكافأة' },
-];
-
-
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -97,9 +89,6 @@ export default function DashboardPage() {
       if (!campaigns) return 0;
       return campaigns.filter(c => c.status === 'active').length;
   }, [campaigns]);
-
-  const userAchievements = useMemo(() => userProfile?.achievements || [], [userProfile]);
-  const hasAchievement = (id: string) => userAchievements.some(a => a.id === id);
   
   const activeCampaignsData = useMemo(() => {
     if (!campaigns) return [];
@@ -162,43 +151,6 @@ export default function DashboardPage() {
       {!campaignsLoading && activeCampaignsData.length > 1 && (
         <ProactiveAnalysis campaigns={activeCampaignsData} />
       )}
-      
-       <Card>
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <Award className="text-primary"/>
-            إنجازاتك
-          </CardTitle>
-          <CardDescription>احتفل بكل خطوة في رحلتك نحو النجاح. أكمل المهام لجمع كل الشارات!</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {userLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {allPossibleAchievements.map(ach => {
-                const isAchieved = hasAchievement(ach.id);
-                const Icon = ach.icon;
-                return (
-                  <Card 
-                    key={ach.id} 
-                    className={`p-4 flex flex-col items-center justify-center text-center transition-all duration-300 ${isAchieved ? 'border-amber-500 bg-amber-500/10' : 'bg-muted/50'}`}
-                  >
-                    <div className={`h-12 w-12 rounded-full flex items-center justify-center mb-2 ${isAchieved ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground'}`}>
-                      <Icon size={24} />
-                    </div>
-                    <p className={`font-semibold text-sm ${isAchieved ? 'text-amber-600' : 'text-foreground'}`}>{ach.name}</p>
-                    <p className="text-xs text-muted-foreground">{ach.description}</p>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
 
       {campaignsLoading && (
         <Card>
@@ -261,5 +213,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

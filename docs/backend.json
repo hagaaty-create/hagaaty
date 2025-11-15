@@ -66,6 +66,29 @@
             "type": "string"
           },
           "maxItems": 5
+        },
+        "achievements": {
+          "type": "array",
+          "description": "A list of achievements (badges) earned by the user.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique ID for the achievement (e.g., 'ad_pioneer')."
+              },
+              "name": {
+                "type": "string",
+                "description": "Display name of the achievement (e.g., 'رائد الإعلانات')."
+              },
+              "awardedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp of when the achievement was awarded."
+              }
+            },
+            "required": ["id", "name", "awardedAt"]
+          }
         }
       },
       "required": [
@@ -77,7 +100,8 @@
         "points",
         "createdAt",
         "status",
-        "ancestors"
+        "ancestors",
+        "achievements"
       ]
     },
     "Article": {
