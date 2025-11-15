@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFirestore } from "@/firebase";
 import { doc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,16 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
     const { toast } = useToast();
     const router = useRouter();
 
+    // This useEffect ensures that if the 'post' prop changes (e.g., from a new search param),
+    // the form fields are updated accordingly.
+    useEffect(() => {
+        setTitle(post.title);
+        setContent(post.content);
+        setCategory(post.category);
+        setTags(Array.isArray(post.tags) ? post.tags.join(', ') : '');
+    }, [post]);
+
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!firestore) return;
@@ -43,10 +53,10 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           slug: updatedSlug,
           category,
           tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-          date: serverTimestamp(), // To update the modification date
+          updatedAt: serverTimestamp(), // Correctly use updatedAt instead of date
         };
 
-        // Non-blocking update
+        // Non-blocking update using merge to only update the fields that changed
         setDocumentNonBlocking(postRef, updatedData, { merge: true });
 
         toast({
