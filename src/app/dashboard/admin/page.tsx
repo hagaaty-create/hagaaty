@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, FileText, BarChart, PenSquare, Shield, Loader2, ArrowLeft } from 'lucide-react';
+import { Users, FileText, BarChart, PenSquare, Shield, Loader2, ArrowLeft, Lightbulb, Megaphone, ImageIcon, Video } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
 import { useState, useMemo } from 'react';
@@ -97,8 +97,13 @@ export default function AdminDashboardPage() {
 
   const quickLinks = [
     { href: '/dashboard/admin/generate', label: 'توليد مقال جديد', icon: PenSquare },
-    { href: '/dashboard/admin/users', label: 'إدارة المستخدمين', icon: Users },
+    { href: '/dashboard/admin/generate-image', label: 'توليد صورة', icon: ImageIcon },
+    { href: '/dashboard/admin/generate-video', label: 'توليد فيديو', icon: Video },
+    { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
+    { href: '/dashboard/admin/auto-marketing', label: 'التسويق الآلي', icon: Megaphone },
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText },
+    { href: '/dashboard/admin/users', label: 'إدارة المستخدمين', icon: Users },
+    { href: '/dashboard/admin/campaigns', label: 'جميع الحملات', icon: BarChart },
   ];
 
   return (
@@ -116,43 +121,11 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-           <CardHeader>
-             <CardTitle>أحدث المستخدمين</CardTitle>
-             <CardDescription>آخر 5 مستخدمين انضموا للمنصة.</CardDescription>
-           </CardHeader>
-           <CardContent>
-             {usersLoading ? (
-                 <div className="space-y-2">
-                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-                 </div>
-             ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>الاسم</TableHead>
-                            <TableHead>البريد الإلكتروني</TableHead>
-                            <TableHead className="text-right">تاريخ الانضمام</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {latestUsers?.map(user => (
-                            <TableRow key={user.id}>
-                                <TableCell className="font-medium">{user.displayName}</TableCell>
-                                <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                                <TableCell className="text-right">{formatDate(user.createdAt)}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-             )}
-           </CardContent>
-        </Card>
-         <Card>
             <CardHeader>
                 <CardTitle>روابط سريعة</CardTitle>
                 <CardDescription>انتقل إلى أهم أدوات الإدارة.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4">
+            <CardContent className="grid gap-4 md:grid-cols-2">
                 {quickLinks.map(link => (
                     <Button key={link.href} asChild variant="outline" className="justify-between h-12 text-base">
                         <Link href={link.href}>
@@ -165,6 +138,30 @@ export default function AdminDashboardPage() {
                     </Button>
                 ))}
             </CardContent>
+        </Card>
+         <Card>
+           <CardHeader>
+             <CardTitle>أحدث المستخدمين</CardTitle>
+             <CardDescription>آخر 5 مستخدمين انضموا للمنصة.</CardDescription>
+           </CardHeader>
+           <CardContent>
+             {usersLoading ? (
+                 <div className="space-y-2">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                 </div>
+             ) : (
+                <Table>
+                    <TableBody>
+                        {latestUsers?.map(user => (
+                            <TableRow key={user.id}>
+                                <TableCell className="font-medium">{user.displayName}</TableCell>
+                                <TableCell className="text-right text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+             )}
+           </CardContent>
         </Card>
       </div>
 
