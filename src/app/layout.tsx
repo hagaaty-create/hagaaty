@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className="light" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning>
       <body className={`${tajawal.variable} font-body antialiased`}>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         <FirebaseClientProvider>
