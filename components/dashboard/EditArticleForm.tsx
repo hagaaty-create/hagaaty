@@ -12,7 +12,7 @@ import { doc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type EditArticleFormProps = {
