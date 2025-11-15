@@ -22,14 +22,13 @@ type AdCampaign = {
     headline: string;
     status: 'draft' | 'reviewing' | 'active' | 'paused' | 'completed';
     createdAt: Timestamp;
+    budget: number;
     performance: {
         impressions: number;
         clicks: number;
         ctr: number;
     }
 };
-
-const AD_COST = 2.00;
 
 function CampaignsPageContent() {
     const { user } = useUser();
@@ -86,7 +85,7 @@ function CampaignsPageContent() {
         
         const impressions = campaigns.reduce((acc, c) => acc + c.performance.impressions, 0);
         const clicks = campaigns.reduce((acc, c) => acc + c.performance.clicks, 0);
-        const spent = campaigns.length * AD_COST;
+        const spent = campaigns.reduce((acc, c) => acc + (c.budget || 0), 0);
 
         return { chartData: data, totalImpressions: impressions, totalClicks: clicks, totalSpent: spent };
     }, [campaigns]);

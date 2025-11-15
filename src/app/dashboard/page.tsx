@@ -30,14 +30,13 @@ type AdCampaign = {
     websiteUrl: string;
     status: 'draft' | 'reviewing' | 'active' | 'paused' | 'completed';
     createdAt: Timestamp;
+    budget: number;
     performance: {
         impressions: number;
         clicks: number;
         ctr: number;
     }
 };
-
-const AD_COST = 2.00;
 
 const WelcomeCard = ({ balance }: { balance?: number }) => (
     <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
@@ -83,7 +82,7 @@ export default function DashboardPage() {
 
   const totalSpent = useMemo(() => {
       if (!campaigns) return 0;
-      return campaigns.length * AD_COST;
+      return campaigns.reduce((acc, c) => acc + (c.budget || 0), 0);
   }, [campaigns]);
   
   const activeCampaignsCount = useMemo(() => {
@@ -174,7 +173,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader><CardTitle className="font-headline text-2xl">نظرة عامة على أحدث حملاتك</CardTitle></CardHeader>
           <CardContent>
-            <AdPreview campaign={latestCampaign} cost={AD_COST}/>
+            <AdPreview campaign={latestCampaign} />
           </CardContent>
         </Card>
       )}

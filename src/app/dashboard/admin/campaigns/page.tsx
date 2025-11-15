@@ -33,6 +33,7 @@ type AdCampaign = {
   headline: string;
   status: 'draft' | 'active' | 'paused' | 'completed' | 'reviewing';
   createdAt: Timestamp;
+  budget: number;
   user?: {
     id: string;
     email?: string;
@@ -48,8 +49,6 @@ type UserProfile = {
     id: string;
     email?: string;
 }
-
-const AD_COST = 2.00;
 
 export default function AllCampaignsPage() {
   const firestore = useFirestore();
@@ -132,7 +131,7 @@ export default function AllCampaignsPage() {
     
     const impressions = campaigns.reduce((acc, c) => acc + c.performance.impressions, 0);
     const clicks = campaigns.reduce((acc, c) => acc + c.performance.clicks, 0);
-    const spent = campaigns.length * AD_COST;
+    const spent = campaigns.reduce((acc, c) => acc + (c.budget || 0), 0);
 
     return { chartData: data, totalImpressions: impressions, totalClicks: clicks, totalSpent: spent, totalCampaigns: campaigns.length };
   }, [campaigns]);
@@ -269,6 +268,7 @@ export default function AllCampaignsPage() {
                   <TableHead>المستخدم</TableHead>
                   <TableHead>المنتج</TableHead>
                   <TableHead>الحالة</TableHead>
+                  <TableHead className="text-right">الميزانية</TableHead>
                   <TableHead className="text-right">مرات الظهور</TableHead>
                   <TableHead className="text-right">النقرات</TableHead>
                   <TableHead className="text-right">CTR</TableHead>
@@ -283,6 +283,7 @@ export default function AllCampaignsPage() {
                     <TableCell>
                       {getStatusBadge(campaign.status)}
                     </TableCell>
+                    <TableCell className="text-right font-mono">${campaign.budget?.toFixed(2) || 'N/A'}</TableCell>
                     <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell className="text-right font-mono">

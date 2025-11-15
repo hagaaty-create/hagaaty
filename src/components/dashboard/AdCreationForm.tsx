@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Circle, Users } from "lucide-react";
+import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Circle, Users, Eye, MousePointerClick } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -15,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { Slider } from "../ui/slider";
 
 
 type AdCopy = {
@@ -34,9 +35,6 @@ type UserProfile = {
   balance?: number;
 }
 
-const AD_COST = 2.00;
-
-
 export default function AdCreationForm() {
     const [productName, setProductName] = useState('');
     const [productDescription, setProductDescription] = useState('');
@@ -44,6 +42,7 @@ export default function AdCreationForm() {
     const [websiteUrl, setWebsiteUrl] = useState('');
     const [keywords, setKeywords] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [budget, setBudget] = useState([2]);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -64,16 +63,26 @@ export default function AdCreationForm() {
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
     const hasSufficientBalance = useMemo(() => {
-        return (userProfile?.balance ?? 0) >= AD_COST;
-    }, [userProfile]);
-
+        return (userProfile?.balance ?? 0) >= budget[0];
+    }, [userProfile, budget]);
+    
+    const estimatedPerformance = useMemo(() => {
+        const selectedBudget = budget[0];
+        const baseImpressions = 250 * selectedBudget; // e.g. 250 impressions per dollar
+        const baseClicks = baseImpressions * 0.04; // avg 4% CTR
+        
+        return {
+            impressions: `${(baseImpressions * 0.8).toFixed(0)} - ${(baseImpressions * 1.2).toFixed(0)}`,
+            clicks: `${(baseClicks * 0.7).toFixed(0)} - ${(baseClicks * 1.3).toFixed(0)}`
+        }
+    }, [budget]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!productName.trim() || !productDescription.trim() || !targetAudience.trim() || !keywords.trim() || !websiteUrl.trim()) return;
 
         if (!hasSufficientBalance) {
-            setError(`رصيدك غير كافٍ لإنشاء حملة إعلانية. التكلفة هي ${AD_COST.toFixed(2)}$`);
+            setError(`رصيدك غير كافٍ لإنشاء حملة إعلانية. التكلفة هي ${budget[0].toFixed(2)}$`);
             return;
         }
 
@@ -108,15 +117,15 @@ export default function AdCreationForm() {
     const handleSave = async () => {
         if (!selectedAd || !firestore || !user || !userProfileRef) return;
         setIsSaving(true);
+        const adCost = budget[0];
 
-        // Realistic performance simulation for a $2 budget
-        const impressions = Math.floor(Math.random() * (2000 - 500 + 1)) + 500; // 500 to 2000 impressions
-        const clicks = Math.min(100, Math.floor(impressions * (Math.random() * (0.08 - 0.02) + 0.02))); // 2% to 8% CTR, max 100 clicks
+        // Realistic performance simulation based on budget
+        const impressions = Math.floor((Math.random() * (1.2 - 0.8) + 0.8) * (250 * adCost));
+        const clicks = Math.min(Math.floor(impressions * 0.08), Math.floor(impressions * (Math.random() * (0.08 - 0.02) + 0.02)));
         const ctr = impressions > 0 ? clicks / impressions : 0;
 
         const campaignsCollection = collection(firestore, 'users', user.uid, 'campaigns');
 
-        // Check if this is the first campaign to award the achievement
         const snapshot = await getCountFromServer(campaignsCollection);
         if (snapshot.data().count === 0) {
             updateDocumentNonBlocking(userProfileRef, {
@@ -132,7 +141,6 @@ export default function AdCreationForm() {
             });
         }
 
-
         const newCampaignData = {
             productName,
             productDescription,
@@ -141,6 +149,7 @@ export default function AdCreationForm() {
             keywords: keywords.split(',').map(k => k.trim()),
             phoneNumber,
             ...selectedAd,
+            budget: adCost,
             status: 'reviewing',
             createdAt: serverTimestamp(),
             performance: {
@@ -154,12 +163,12 @@ export default function AdCreationForm() {
         const newCampaignRef = await addDocumentNonBlocking(campaignsCollection, newCampaignData);
         
         updateDocumentNonBlocking(userProfileRef, {
-            balance: increment(-AD_COST)
+            balance: increment(-adCost)
         });
 
         toast({
             title: "تم إرسال الحملة للمراجعة!",
-            description: `سيقوم الذكاء الاصطناعي بمراجعة حملتك. تم خصم ${AD_COST.toFixed(2)}$ من رصيدك.`,
+            description: `سيقوم الذكاء الاصطناعي بمراجعة حملتك. تم خصم ${adCost.toFixed(2)}$ من رصيدك.`,
         });
         
         router.push(`/dashboard/campaigns?newCampaignId=${newCampaignRef.id}`);
@@ -176,11 +185,46 @@ export default function AdCreationForm() {
                 <Alert variant="destructive">
                     <AlertTitle>رصيد غير كافٍ</AlertTitle>
                     <AlertDescription>
-                        رصيدك الحالي هو ${userProfile?.balance?.toFixed(2) || '0.00'}. تحتاج إلى ${AD_COST.toFixed(2)} على الأقل لإنشاء حملة إعلانية جديدة.
+                        رصيدك الحالي هو ${userProfile?.balance?.toFixed(2) || '0.00'}. التكلفة المطلوبة لهذه الحملة هي ${budget[0].toFixed(2)}.
                     </AlertDescription>
                 </Alert>
             )}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                 <div className="grid w-full gap-2">
+                    <Label htmlFor="budget">ميزانية الحملة</Label>
+                    <div className="flex items-center gap-4">
+                       <Slider
+                           id="budget"
+                           min={2}
+                           max={100}
+                           step={1}
+                           value={budget}
+                           onValueChange={setBudget}
+                           disabled={isLoading || isSaving}
+                       />
+                       <div className="font-bold text-lg text-primary w-24 text-center border rounded-md p-2">
+                           ${budget[0].toFixed(2)}
+                       </div>
+                    </div>
+                </div>
+                 <Card className="bg-muted/50">
+                    <CardHeader>
+                        <CardTitle className="text-base">التقديرات المتوقعة</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 gap-4 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                            <Eye className="h-5 w-5 text-muted-foreground" />
+                            <p className="font-bold text-lg">{estimatedPerformance.impressions}</p>
+                            <p className="text-xs text-muted-foreground">مرة ظهور</p>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <MousePointerClick className="h-5 w-5 text-muted-foreground" />
+                            <p className="font-bold text-lg">{estimatedPerformance.clicks}</p>
+                            <p className="text-xs text-muted-foreground">نقرة</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <div className="grid md:grid-cols-2 gap-4">
                     <div className="grid w-full gap-2">
                         <Label htmlFor="productName">عنوان الإعلان الرئيسي</Label>
@@ -336,7 +380,7 @@ export default function AdCreationForm() {
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                   حفظ وإرسال للمراجعة (خصم ${AD_COST.toFixed(2)})
+                                   حفظ وإرسال للمراجعة (خصم ${budget[0].toFixed(2)})
                                 </>
                             )}
                         </Button>

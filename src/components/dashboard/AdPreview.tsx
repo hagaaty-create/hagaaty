@@ -13,6 +13,7 @@ type AdCampaign = {
     websiteUrl: string;
     status: 'draft' | 'reviewing' | 'active' | 'paused' | 'completed';
     createdAt: Timestamp;
+    budget: number;
     performance: {
         impressions: number;
         clicks: number;
@@ -22,7 +23,6 @@ type AdCampaign = {
 
 type AdPreviewProps = {
     campaign: AdCampaign;
-    cost: number;
 };
 
 const statusMap: Record<AdCampaign['status'], { text: string; color: 'bg-green-500' | 'bg-yellow-500' | 'bg-gray-500' }> = {
@@ -33,7 +33,7 @@ const statusMap: Record<AdCampaign['status'], { text: string; color: 'bg-green-5
     draft: { text: "مسودة", color: 'bg-gray-500' },
 };
 
-export default function AdPreview({ campaign, cost }: AdPreviewProps) {
+export default function AdPreview({ campaign }: AdPreviewProps) {
     
     const { text: statusText, color: statusColor } = statusMap[campaign.status] || statusMap.draft;
 
@@ -78,7 +78,7 @@ export default function AdPreview({ campaign, cost }: AdPreviewProps) {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <p className="font-bold text-lg">${cost.toFixed(2)}</p>
+                        <p className="font-bold text-lg">${campaign.budget.toFixed(2)}</p>
                     </CardContent>
                 </Card>
                 <Card>
