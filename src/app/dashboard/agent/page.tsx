@@ -1,15 +1,17 @@
 'use client';
 
-import { generateMarketingContent } from '@/ai/flows/generate-marketing-content';
+import { generateMarketingContent, type GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Gift, Loader2, Award, Info, RefreshCcw } from 'lucide-react';
+import { Bot, Gift, Loader2, Award, Info, RefreshCcw, Milestone, Lightbulb, Twitter, Send } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import Image from 'next/image';
+import Link from 'next/link';
 
 type UserProfile = {
   id: string;
@@ -23,10 +25,23 @@ const POINTS_PER_TRIGGER = 10;
 const POINTS_FOR_REWARD = 100;
 const REWARD_AMOUNT = 5;
 
+const agentSteps = [
+    { text: "تحليل أحدث مقال في المدونة...", duration: 1500 },
+    { text: "تطوير استراتيجية تسويق فريدة...", duration: 2000 },
+    { text: "صياغة منشور جذاب لمنصة X (تويتر)...", duration: 2500 },
+    { text: "توليد أفكار صور إبداعية للحملة...", duration: 1500 },
+    { text: "إنشاء الصورة النهائية للحملة...", duration: 3000 },
+    { text: "تجميع الحملة النهائية...", duration: 1000 },
+];
+
+
 export default function AgentPage() {
   const [isAgentRunning, setIsAgentRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState('');
+  const [campaignResult, setCampaignResult] = useState<GenerateMarketingContentOutput | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(-1);
+  
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -72,48 +87,70 @@ export default function AgentPage() {
     return () => clearInterval(interval);
   }, [userProfile]);
 
-  const handleTriggerAgent = () => {
+  const runAgentSteps = async () => {
+    for (let i = 0; i < agentSteps.length; i++) {
+        setCurrentStep(i);
+        await new Promise(resolve => setTimeout(resolve, agentSteps[i].duration));
+    }
+  };
+
+
+  const handleTriggerAgent = async () => {
     if (!canTriggerAgent || !userProfileRef || !userProfile) return;
+    
     setIsAgentRunning(true);
     setError(null);
+    setCampaignResult(null);
+    setCurrentStep(0);
     
-    // Trigger the marketing agent in the background (fire and forget)
-    generateMarketingContent().catch(err => {
-      // Log agent error but don't block user feedback
-      console.error("Autonomous agent failed:", err);
-    });
+    // Start showing agent steps simulation
+    const stepPromise = runAgentSteps();
 
-    const currentPoints = userProfile.points || 0;
-    const newPoints = currentPoints + POINTS_PER_TRIGGER;
-    
-    let updateData: any;
+    // Start the actual background task
+    const campaignPromise = generateMarketingContent();
 
-    if (newPoints >= POINTS_FOR_REWARD) {
-      // Give reward and reset points
-      const remainingPoints = newPoints - POINTS_FOR_REWARD;
-      updateData = {
-        points: remainingPoints,
-        balance: increment(REWARD_AMOUNT),
-        lastMarketingTriggerAt: serverTimestamp(),
-      };
-      toast({
-        title: '🎉 تهانينا! لقد حصلت على مكافأة!',
-        description: `تمت إضافة ${REWARD_AMOUNT}$ إلى رصيدك الإعلاني.`,
-      });
-    } else {
-      // Just update points and timestamp
-      updateData = {
-        points: increment(POINTS_PER_TRIGGER),
-        lastMarketingTriggerAt: serverTimestamp(),
-      };
-      toast({
-        title: '✅ شكراً لمساهمتك!',
-        description: `لقد حصلت على ${POINTS_PER_TRIGGER} نقاط. الوكيل يعمل الآن في الخلفية لتحسين الموقع.`,
-      });
+    try {
+        const [_, result] = await Promise.all([stepPromise, campaignPromise]);
+        
+        setCampaignResult(result);
+        setCurrentStep(agentSteps.length); // Mark as complete
+
+        // Update user points and timestamp after successful campaign generation
+        const currentPoints = userProfile.points || 0;
+        const newPoints = currentPoints + POINTS_PER_TRIGGER;
+        
+        let updateData: any;
+        if (newPoints >= POINTS_FOR_REWARD) {
+          const remainingPoints = newPoints - POINTS_FOR_REWARD;
+          updateData = {
+            points: remainingPoints,
+            balance: increment(REWARD_AMOUNT),
+            lastMarketingTriggerAt: serverTimestamp(),
+          };
+          toast({
+            title: '🎉 تهانينا! لقد حصلت على مكافأة!',
+            description: `تمت إضافة ${REWARD_AMOUNT}$ إلى رصيدك الإعلاني.`,
+          });
+        } else {
+          updateData = {
+            points: increment(POINTS_PER_TRIGGER),
+            lastMarketingTriggerAt: serverTimestamp(),
+          };
+          toast({
+            title: '✅ شكراً لمساهمتك!',
+            description: `لقد حصلت على ${POINTS_PER_TRIGGER} نقاط.`,
+          });
+        }
+        updateDocumentNonBlocking(userProfileRef, updateData);
+
+    } catch (err) {
+        console.error("Autonomous agent failed:", err);
+        setError(err instanceof Error ? err.message : "An unknown error occurred.");
+        toast({ variant: 'destructive', title: "فشل الوكيل", description: "حدث خطأ أثناء تشغيل الوكيل." });
+    } finally {
+        setIsAgentRunning(false);
+        // Don't reset currentStep here to show the final state
     }
-
-    updateDocumentNonBlocking(userProfileRef, updateData);
-    setIsAgentRunning(false); // UI can be unlocked immediately
   };
   
   const points = userProfile?.points || 0;
@@ -160,10 +197,6 @@ export default function AgentPage() {
                 يمكنك تشغيل الوكيل مرة أخرى بعد: {timeLeft}
               </div>
             )}
-            
-            {error && (
-                 <p className="text-sm text-center text-destructive">{error}</p>
-            )}
         </CardContent>
         <CardFooter className='bg-background/30'>
              <div className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -172,6 +205,94 @@ export default function AgentPage() {
              </div>
         </CardFooter>
       </Card>
+      
+      {(isAgentRunning || campaignResult || error) && (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-2xl">سجل عمل الوكيل</CardTitle>
+                <CardDescription>شاهد ما يقوم به الذكاء الاصطناعي بفضل مساهمتك.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isAgentRunning && currentStep < agentSteps.length && (
+                    <div className="space-y-4">
+                        {agentSteps.map((step, index) => (
+                           <div key={index} className={`flex items-center gap-3 transition-opacity duration-500 ${index <= currentStep ? 'opacity-100' : 'opacity-30'}`}>
+                                {index < currentStep ? (
+                                    <Bot className="h-5 w-5 text-green-500" />
+                                ) : (
+                                    <Loader2 className={`h-5 w-5 ${index === currentStep ? 'animate-spin text-primary' : 'text-muted-foreground'}`}/>
+                                )}
+                               <span className={index === currentStep ? 'font-semibold text-primary' : 'text-muted-foreground'}>{step.text}</span>
+                           </div>
+                        ))}
+                    </div>
+                )}
+                 {error && (
+                    <div className="text-center py-12 text-destructive">
+                        <p>فشل تشغيل الوكيل.</p>
+                        <p className="text-sm">{error}</p>
+                    </div>
+                )}
+                {campaignResult && (
+                    <div className="space-y-8 animate-in fade-in-50 duration-500">
+                        <h3 className="text-center text-xl font-bold text-green-600">🎉 تم إنشاء الحملة بنجاح!</h3>
+                        <div className="grid gap-8 lg:grid-cols-2">
+                             <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg"><Milestone className="h-5 w-5 text-primary"/> المقال المستهدف</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <h3 className="font-semibold text-lg">{campaignResult.article.title}</h3>
+                                        <p className="text-sm text-muted-foreground mt-1 mb-4">{campaignResult.article.excerpt}</p>
+                                        <Button variant="outline" size="sm" asChild>
+                                            <Link href={`/articles/${campaignResult.article.slug}`} target="_blank">
+                                                اقرأ المقال
+                                            </Link>
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                                <Card className="bg-primary/5">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg"><Bot className="h-5 w-5 text-primary"/> استراتيجية الوكيل</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground">{campaignResult.strategy}</p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                             <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                         <CardTitle className="flex items-center gap-2 text-lg">
+                                            الصورة المولدة للحملة
+                                         </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="relative aspect-video w-full rounded-lg overflow-hidden border shadow-sm">
+                                            <Image src={campaignResult.imageUrl} alt="Generated Campaign Image" fill className="object-cover" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                     <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg"><Twitter className="h-5 w-5 text-sky-500"/> منشور X (تويتر)</CardTitle>
+                                     </CardHeader>
+                                     <CardContent className="space-y-4">
+                                        <p className="whitespace-pre-wrap">{campaignResult.socialPosts.xPost.text}</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {campaignResult.socialPosts.xPost.hashtags.map(tag => <span key={tag} className="text-sm text-primary font-semibold">{tag}</span>)}
+                                        </div>
+                                     </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+      )}
+
     </div>
   );
 }
