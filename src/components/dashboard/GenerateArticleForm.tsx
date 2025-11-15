@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, Wand2, Image as ImageIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useFirestore, useUser } from "@/firebase";
@@ -50,7 +50,6 @@ type GenerateArticleFormProps = {
 export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleFormProps) {
     const [prompt, setPrompt] = useState(prefilledTopic || '');
     const [isLoading, setIsLoading] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [step, setStep] = useState<GenerationStep>(GenerationStep.Idle);
     const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -58,13 +57,16 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
     const { user } = useUser();
     const { toast } = useToast();
     const router = useRouter();
-    
+    const isSavingRef = useRef(false);
+
     const startGeneration = async (topic: string) => {
         if (!topic.trim()) return;
 
         setIsLoading(true);
+        isSavingRef.current = false;
         setGeneratedData(null);
         setError(null);
+        let finalData: GeneratedData | null = null;
 
         try {
             // Step 1: Generate Article
@@ -73,25 +75,25 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
             if (!articleResult || !articleResult.article) throw new Error("فشل في توليد محتوى المقال.");
             
             const firstLine = articleResult.article.split('\n')[0].replace(/#/g, '').trim();
-            let data: GeneratedData = { 
+            finalData = { 
                 article: articleResult.article, 
                 title: firstLine, 
                 category: '', 
                 tags: [] 
             };
-            setGeneratedData(data); // Show article as it generates
+            setGeneratedData(finalData); 
 
             // Step 2: Generate Metadata
             setStep(GenerationStep.GeneratingMetadata);
             const metaResult = await categorizeAndTagArticle({ articleContent: articleResult.article });
-            data = { ...data, category: metaResult.category, tags: metaResult.tags };
-            setGeneratedData(data); // Update with metadata
+            finalData = { ...finalData, category: metaResult.category, tags: metaResult.tags };
+            setGeneratedData(finalData);
 
             // Step 3: Generate Image
             setStep(GenerationStep.GeneratingImage);
-            const imageResult = await generateImage({ prompt: data.title });
-            data = { ...data, imageUrl: imageResult.imageUrl, imageHint: imageResult.imageHint };
-            setGeneratedData(data); // Final update with image
+            const imageResult = await generateImage({ prompt: finalData.title });
+            finalData = { ...finalData, imageUrl: imageResult.imageUrl, imageHint: imageResult.imageHint };
+            setGeneratedData(finalData);
 
             setStep(GenerationStep.Done);
 
@@ -99,43 +101,49 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
             console.error(err);
             setError(err instanceof Error ? err.message : "حدث خطأ غير معروف.");
             setStep(GenerationStep.Idle);
+            setGeneratedData(null);
         } finally {
             setIsLoading(false);
         }
     };
     
-    // Automatically start generation if a topic is pre-filled from URL
     useEffect(() => {
         if (prefilledTopic) {
             startGeneration(prefilledTopic);
         }
     }, [prefilledTopic]);
 
+    // Effect to automatically save when generation is complete
+    useEffect(() => {
+        if (step === GenerationStep.Done && generatedData && generatedData.imageUrl && !isSavingRef.current) {
+            handleSave(generatedData);
+            isSavingRef.current = true; // Prevent multiple saves
+        }
+    }, [step, generatedData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         startGeneration(prompt);
     };
     
-    const handleSave = () => {
-        if (!generatedData || !firestore || !user || !generatedData.imageUrl) return;
-        setIsSaving(true);
+    const handleSave = (dataToSave: GeneratedData) => {
+        if (!firestore || !user || !dataToSave.imageUrl) return;
 
-        const slug = generatedData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
+        const slug = dataToSave.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
 
         const articleData = {
-            title: generatedData.title,
+            title: dataToSave.title,
             slug: slug,
-            content: generatedData.article,
-            excerpt: generatedData.article.substring(0, 150) + '...',
-            category: generatedData.category,
-            tags: generatedData.tags,
+            content: dataToSave.article,
+            excerpt: dataToSave.article.substring(0, 150) + '...',
+            category: dataToSave.category,
+            tags: dataToSave.tags,
             author: {
                 name: user.displayName || "AI Admin",
                 avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
             },
-            imageUrl: generatedData.imageUrl,
-            imageHint: generatedData.imageHint,
+            imageUrl: dataToSave.imageUrl,
+            imageHint: dataToSave.imageHint,
             date: serverTimestamp(),
         };
 
@@ -143,14 +151,10 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
         addDocumentNonBlocking(postsCollection, articleData);
 
         toast({
-            title: "جاري حفظ المقال...",
-            description: "سيتم نشر المقال الجديد في الخلفية.",
+            title: "جاري حفظ ونشر المقال...",
+            description: "سيظهر المقال الجديد في المدونة خلال لحظات.",
         });
 
-        // Optimistically clear the form and navigate away
-        setGeneratedData(null);
-        setPrompt('');
-        setIsSaving(false); // Can be set to false immediately
         router.push('/dashboard/admin/articles');
         router.refresh();
     };
@@ -166,13 +170,13 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         rows={3}
-                        disabled={isLoading || isSaving}
+                        disabled={isLoading}
                     />
                     <p className="text-sm text-muted-foreground">
                         كن محددًا أو عامًا كما تريد. سيقوم الذكاء الاصطناعي بالباقي.
                     </p>
                 </div>
-                <Button type="submit" disabled={isLoading || isSaving || !prompt.trim()}>
+                <Button type="submit" disabled={isLoading || !prompt.trim()}>
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -194,11 +198,20 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                 </Alert>
             )}
 
+            {isLoading && !generatedData && (
+                 <Card>
+                    <CardContent className="p-6 flex flex-col justify-center items-center h-96">
+                        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                        <p className="text-muted-foreground">{stepMessages[step as keyof typeof stepMessages]}</p>
+                    </CardContent>
+                </Card>
+            )}
+
             {generatedData && (
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">مراجعة المقال المولد</CardTitle>
-                        <CardDescription>راجع المحتوى الذي تم إنشاؤه بواسطة الذكاء الاصطناعي. يمكنك تحرير أي جزء قبل الحفظ.</CardDescription>
+                        <CardDescription>يقوم الذكاء الاصطناعي حاليًا بإنشاء البيانات الوصفية والصورة. سيتم الحفظ والنشر تلقائيًا عند الانتهاء.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {generatedData.imageUrl ? (
@@ -216,9 +229,8 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                           <Input 
                               id="title" 
                               value={generatedData.title}
-                              onChange={(e) => setGeneratedData({...generatedData, title: e.target.value})}
-                              className="text-xl font-bold font-headline h-auto py-2"
-                              disabled={isSaving}
+                              readOnly
+                              className="text-xl font-bold font-headline h-auto py-2 bg-muted/50"
                           />
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -236,27 +248,17 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                             <Textarea 
                                 id="content"
                                 value={generatedData.article}
-                                onChange={(e) => setGeneratedData({...generatedData, article: e.target.value})}
+                                readOnly
                                 rows={15}
-                                className="leading-relaxed"
-                                disabled={isSaving}
+                                className="leading-relaxed bg-muted/50"
                             />
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button onClick={handleSave} disabled={isSaving || isLoading}>
-                             {isSaving ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    جاري الحفظ والنشر...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="mr-2 h-4 w-4" />
-                                   حفظ ونشر المقال
-                                </>
-                            )}
-                        </Button>
+                         <div className="flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            <span>سيتم الحفظ تلقائيًا عند اكتمال جميع الخطوات...</span>
+                        </div>
                     </CardFooter>
                 </Card>
             )}
