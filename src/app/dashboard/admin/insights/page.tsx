@@ -7,27 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbulb, Loader2, RefreshCw, Wand2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { useToast } from "@/hooks/use-toast";
-import { generatePromotionalArticles } from "@/ai/flows/generate-promotional-articles";
-
-// We need a more comprehensive generation flow for a single article
-// This is a simplified version of the logic in `generate-promotional-articles.ts`
-import { generateBlogArticle } from '@/ai/flows/generate-blog-article';
-import { categorizeAndTagArticle } from '@/ai/flows/categorize-and-tag-article';
-import { generateImage } from '@/ai/flows/generate-image-flow';
-import { useFirestore } from "@/firebase";
-import { collection, serverTimestamp } from 'firebase/firestore';
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-
 
 export default function InsightsPage() {
     const [suggestions, setSuggestions] = useState<GenerateTopicSuggestionsOutput['suggestions']>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isGenerating, setIsGenerating] = useState<Record<string, boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
-    const { toast } = useToast();
-    const firestore = useFirestore();
 
     const fetchSuggestions = async () => {
         setIsLoading(true);
@@ -46,68 +31,9 @@ export default function InsightsPage() {
     useEffect(() => {
         fetchSuggestions();
     }, []);
-    
-    const handleGenerateClick = async (title: string, reason: string) => {
-        if (!firestore) {
-            toast({ variant: 'destructive', title: 'فشل الاتصال بقاعدة البيانات'});
-            return;
-        }
 
-        setIsGenerating(prev => ({ ...prev, [title]: true }));
-        toast({
-            title: "بدأ توليد المقال...",
-            description: `يقوم الذكاء الاصطناعي بكتابة مقال عن: "${title}"`,
-        });
-
-        try {
-            // This is a simplified version of the logic in `generatePromotionalArticles`
-            const articleResult = await generateBlogArticle({ prompt: `${title} - ${reason}` });
-            const content = articleResult.article;
-
-            const metaResult = await categorizeAndTagArticle({ articleContent: content });
-            const imageResult = await generateImage({ prompt: title });
-            
-            const slug = title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
-
-            const articleData = {
-                title,
-                slug,
-                content,
-                excerpt: content.substring(0, 150) + '...',
-                category: metaResult.category,
-                tags: metaResult.tags,
-                author: {
-                    name: "فريق حاجتي",
-                    avatarUrl: 'https://picsum.photos/seed/hagaaty-logo/40/40'
-                },
-                imageUrl: imageResult.imageUrl,
-                imageHint: imageResult.imageHint,
-                date: serverTimestamp(),
-            };
-
-            const postsCollection = collection(firestore, 'posts');
-            await addDocumentNonBlocking(postsCollection, articleData);
-
-            toast({
-                title: "✅ تم إنشاء المقال بنجاح!",
-                description: `تم نشر "${title}" في المدونة.`,
-            });
-            
-            // Refresh the page to remove the generated suggestion from the list (or show it as 'done')
-            // For now, we just refresh. A more advanced implementation might update the state.
-            router.refresh();
-
-
-        } catch (err) {
-            console.error("Failed to generate article from suggestion:", err);
-            toast({
-                variant: 'destructive',
-                title: 'فشل توليد المقال',
-                description: err instanceof Error ? err.message : 'حدث خطأ غير معروف.'
-            });
-        } finally {
-            setIsGenerating(prev => ({ ...prev, [title]: false }));
-        }
+    const handleGenerateClick = (topic: string) => {
+        router.push(`/dashboard/admin/generate?topic=${encodeURIComponent(topic)}`);
     };
 
     return (
@@ -160,15 +86,10 @@ export default function InsightsPage() {
                                         </div>
                                         <Button
                                             size="sm"
-                                            onClick={() => handleGenerateClick(suggestion.title, suggestion.reason)}
-                                            disabled={isGenerating[suggestion.title]}
+                                            onClick={() => handleGenerateClick(suggestion.title)}
                                             className="shrink-0"
                                         >
-                                            {isGenerating[suggestion.title] ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                            ) : (
-                                                <Wand2 className="mr-2 h-4 w-4"/>
-                                            )}
+                                            <Wand2 className="mr-2 h-4 w-4"/>
                                             توليد المقال
                                         </Button>
                                     </CardHeader>

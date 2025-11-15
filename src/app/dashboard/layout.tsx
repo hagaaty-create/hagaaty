@@ -95,12 +95,9 @@ export default function DashboardLayout({
   const adminNavItems = [
     { href: '/dashboard/admin', label: 'لوحة تحكم المسؤول', icon: Shield },
     { href: '/dashboard/admin/generate', label: 'توليد مقال', icon: PenSquare },
-    { href: '/dashboard/admin/generate-image', label: 'مولد الصور', icon: ImageIcon },
+    { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
     { href: '/dashboard/admin/users', label: 'إدارة المستخدمين', icon: Users, matchStartsWith: true },
-    { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
-    { href: '/dashboard/admin/campaigns', label: 'كل الحملات', icon: Users },
-    { href: '/dashboard/admin/auto-marketing', label: 'التسويق الآلي', icon: Megaphone },
   ];
 
   const handleLogout = () => {

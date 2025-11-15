@@ -17,7 +17,6 @@ import { Input } from "../ui/input";
 import Image from 'next/image';
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { useRouter } from "next/navigation";
 
 
 type GeneratedData = {
@@ -57,7 +56,6 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
-    const router = useRouter();
     
     useEffect(() => {
         if (prefilledTopic) {
@@ -148,8 +146,10 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
             description: "سيظهر المقال الجديد في المدونة خلال لحظات.",
         });
 
-        router.push('/dashboard/admin/articles');
-        router.refresh();
+        // Clear the form for the next generation
+        setGeneratedData(null);
+        setPrompt('');
+        setIsSaving(false);
     };
 
     return (
