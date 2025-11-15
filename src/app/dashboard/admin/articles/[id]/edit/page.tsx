@@ -16,12 +16,12 @@ function EditArticlePageContent() {
   const firestore = useFirestore();
   const params = useParams();
   const searchParams = useSearchParams();
-  const { id } = params;
+  const id = params.id as string;
 
   const suggestedTitle = searchParams.get('suggestedTitle');
 
   const postRef = useMemoFirebase(() => {
-    if (!firestore || typeof id !== 'string') return null;
+    if (!firestore || !id) return null;
     return doc(firestore, 'posts', id);
   }, [firestore, id]);
 
@@ -30,6 +30,7 @@ function EditArticlePageContent() {
   const postWithSuggestion = useMemo(() => {
     if (!post) return null;
     if (suggestedTitle) {
+      // Create a new object to avoid mutating the original `post` data
       return { ...post, title: suggestedTitle };
     }
     return post;
@@ -55,7 +56,7 @@ function EditArticlePageContent() {
             </div>
             <div className="space-y-2">
               <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-[400px] w-full" />
             </div>
              <Skeleton className="h-10 w-32" />
           </CardContent>
