@@ -18,6 +18,15 @@ export type Post = {
   tags: string[];
 };
 
+export type Comment = {
+    id: string;
+    content: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar: string;
+    createdAt: Timestamp;
+};
+
 export const SmartAssistantChatInputSchema = z.object({
   query: z.string().describe('The user query for the smart assistant.'),
 });

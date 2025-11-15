@@ -14,6 +14,7 @@ import { marked } from 'marked';
 import { useState } from 'react';
 import { generateAudio } from '@/ai/flows/generate-audio';
 import { useToast } from '@/hooks/use-toast';
+import ArticleComments from '@/components/blog/ArticleComments';
 
 
 type ArticlePageClientProps = {
@@ -160,6 +161,8 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
             ))}
         </div>
       </footer>
+
+      <ArticleComments postId={post.id} />
     </article>
   );
 }

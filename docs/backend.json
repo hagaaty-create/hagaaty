@@ -206,6 +206,41 @@
         "id",
         "name"
       ]
+    },
+    "Comment": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Comment",
+        "type": "object",
+        "description": "Represents a comment on a blog article.",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique identifier for the Comment entity."
+            },
+            "content": {
+                "type": "string",
+                "description": "The text content of the comment."
+            },
+            "authorId": {
+                "type": "string",
+                "description": "The UID of the user who wrote the comment."
+            },
+            "authorName": {
+                "type": "string",
+                "description": "The display name of the user who wrote the comment."
+            },
+            "authorAvatar": {
+                "type": "string",
+                "description": "The avatar URL of the user who wrote the comment.",
+                "format": "uri"
+            },
+            "createdAt": {
+                "type": "string",
+                "description": "Timestamp indicating when the comment was created.",
+                "format": "date-time"
+            }
+        },
+        "required": ["id", "content", "authorId", "authorName", "createdAt"]
     }
   },
   "auth": {
@@ -244,6 +279,26 @@
             {
               "name": "articleId",
               "description": "The unique identifier of the article."
+            }
+          ]
+        }
+      },
+       {
+        "path": "/posts/{postId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": {
+            "$ref": "#/backend/entities/Comment"
+          },
+          "description": "Stores comments for a specific blog post. This nested structure ensures comments are tied to their respective posts.",
+          "params": [
+            {
+              "name": "postId",
+              "description": "The unique identifier of the blog post."
+            },
+            {
+              "name": "commentId",
+              "description": "The unique identifier of the comment."
             }
           ]
         }
