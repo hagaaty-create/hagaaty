@@ -21,6 +21,7 @@ import {
   Sparkles,
   Trophy,
   Banknote,
+  Video,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -98,6 +99,7 @@ export default function DashboardLayout({
     { href: '/dashboard/admin/insights', label: 'رؤى المحتوى', icon: Lightbulb },
     { href: '/dashboard/admin/articles', label: 'إدارة المقالات', icon: FileText, matchStartsWith: true },
     { href: '/dashboard/admin/users', label: 'إدارة المستخدمين', icon: Users, matchStartsWith: true },
+    { href: '/dashboard/admin/generate-video', label: 'توليد فيديو', icon: Video },
   ];
 
   const handleLogout = () => {
