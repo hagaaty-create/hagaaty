@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
 import { analyzeDownline, DownlineAnalysisInput } from "@/ai/flows/analyze-downline";
+import { Label } from "@/components/ui/label";
 
 type UserProfile = {
   id: string;
