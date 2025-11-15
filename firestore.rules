@@ -51,6 +51,7 @@ service cloud.firestore {
         return user.id == request.auth.uid
             && user.displayName is string
             && user.email == request.auth.token.email
+            && user.photoURL is string
             && (user.role == 'user' || (user.role == 'admin' && user.email == 'hagaaty@gmail.com'))
             && user.balance == 2.00
             && user.points == 0
@@ -72,6 +73,7 @@ service cloud.firestore {
     function hasAllowedUserUpdates(incoming, existing) {
         return incoming.id == existing.id
             && incoming.email == existing.email
+            && incoming.photoURL == existing.photoURL
             && incoming.role == existing.role
             && incoming.createdAt == existing.createdAt
             && incoming.referralCode == existing.referralCode
@@ -80,7 +82,7 @@ service cloud.firestore {
             && incoming.ancestors == existing.ancestors
             && incoming.referredBy == existing.referredBy // User cannot change who referred them
             && incoming.status == existing.status // User cannot change their own status
-            && incoming.isAgencyMember == existing.isAgencyMember; // User cannot change their agency status
+            && incoming.isAgencyMember == existing.isAgencyMember;
     }
     
     /**
@@ -91,6 +93,7 @@ service cloud.firestore {
         // to ensure integrity (e.g. points/referrals should only be changed by system logic).
         return incoming.id == existing.id
             && incoming.email == existing.email
+            && incoming.photoURL == existing.photoURL
             && incoming.role == existing.role // Admins cannot change roles
             && incoming.createdAt == existing.createdAt
             && incoming.referralCode == existing.referralCode
@@ -101,7 +104,7 @@ service cloud.firestore {
             && incoming.lastMarketingTriggerAt == existing.lastMarketingTriggerAt // Only system logic can change this
             && (incoming.status == 'active' || incoming.status == 'suspended')
             && incoming.achievements == existing.achievements // Admin cannot manually change achievements
-            && incoming.isAgencyMember == existing.isAgencyMember; // Admin cannot manually change agency status
+            && incoming.isAgencyMember == existing.isAgencyMember;
     }
 
     /**

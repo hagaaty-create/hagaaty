@@ -4,7 +4,6 @@ import { doc, getDoc, Timestamp } from 'firebase/firestore';
 import { initializeFirebase as initializeServerFirebase } from '@/firebase/server-initialization';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award, DollarSign, Trophy, Shield, Bot, Share2, PenSquare } from 'lucide-react';
 import { format } from 'date-fns';
@@ -14,6 +13,7 @@ type UserProfile = {
   id: string;
   displayName: string;
   email: string;
+  photoURL?: string;
   balance?: number;
   referralEarnings?: number;
   achievements?: { id: string, name: string, awardedAt: Timestamp }[];
@@ -56,7 +56,7 @@ export default async function UserProfilePage({ params }: { params: { id: string
     <div className="container mx-auto max-w-4xl py-12 px-4">
       <div className="flex flex-col items-center text-center space-y-4 mb-12">
         <Avatar className="h-24 w-24 border-4 border-primary shadow-lg">
-          <AvatarImage src={`https://i.pravatar.cc/150?u=${userProfile.id}`} alt={userProfile.displayName} />
+          <AvatarImage src={userProfile.photoURL || `https://i.pravatar.cc/150?u=${userProfile.id}`} alt={userProfile.displayName} />
           <AvatarFallback className="text-3xl">{userProfile.displayName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>

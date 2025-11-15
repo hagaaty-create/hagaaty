@@ -108,8 +108,12 @@ function SignupFormComponent() {
 
       // Step 2: Create the user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      await updateProfile(userCredential.user, { displayName: fullName });
+      const defaultAvatar = `https://i.pravatar.cc/150?u=${userCredential.user.uid}`;
+
+      await updateProfile(userCredential.user, { 
+        displayName: fullName,
+        photoURL: defaultAvatar 
+      });
       
       const userRole = email === 'hagaaty@gmail.com' ? 'admin' : 'user';
 
@@ -123,6 +127,7 @@ function SignupFormComponent() {
         id: userCredential.user.uid,
         displayName: fullName,
         email: email,
+        photoURL: defaultAvatar,
         role: userRole,
         balance: 2.00, // Welcome bonus
         points: 0,
