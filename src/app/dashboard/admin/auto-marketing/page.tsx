@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, Lightbulb, Loader2, Megaphone, Milestone, RefreshCw, Send, Twitter } from "lucide-react";
+import { Bot, Lightbulb, Loader2, Megaphone, Milestone, RefreshCw, Send, Twitter, BookCopy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import PromotionalCampaignGenerator from "@/components/dashboard/PromotionalCampaignGenerator";
 
 export default function AutoMarketingPage() {
     const [campaign, setCampaign] = useState<GenerateMarketingContentOutput | null>(null);
@@ -56,16 +57,38 @@ export default function AutoMarketingPage() {
                     <Megaphone className="h-8 w-8 text-primary" />
                     <h1 className="text-3xl font-bold font-headline">التسويق الآلي</h1>
                 </div>
-                 <Button onClick={fetchMarketingCampaign} disabled={isLoading || isPublishing}>
-                    <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    توليد حملة جديدة
-                </Button>
             </div>
+
+            <Card>
+                 <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                       <BookCopy className="h-6 w-6 text-primary"/>
+                       <span>حملة ترويج ذاتي للمنصة</span>
+                    </CardTitle>
+                    <CardDescription>
+                        أطلق وكيل الذكاء الاصطناعي لكتابة 5 مقالات دفعة واحدة عن مميزات المنصة لنشرها في المدونة وجذب المزيد من العملاء والمسوقين.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PromotionalCampaignGenerator />
+                </CardContent>
+            </Card>
+
+
             <Card>
                 <CardHeader>
-                    <CardTitle>وكيل التسويق بالذكاء الاصطناعي</CardTitle>
+                    <CardTitle className="flex items-center justify-between">
+                         <div className="flex items-center gap-3">
+                            <Bot className="h-6 w-6 text-primary"/>
+                            <span>وكيل التسويق للمحتوى الحالي</span>
+                        </div>
+                        <Button onClick={fetchMarketingCampaign} disabled={isLoading || isPublishing} variant="outline">
+                            <RefreshCw className={`ml-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            توليد حملة جديدة
+                        </Button>
+                    </CardTitle>
                     <CardDescription>
-                        يقوم الذكاء الاصطناعي بتحليل مدونتك ويقترح حملة تسويقية كاملة للوصول إلى جمهور أوسع.
+                        يقوم الذكاء الاصطناعي بتحليل أحدث مقال في مدونتك ويقترح حملة تسويقية كاملة له للوصول إلى جمهور أوسع.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
