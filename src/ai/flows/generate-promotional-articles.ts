@@ -11,11 +11,8 @@ import { z } from 'zod';
 import { generateBlogArticle } from './generate-blog-article';
 import { categorizeAndTagArticle } from './categorize-and-tag-article';
 import { generateImage } from './generate-image-flow';
-import { getFirestore, serverTimestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
-import { collection, addDoc } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { initializeFirebase } from '@/firebase';
 
 
 // Initialize Firebase Admin SDK if not already initialized
@@ -72,7 +69,6 @@ const saveArticleTool = ai.defineTool(
     },
     async (articleData) => {
         console.log(`[Tool:saveArticle] Saving article: ${articleData.title}`);
-        const { firestore: clientFirestore } = initializeFirebase();
         
         const slug = articleData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -84,12 +80,12 @@ const saveArticleTool = ai.defineTool(
                 name: "فريق حاجتي",
                 avatarUrl: 'https://picsum.photos/seed/hagaaty-logo/40/40'
             },
-            date: serverTimestamp(),
+            date: Timestamp.now(), // Use Admin SDK's Timestamp
             content: articleData.content, // ensure content is passed
         };
 
-        const postsCollection = collection(clientFirestore, 'posts');
-        await addDoc(postsCollection, newArticle);
+        const postsCollection = db.collection('posts');
+        await postsCollection.add(newArticle);
         console.log(`[Tool:saveArticle] Successfully saved article: ${articleData.title}`);
     }
 );
