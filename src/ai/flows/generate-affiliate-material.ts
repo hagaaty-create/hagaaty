@@ -11,6 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { generateImage } from './generate-image-flow';
+import { generateVideo } from './generate-video-flow';
 
 // Define Zod schemas for structured input and output
 
@@ -27,6 +28,8 @@ export const GenerateAffiliateMaterialOutputSchema = z.object({
   directMessage: z.string().describe('A friendly, persuasive direct message (for WhatsApp or DM) in Arabic to send to potential leads.'),
   imageIdea: z.string().describe('A creative idea for an image to accompany the social media posts.'),
   imageUrl: z.string().url().describe('URL of the generated image for the campaign.'),
+  videoIdea: z.string().describe('A creative idea for a short video (Reel/Short) to accompany the social media posts.'),
+  videoUrl: z.string().url().describe('URL of the generated video for the campaign.'),
 });
 
 export type GenerateAffiliateMaterialOutput = z.infer<typeof GenerateAffiliateMaterialOutputSchema>;
@@ -35,11 +38,11 @@ export type GenerateAffiliateMaterialOutput = z.infer<typeof GenerateAffiliateMa
 const marketingPrompt = ai.definePrompt({
   name: 'generateAffiliateMaterialPrompt',
   input: { schema: GenerateAffiliateMaterialInputSchema },
-  output: { schema: GenerateAffiliateMaterialOutputSchema.omit({ imageUrl: true }) }, // The prompt itself doesn't generate the image URL
+  output: { schema: GenerateAffiliateMaterialOutputSchema.omit({ imageUrl: true, videoUrl: true }) }, // The prompt itself doesn't generate the media URLs
   prompt: `أنت خبير في التسويق الشبكي ومبدع محتوى للمنصة التقنية "حاجتي للذكاء الاصطناعي". مهمتك هي تزويد المسوق بمجموعة متكاملة من المواد التسويقية الجاهزة لمساعدته على جذب عملاء جدد ومسوقين آخرين لشبكته.
 
 المميزات الرئيسية للمنصة التي يجب التركيز عليها:
-1.  **محاكي إعلانات جوجل**: يحصل المستخدم على 2$ رصيد ترحيبي، ويقوم الذكاء الاصطناعي بتصميم وتفعيل حملة إعلانية خلال 10 دقائق.
+1.  **محاكي إعلانات جوجل**: يحصل المستخدم على 2$ رصيد ترحيبي، ويقوم الذكاء الاصطناعي بتصميم وتفعيل حملة خلال 10 دقائق.
 2.  **برنامج الإحالة الشبكي (MLM)**: يكسب المسوقون عمولات من 5 مستويات عند قيام أي شخص في شبكتهم بشحن رصيده.
 3.  **وكيل التسويق المستقل**: يمكن للمستخدمين كسب نقاط ومكافآت (رصيد إعلاني) بمجرد تشغيل وكيل الذكاء الاصطناعي للمساهمة في تحسين محتوى الموقع.
 
@@ -51,6 +54,7 @@ const marketingPrompt = ai.definePrompt({
 3.  **اكتب منشور فيسبوك/انستغرام**: منشور أكثر تفصيلاً، قد يحكي قصة قصيرة عن "محمد" الذي بدأ بدون خبرة وحقق أول ربح له، مع التركيز على الفوائد والدعوة للانضمام.
 4.  **اكتب رسالة مباشرة (DM/WhatsApp)**: رسالة ودية وشخصية يمكن للمسوق إرسالها لأصدقائه أو للمهتمين، تشرح الفرصة وتدعوهم للبدء.
 5.  **اقترح فكرة صورة**: صف فكرة صورة جذابة ومبتكرة بصريًا تلخص إحدى ميزات المنصة (مثال: "شخص يضغط زرًا على هاتفه وتنمو شجرة من المال").
+6.  **اقترح فكرة فيديو**: صف فكرة فيديو قصير (10-15 ثانية) ومناسب لـ Reels/Shorts، يكون جذابًا بصريًا ويشرح ميزة واحدة بسرعة. (مثال: "لقطات سريعة لشخص يبدو محبطًا من الإعلانات، ثم يضغط على زر في منصة حاجتي، وتظهر ابتسامة على وجهه مع ظهور أيقونات دولارات").
 
 تأكد من أن جميع النصوص تتضمن دعوة واضحة للمستخدم للتسجيل باستخدام رابط الإحالة الخاص به.`,
 });
@@ -69,17 +73,24 @@ const generateAffiliateMaterialFlow = ai.defineFlow(
       throw new Error('Failed to generate affiliate content from prompt.');
     }
     
-    if (!output.imageIdea) {
-        throw new Error('No image idea was generated.');
+    if (!output.imageIdea || !output.videoIdea) {
+        throw new Error('Image or video idea was not generated.');
     }
 
     console.log(`[generateAffiliateMaterialFlow] Generating image for idea: "${output.imageIdea}"`);
-    const imageResult = await generateImage({ prompt: output.imageIdea });
+    console.log(`[generateAffiliateMaterialFlow] Generating video for idea: "${output.videoIdea}"`);
+
+    // Run image and video generation in parallel to save time
+    const [imageResult, videoResult] = await Promise.all([
+        generateImage({ prompt: output.imageIdea }),
+        generateVideo({ prompt: output.videoIdea })
+    ]);
 
     console.log('[generateAffiliateMaterialFlow] Successfully generated all affiliate marketing content.');
     return {
         ...output,
         imageUrl: imageResult.imageUrl,
+        videoUrl: videoResult.videoUrl,
     };
   }
 );

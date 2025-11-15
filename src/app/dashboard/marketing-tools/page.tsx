@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, Lightbulb, Loader2, Sparkles, RefreshCw, Send, Twitter, Copy, Check, Download, Mail } from "lucide-react";
+import { Bot, Lightbulb, Loader2, Sparkles, RefreshCw, Send, Twitter, Copy, Check, Download, Mail, Video } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -74,11 +74,11 @@ export default function MarketingToolsPage() {
         }, 1500);
     };
     
-    const handleDownload = () => {
-        if (!campaign?.imageUrl) return;
+    const handleDownload = (url: string, filename: string) => {
+        if (!url) return;
         const link = document.createElement('a');
-        link.href = campaign.imageUrl;
-        link.download = `hagaaty_promo_image.png`;
+        link.href = url;
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -144,14 +144,42 @@ export default function MarketingToolsPage() {
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                     <Button onClick={handleDownload} variant="secondary">
+                                     <Button onClick={() => handleDownload(campaign.imageUrl, 'hagaaty-promo-image.png')} variant="secondary">
                                         <Download className="mr-2 h-4 w-4" />
                                         تحميل الصورة
                                     </Button>
                                 </CardFooter>
                             </Card>
                         )}
-                         <Card className="bg-primary/5">
+                         {campaign.videoUrl && (
+                            <Card>
+                                <CardHeader>
+                                     <CardTitle className="flex items-center gap-2 text-lg">
+                                        <Video className="h-5 w-5 text-rose-500" />
+                                        فيديو الحملة (Reel/Short)
+                                     </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="relative aspect-[9/16] w-full max-w-sm mx-auto rounded-lg overflow-hidden border shadow-sm">
+                                       <video
+                                            src={campaign.videoUrl}
+                                            controls
+                                            className="w-full h-full object-cover"
+                                            playsInline
+                                        />
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                     <Button onClick={() => handleDownload(campaign.videoUrl, 'hagaaty-promo-video.mp4')} variant="secondary">
+                                        <Download className="mr-2 h-4 w-4" />
+                                        تحميل الفيديو
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        )}
+                    </div>
+                     <div className="space-y-6">
+                        <Card className="bg-primary/5">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg"><Bot className="h-5 w-5 text-primary"/> استراتيجية الوكيل</CardTitle>
                             </CardHeader>
@@ -159,8 +187,6 @@ export default function MarketingToolsPage() {
                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{campaign.strategy}</p>
                             </CardContent>
                         </Card>
-                    </div>
-                     <div className="space-y-6">
                         <Card>
                              <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg"><Twitter className="h-5 w-5 text-sky-500"/> منشور X (تويتر)</CardTitle>
@@ -225,9 +251,10 @@ const CampaignSkeleton = () => (
     <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-6">
             <Skeleton className="h-56 w-full" />
-            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-[400px] w-full" />
         </div>
         <div className="space-y-6">
+             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-40 w-full" />
             <Skeleton className="h-48 w-full" />
             <Skeleton className="h-48 w-full" />
