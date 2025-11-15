@@ -9,7 +9,6 @@ import ArticlePageClient from './page-client';
 
 type PageProps = {
   params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 async function getPost(slug: string): Promise<Post | null> {
