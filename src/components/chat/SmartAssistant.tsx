@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -37,11 +39,16 @@ export default function SmartAssistant() {
     setIsLoading(true);
 
     try {
-        // Log the query to Firestore first, don't wait for it
-        addDoc(collection(firestore, 'queries'), {
+        // Log the query to Firestore first, non-blocking
+        const queriesCollection = collection(firestore, 'queries');
+        addDoc(queriesCollection, {
             query: currentQuery,
             createdAt: serverTimestamp()
-        }).catch(err => console.error("Failed to log query:", err));
+        }).catch(err => {
+            console.error("Failed to log query, likely permissions:", err);
+            // Optionally, you can emit a less intrusive error for logging issues
+            // For now, we just log it to console as it's a background task.
+        });
         
         // Then get the response
         const result = await smartAssistantChat({ query: currentQuery });
@@ -85,10 +92,11 @@ export default function SmartAssistant() {
     setInput(''); // Clear input after clicking example
     setIsLoading(true);
 
-    addDoc(collection(firestore, 'queries'), {
+     addDoc(collection(firestore, 'queries'), {
         query: query,
         createdAt: serverTimestamp()
     }).catch(err => console.error("Failed to log query:", err));
+
 
     smartAssistantChat({ query: query })
       .then(result => {

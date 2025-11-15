@@ -12,25 +12,13 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {getFirestore} from 'firebase-admin/firestore';
 import {getApps, initializeApp} from 'firebase-admin/app';
+import { SmartAssistantChatInputSchema, type SmartAssistantChatInput, SmartAssistantChatOutputSchema, type SmartAssistantChatOutput } from '@/types';
+
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
   initializeApp();
 }
-
-const SmartAssistantChatInputSchema = z.object({
-  query: z.string().describe('The user query for the smart assistant.'),
-});
-export type SmartAssistantChatInput = z.infer<
-  typeof SmartAssistantChatInputSchema
->;
-
-const SmartAssistantChatOutputSchema = z.object({
-  response: z.string().describe('The text response from the smart assistant.'),
-});
-export type SmartAssistantChatOutput = z.infer<
-  typeof SmartAssistantChatOutputSchema
->;
 
 export async function smartAssistantChat(
   input: SmartAssistantChatInput
