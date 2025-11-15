@@ -4,15 +4,9 @@ import { notFound } from 'next/navigation';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import type { Post } from '@/types';
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata, ResolvingMetadata, PageProps } from 'next';
 import ArticlePageClient from './page-client';
 import { Timestamp } from 'firebase/firestore';
-
-type ArticlePageProps = {
-  params: {
-    slug: string;
-  };
-};
 
 async function getPost(slug: string): Promise<Post | null> {
   const { firestore } = initializeFirebase();
@@ -31,7 +25,7 @@ async function getPost(slug: string): Promise<Post | null> {
 }
 
 export async function generateMetadata(
-  { params }: ArticlePageProps,
+  { params }: PageProps<{ slug: string }>,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const post = await getPost(params.slug);
@@ -66,7 +60,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params }: ArticlePageProps) {
+export default async function ArticlePage({ params }: PageProps<{ slug: string }>) {
   const post = await getPost(params.slug);
 
   if (!post) {
