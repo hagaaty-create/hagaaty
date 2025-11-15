@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
 import { Badge } from "../ui/badge";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type EditArticleFormProps = {
   post: Post;
@@ -47,7 +47,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
         };
 
         // Non-blocking update
-        setDocumentNonBlocking(postRef, updatedData, { merge: true });
+        updateDocumentNonBlocking(postRef, updatedData);
 
         toast({
             title: "جاري حفظ التحديثات...",

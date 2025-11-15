@@ -47,6 +47,9 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
           requestResourceData: data,
         })
       )
+      // Since we are not awaiting, re-throw might not be caught by caller.
+      // Global error handler is the primary mechanism.
+      throw error; 
     });
   return promise;
 }
