@@ -6,12 +6,12 @@ import { generateImage } from "@/ai/flows/generate-image-flow";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, Wand2, Image as ImageIcon } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Loader2, Save, Wand2 } from "lucide-react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useFirestore, useUser } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "../ui/input";
 import Image from 'next/image';
@@ -57,13 +57,9 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
     const { user } = useUser();
     const { toast } = useToast();
     
-    useEffect(() => {
-        if (prefilledTopic) {
-            startGeneration(prefilledTopic);
-        }
-    }, [prefilledTopic]);
-
-    const startGeneration = async (topic: string) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const topic = prompt;
         if (!topic.trim()) return;
 
         setIsLoading(true);
@@ -108,11 +104,6 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
         } finally {
             setIsLoading(false);
         }
-    };
-    
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        startGeneration(prompt);
     };
     
     const handleSave = () => {

@@ -4,6 +4,7 @@
  * @fileoverview An AI agent that generates a batch of promotional blog articles about the platform's features.
  *
  * - generatePromotionalArticles - The main function that orchestrates the article generation process.
+ * - generateAndSaveArticleFlow - A flow to generate and save a single article.
  */
 
 import { ai } from '@/ai/genkit';
@@ -27,6 +28,7 @@ const ArticleTopicSchema = z.object({
   title: z.string().describe('A catchy, SEO-friendly blog post title in Arabic about a specific feature of the Hagaaty AI platform.'),
   prompt: z.string().describe('A detailed prompt in Arabic for the AI to write the article based on the title.'),
 });
+export type ArticleTopic = z.infer<typeof ArticleTopicSchema>;
 
 const ArticleTopicsOutputSchema = z.object({
   topics: z.array(ArticleTopicSchema).length(5).describe('A list of exactly 5 unique article topics.'),
@@ -92,7 +94,7 @@ const saveArticleTool = ai.defineTool(
 
 
 
-const generateAndSaveArticleFlow = ai.defineFlow(
+export const generateAndSaveArticleFlow = ai.defineFlow(
     {
         name: 'generateAndSaveSingleArticle',
         inputSchema: ArticleTopicSchema,
