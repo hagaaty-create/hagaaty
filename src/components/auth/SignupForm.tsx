@@ -11,25 +11,45 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
+import { Suspense } from "react";
 
-export default function SignupForm() {
+
+function SignupFormComponent() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const auth = useAuth();
   const firestore = useFirestore();
+  
+  useEffect(() => {
+    const refFromUrl = searchParams.get('ref');
+    if (refFromUrl) {
+      setReferralCode(refFromUrl);
+    }
+  }, [searchParams]);
+  
+  const generateReferralCode = (length: number) => {
+    const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +87,10 @@ export default function SignupForm() {
         balance: 2.00, // Welcome bonus
         points: 0,
         lastMarketingTriggerAt: null,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        referralCode: generateReferralCode(6),
+        referralEarnings: 0,
+        referredBy: referralCode || null,
       });
       
       // Fire and forget welcome email
@@ -152,6 +175,16 @@ export default function SignupForm() {
               disabled={isLoading}
             />
           </div>
+           <div className="grid gap-2 text-right">
+              <Label htmlFor="referral-code">رمز الإحالة (اختياري)</Label>
+              <Input 
+                id="referral-code" 
+                placeholder="أدخل رمز الإحالة هنا" 
+                value={referralCode}
+                onChange={e => setReferralCode(e.target.value)}
+                disabled={isLoading}
+              />
+          </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
             إنشاء حساب
@@ -165,5 +198,14 @@ export default function SignupForm() {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+
+export default function SignupForm() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupFormComponent />
+    </Suspense>
   )
 }
