@@ -1,6 +1,6 @@
 'use client';
 
-import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from "@/firebase";
+import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, where, getDocs, getCountFromServer } from "firebase/firestore";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +51,8 @@ export default function ReferralsPage() {
   const [copied, setCopied] = useState(false);
   const [downlineReport, setDownlineReport] = useState<DownlineReport | null>(null);
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(true);
+  const [referrals, setReferrals] = useState<UserProfile[]>([]);
+  const [areReferralsLoading, setAreReferralsLoading] = useState(true);
 
   const userProfileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -58,13 +60,24 @@ export default function ReferralsPage() {
   }, [user, firestore]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
-  const referralsQuery = useMemoFirebase(() => {
-    if (!firestore || !userProfile?.referralCode) return null;
-    return query(collection(firestore, 'users'), where('referredBy', '==', userProfile.referralCode));
-  }, [firestore, userProfile]);
   
-  const { data: referrals, isLoading: areReferralsLoading } = useCollection<UserProfile>(referralsQuery);
+  useEffect(() => {
+    if (!firestore || !userProfile?.referralCode) {
+        setAreReferralsLoading(false);
+        return;
+    };
+    
+    const fetchReferrals = async () => {
+        setAreReferralsLoading(true);
+        const referralsQuery = query(collection(firestore, 'users'), where('referredBy', '==', userProfile.referralCode));
+        const snapshot = await getDocs(referralsQuery);
+        const fetchedReferrals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+        setReferrals(fetchedReferrals);
+        setAreReferralsLoading(false);
+    }
+    fetchReferrals();
+
+  }, [firestore, userProfile?.referralCode]);
   
   useEffect(() => {
     const fetchAndAnalyzeDownline = async () => {
