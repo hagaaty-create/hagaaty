@@ -25,6 +25,15 @@
           "items": {
             "type": "string"
           }
+        },
+        "points": {
+          "type": "number",
+          "description": "Points earned by the user for triggering the autonomous agent."
+        },
+        "lastMarketingTriggerAt": {
+          "type": "string",
+          "description": "Timestamp of the last time the user triggered the marketing agent.",
+          "format": "date-time"
         }
       },
       "required": [

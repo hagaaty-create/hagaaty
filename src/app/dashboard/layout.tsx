@@ -14,6 +14,7 @@ import {
   Users,
   Megaphone,
   ImageIcon,
+  Bot,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -67,6 +68,7 @@ export default function DashboardLayout({
     { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
     { href: '/dashboard/create-ad', label: 'إنشاء إعلان', icon: PenSquare },
     { href: '/dashboard/campaigns', label: 'حملاتي', icon: BarChart },
+    { href: '/dashboard/agent', label: 'الوكيل المستقل', icon: Bot },
   ];
   
   const adminNavItems = [

@@ -66,6 +66,8 @@ export default function SignupForm() {
         email: email,
         role: userRole,
         balance: 2.00, // Welcome bonus
+        points: 0,
+        lastMarketingTriggerAt: null,
         createdAt: serverTimestamp()
       });
 

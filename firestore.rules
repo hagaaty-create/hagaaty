@@ -66,7 +66,28 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false; // User listing is disallowed.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId);
+      
+      // Allow user to update their own profile, with specific rules for points and timestamp
+      allow update: if isOwner(userId)
+                    // Rule for triggering agent: Can only increment points by 1
+                    // and can only do so if last trigger was more than 24 hours ago.
+                    && (
+                        request.resource.data.points == resource.data.points + 1
+                        && request.resource.data.lastMarketingTriggerAt == request.time
+                        && request.time > resource.data.lastMarketingTriggerAt + duration.time(24, 0, 0, 0)
+                       )
+                    // Rule for points reset: Can only reset points to 0 if balance is being incremented
+                    || (
+                        request.resource.data.points == 0
+                        && request.resource.data.balance == resource.data.balance + 1
+                    )
+                    // Allow other general profile updates (e.g. displayName) that don't touch protected fields
+                    || (
+                        request.resource.data.points == resource.data.points
+                        && request.resource.data.balance == resource.data.balance
+                        && request.resource.data.lastMarketingTriggerAt == resource.data.lastMarketingTriggerAt
+                    );
+
       allow delete: if isOwner(userId);
 
       /**
