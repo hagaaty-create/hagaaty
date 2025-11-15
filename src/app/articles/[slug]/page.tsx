@@ -7,7 +7,8 @@ import type { Post } from '@/types';
 import { Metadata } from 'next';
 import ArticlePageClient from './page-client';
 
-type PageProps = {
+// This is the correct props definition for a dynamic page in Next.js App Router.
+type Props = {
   params: { slug: string };
 };
 
@@ -38,9 +39,7 @@ async function getPost(slug: string): Promise<Post | null> {
   return { id: postDoc.id, ...postData, date } as Post;
 }
 
-export async function generateMetadata(
-  { params }: PageProps,
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPost(params.slug);
 
   if (!post) {
@@ -73,7 +72,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params }: PageProps) {
+export default async function ArticlePage({ params }: Props) {
   const post = await getPost(params.slug);
 
   if (!post) {
