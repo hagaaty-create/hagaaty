@@ -49,7 +49,7 @@ export default function ManageArticlesPage() {
     return query(collection(firestore, 'posts'), orderBy('date', 'desc'));
   }, [firestore]);
 
-  const { data: posts, loading } = useCollection<Post>(postsQuery);
+  const { data: posts, isLoading: loading } = useCollection<Post>(postsQuery);
 
   const formatDate = (timestamp: Timestamp | string | Date | null) => {
     if (!timestamp) return 'N/A';

@@ -21,7 +21,7 @@ export default function EditArticlePage() {
     return doc(firestore, 'posts', id);
   }, [firestore, id]);
 
-  const { data: post, loading } = useDoc<Post>(postRef);
+  const { data: post, isLoading: loading } = useDoc<Post>(postRef);
 
   if (loading) {
     return (
