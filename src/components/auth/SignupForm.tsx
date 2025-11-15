@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -19,7 +19,7 @@ import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
-import { Suspense } from "react";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 function SignupFormComponent() {
@@ -79,7 +79,8 @@ function SignupFormComponent() {
       const userRole = email === 'hagaaty@gmail.com' ? 'admin' : 'user';
 
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-      await setDoc(userDocRef, {
+      
+      const userProfileData = {
         id: userCredential.user.uid,
         displayName: fullName,
         email: email,
@@ -92,8 +93,11 @@ function SignupFormComponent() {
         referralEarnings: 0,
         referredBy: referralCode || null, // Store the referral code
         status: 'active',
-      });
+      };
       
+      // Use non-blocking write for faster UX
+      setDocumentNonBlocking(userDocRef, userProfileData, {});
+
       // Fire and forget welcome email
       sendWelcomeEmail({ userName: fullName, userEmail: email }).catch(err => {
         console.error("Failed to send welcome email:", err);
