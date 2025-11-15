@@ -75,11 +75,10 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
         <Image src={post.imageUrl} alt={post.title} fill className="object-cover" data-ai-hint={post.imageHint}/>
       </div>
 
-      <div className="prose prose-lg dark:prose-invert max-w-none text-foreground/90 prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground">
-        <pre className='whitespace-pre-wrap font-body text-base'>
-          {post.content}
-        </pre>
-      </div>
+      <div 
+        className="prose prose-lg dark:prose-invert max-w-none text-foreground/90 prose-p:leading-relaxed prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground"
+        dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }}
+       />
 
       <footer className="mt-12">
         <div className="flex flex-wrap items-center gap-2">
