@@ -11,8 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {getFirestore, Timestamp} from 'firebase-admin/firestore';
-import {getApps, initializeApp} from 'firebase-admin/app';
+import { initializeFirebase } from '@/firebase/server-initialization';
 import {
   SmartAssistantChatInputSchema,
   type SmartAssistantChatInput,
@@ -20,12 +19,6 @@ import {
   type SmartAssistantChatOutput,
 } from '@/types';
 import {collection, query, where, getDocs, limit} from 'firebase/firestore';
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp();
-}
-const db = getFirestore();
 
 const searchBlogTool = ai.defineTool(
   {
@@ -45,10 +38,11 @@ const searchBlogTool = ai.defineTool(
   },
   async input => {
     console.log(`[Tool] Searching blog for query: "${input.query}"`);
+    const { firestore } = initializeFirebase();
     // This is a simplified search. A real-world app would use a more robust
     // search solution like Algolia or a vector database.
-    const postsRef = db.collection('posts');
-    const snapshot = await postsRef.get();
+    const postsRef = collection(firestore, 'posts');
+    const snapshot = await getDocs(postsRef);
 
     if (snapshot.empty) {
       return [];

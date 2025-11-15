@@ -9,17 +9,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { getApps, initializeApp } from 'firebase-admin/app';
+import { doc, FieldValue, runTransaction, getDoc } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/server-initialization';
 import { sendEmail } from '@/lib/send-email';
 import { notifyReferralBonus } from './notify-referral-bonus';
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp();
-}
-
-const db = getFirestore();
 
 const AGENCY_FEE = 40.00;
 
@@ -55,9 +48,10 @@ const processAgencyMLMTool = ai.defineTool(
   },
   async ({ userId, subscriptionAmount }) => {
     console.log(`[Tool] Processing MLM commissions for agency subscription for user ${userId}.`);
-    const userRef = db.collection('users').doc(userId);
+    const { firestore } = initializeFirebase();
+    const userRef = doc(firestore, 'users', userId);
 
-    await db.runTransaction(async (transaction) => {
+    await runTransaction(firestore, async (transaction) => {
       const userDoc = await transaction.get(userRef);
       if (!userDoc.exists) {
         throw new Error(`User with ID ${userId} not found.`);
@@ -72,7 +66,7 @@ const processAgencyMLMTool = ai.defineTool(
         for (let i = 0; i < ancestors.length && i < LEVEL_DISTRIBUTION.length; i++) {
           const ancestorId = ancestors[i];
           const commissionAmount = commissionPool * LEVEL_DISTRIBUTION[i];
-          const ancestorRef = db.collection('users').doc(ancestorId);
+          const ancestorRef = doc(firestore, 'users', ancestorId);
 
           console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorId}`);
           transaction.update(ancestorRef, { referralEarnings: FieldValue.increment(commissionAmount) });

@@ -8,17 +8,9 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getApps, initializeApp } from 'firebase-admin/app';
 import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/server-initialization';
 
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp();
-}
-
-const db = getFirestore();
 
 // Schemas
 const UserSchema = z.object({
@@ -38,7 +30,8 @@ export type LeaderboardData = z.infer<typeof LeaderboardDataSchema>;
 
 // Helper function to fetch and map users for a specific leaderboard
 async function getTopUsers(orderByField: string, limitCount: number = 10): Promise<z.infer<typeof UserSchema>[]> {
-    const usersRef = collection(db, 'users');
+    const { firestore } = initializeFirebase();
+    const usersRef = collection(firestore, 'users');
     const q = query(usersRef, orderBy(orderByField, 'desc'), limit(limitCount));
     const snapshot = await getDocs(q);
 

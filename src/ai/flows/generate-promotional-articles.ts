@@ -12,17 +12,9 @@ import { z } from 'zod';
 import { generateBlogArticle } from './generate-blog-article';
 import { categorizeAndTagArticle } from './categorize-and-tag-article';
 import { generateImage } from './generate-image-flow';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { getApps, initializeApp } from 'firebase-admin/app';
+import { Timestamp, collection, addDoc } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/server-initialization';
 
-
-// Initialize Firebase Admin SDK if not already initialized
-// This is needed for server-side operations in flows.
-if (!getApps().length) {
-  initializeApp();
-}
-
-const db = getFirestore();
 
 const ArticleTopicSchema = z.object({
   title: z.string().describe('A catchy, SEO-friendly blog post title in Arabic about a specific feature of the Hagaaty AI platform.'),
@@ -73,6 +65,7 @@ const saveArticleTool = ai.defineTool(
         console.log(`[Tool:saveArticle] Saving article: ${articleData.title}`);
         
         const slug = articleData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
+        const { firestore } = initializeFirebase();
 
         const newArticle = {
             ...articleData,
@@ -86,8 +79,8 @@ const saveArticleTool = ai.defineTool(
             content: articleData.content, // ensure content is passed
         };
 
-        const postsCollection = db.collection('posts');
-        await postsCollection.add(newArticle);
+        const postsCollection = collection(firestore, 'posts');
+        await addDoc(postsCollection, newArticle);
         console.log(`[Tool:saveArticle] Successfully saved article: ${articleData.title}`);
     }
 );

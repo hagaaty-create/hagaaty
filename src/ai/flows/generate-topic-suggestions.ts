@@ -9,16 +9,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getApps, initializeApp } from 'firebase-admin/app';
+import { collection, getDocs, limit, orderBy, query, Timestamp } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/server-initialization';
 import type { Post } from '@/types';
-import { Timestamp } from 'firebase-admin/firestore';
 
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp();
-}
 
 const SuggestionSchema = z.object({
   title: z.string().describe('The suggested blog post title in Arabic.'),
@@ -42,9 +36,10 @@ const getRecentQueries = ai.defineTool(
   },
   async ({ limit }) => {
     console.log(`[getRecentQueries] Fetching the last ${limit} user queries.`);
-    const db = getFirestore();
-    const queriesRef = db.collection('queries').orderBy('createdAt', 'desc').limit(limit);
-    const snapshot = await queriesRef.get();
+    const { firestore } = initializeFirebase();
+    const queriesRef = collection(firestore, 'queries');
+    const q = query(queriesRef, orderBy('createdAt', 'desc'), limit(limit));
+    const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
       return [];
@@ -68,9 +63,10 @@ const getRecentArticles = ai.defineTool(
     },
     async ({ limit }) => {
         console.log(`[getRecentArticles] Fetching the last ${limit} articles.`);
-        const db = getFirestore();
-        const postsRef = db.collection('posts').orderBy('date', 'desc').limit(limit);
-        const snapshot = await postsRef.get();
+        const { firestore } = initializeFirebase();
+        const postsRef = collection(firestore, 'posts');
+        const q = query(postsRef, orderBy('date', 'desc'), limit(limit));
+        const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
             return [];

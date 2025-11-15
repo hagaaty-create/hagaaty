@@ -8,16 +8,12 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { getApps, initializeApp } from 'firebase-admin/app';
-import type { Post, GenerateMarketingContentOutput } from '@/types';
+import { collection, getDocs, orderBy, query, limit, Timestamp } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/server-initialization';
+import type { GenerateMarketingContentOutput } from '@/types';
 import { GenerateMarketingContentOutputSchema } from '@/types';
 import { generateImage } from './generate-image-flow';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp();
-}
 
 const getMostRecentArticle = ai.defineTool(
   {
@@ -34,9 +30,11 @@ const getMostRecentArticle = ai.defineTool(
   },
   async () => {
     console.log('[getMostRecentArticle] Fetching the most recent article.');
-    const db = getFirestore();
-    const postsRef = db.collection('posts').orderBy('date', 'desc').limit(1);
-    const snapshot = await postsRef.get();
+    const { firestore } = initializeFirebase();
+    const postsRef = collection(firestore, 'posts');
+    const q = query(postsRef, orderBy('date', 'desc'), limit(1));
+    const snapshot = await getDocs(q);
+
 
     if (snapshot.empty) {
       throw new Error('لا توجد مقالات في المدونة لإنشاء حملة تسويقية.');
