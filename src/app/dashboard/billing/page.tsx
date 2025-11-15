@@ -66,6 +66,11 @@ export default function BillingPage() {
             paymentProofDataUri: imageBase64,
             amount: parseFloat(selectedMethod.amount),
             paymentMethod: selectedMethod.name,
+        }).catch(err => {
+            // Log the error for debugging, but the user has already received a success message.
+            console.error("Error in background payment verification flow:", err);
+            // Optionally, you could implement a more robust error handling system,
+            // like sending a follow-up email to the user if the background task fails.
         });
 
         // Show success state immediately to the user.
