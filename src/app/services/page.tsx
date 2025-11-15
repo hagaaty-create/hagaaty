@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Crown, ExternalLink, ImagePlus, Loader2, Mail, ShieldCheck, TrendingUp, Zap, Rocket } from "lucide-react";
+import { Check, Crown, ExternalLink, ImagePlus, Loader2, Mail, ShieldCheck, TrendingUp, Zap, Rocket, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useUser } from '@/firebase';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Badge } from "@/components/ui/badge";
+import { submitSubscriptionRequest } from "@/ai/flows/submit-subscription-request";
 
 const agencyFeatures = [
     {
@@ -40,7 +40,9 @@ const paymentMethods = [
 export default function ServicesPage() {
     const [email, setEmail] = useState('');
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
+    const [imageBase64, setImageBase64] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
     const { toast } = useToast();
     const { user } = useUser();
 
@@ -54,7 +56,6 @@ export default function ServicesPage() {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
-            // Basic validation for file type and size
             if (!file.type.startsWith('image/')) {
                 toast({ variant: 'destructive', title: 'ملف غير صالح', description: 'يرجى رفع ملف صورة فقط.' });
                 return;
@@ -64,50 +65,39 @@ export default function ServicesPage() {
                 return;
             }
             setPaymentProof(file);
+            
+            // Convert file to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const base64String = reader.result as string;
+                setImageBase64(base64String);
+            };
+            reader.onerror = (error) => {
+                console.error("Error converting file to base64:", error);
+                toast({ variant: 'destructive', title: 'خطأ في الملف', description: 'لم نتمكن من قراءة ملف الصورة.' });
+            }
         }
     };
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !paymentProof) {
+        if (!email || !paymentProof || !imageBase64) {
             toast({ variant: 'destructive', title: 'بيانات ناقصة', description: 'يرجى إدخال بريدك الإلكتروني ورفع صورة إثبات الدفع.' });
             return;
         }
         setIsLoading(true);
         try {
-            // 1. Upload image to Firebase Storage
-            const storage = getStorage();
-            // Create a unique file name
-            const storageRef = ref(storage, `payment-proofs/${Date.now()}_${paymentProof.name}`);
-            const uploadResult = await uploadBytes(storageRef, paymentProof);
-            const downloadURL = await getDownloadURL(uploadResult.ref);
-
-            // 2. Prepare the mailto link
-            const subject = encodeURIComponent("طلب اشتراك جديد في وكالة حاجتي");
-            const body = encodeURIComponent(
-`مرحبًا فريق دعم حاجتي،
-
-أرغب في تفعيل اشتراكي السنوي في وكالة حاجتي الإعلانية.
-
-- البريد الإلكتروني الخاص بي: ${email}
-- رابط إثبات الدفع: ${downloadURL}
-
-يرجى مراجعة الطلب وإرسال بيانات تسجيل الدخول.
-
-شكرًا لكم.`
-            );
-            
-            // 3. Trigger the email client
-            window.location.href = `mailto:hagaaty@gmail.com?subject=${subject}&body=${body}`;
-            
-            toast({
-                title: 'تم فتح برنامج البريد',
-                description: 'تم تجهيز رسالتك. كل ما عليك هو الضغط على "إرسال" في برنامج البريد الإلكتروني الخاص بك.',
+            await submitSubscriptionRequest({
+                userEmail: email,
+                paymentProofDataUri: imageBase64,
             });
 
-            // Reset form
-            setEmail(user?.email || '');
-            setPaymentProof(null);
+            toast({
+                title: '✅ تم إرسال طلبك بنجاح',
+                description: 'سيقوم فريقنا بمراجعة الطلب وتفعيل حسابك خلال ساعات.',
+            });
+            setIsSubmitted(true);
 
         } catch (error) {
             console.error("Error handling subscription:", error);
@@ -159,6 +149,15 @@ export default function ServicesPage() {
                  <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
                     خطوات الاشتراك
                 </h2>
+                 {isSubmitted ? (
+                    <Card className="max-w-2xl mx-auto text-center py-16 px-6 border-green-500 bg-green-500/5">
+                        <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6"/>
+                        <CardTitle className="text-2xl font-headline">تم استلام طلبك بنجاح!</CardTitle>
+                        <CardDescription className="mt-4 text-base">
+                            لقد أرسلنا طلبك إلى فريق الدعم. سيتم مراجعته وتفعيل حساب الوكالة الخاص بك خلال 3 ساعات عمل. ستستلم بيانات الدخول على بريدك الإلكتروني.
+                        </CardDescription>
+                    </Card>
+                ) : (
                 <div className="grid lg:grid-cols-2 gap-12 items-start">
                     {/* Step 1 & 2 */}
                     <div className="space-y-8">
@@ -224,7 +223,7 @@ export default function ServicesPage() {
                                             />
                                             <label htmlFor="payment-proof" className="w-full cursor-pointer">
                                                 <div className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground ring-offset-background hover:bg-accent hover:text-accent-foreground">
-                                                    <span>{paymentProof ? paymentProof.name : "اختر صورة..."}</span>
+                                                    <span className="truncate">{paymentProof ? paymentProof.name : "اختر صورة..."}</span>
                                                     <ImagePlus className="h-5 w-5" />
                                                 </div>
                                             </label>
@@ -243,6 +242,7 @@ export default function ServicesPage() {
                         </Card>
                     </div>
                 </div>
+                )}
             </section>
             
             {/* What happens next */}
@@ -279,3 +279,5 @@ export default function ServicesPage() {
         </div>
     );
 }
+
+    
