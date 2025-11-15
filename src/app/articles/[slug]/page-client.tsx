@@ -7,10 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Headphones, Loader2 } from 'lucide-react';
 import type { Post } from '@/types';
 import { Timestamp } from 'firebase/firestore';
 import { marked } from 'marked';
+import { useState } from 'react';
+import { generateAudio } from '@/ai/flows/generate-audio';
+import { useToast } from '@/hooks/use-toast';
 
 
 type ArticlePageClientProps = {
@@ -32,23 +35,64 @@ function formatDate(date: string | Date | Timestamp) {
 
 
 export default function ArticlePageClient({ post }: ArticlePageClientProps) {
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const { toast } = useToast();
 
   if (!post) {
     notFound();
   }
 
   const processedContent = marked(post.content);
+  
+  const handleGenerateAudio = async () => {
+    setIsGeneratingAudio(true);
+    try {
+        const audioResult = await generateAudio({ text: `عنوان المقال: ${post.title}. ${post.content}`});
+        setAudioUrl(audioResult.audioUrl);
+    } catch (error) {
+        console.error("Failed to generate audio:", error);
+        toast({
+            variant: "destructive",
+            title: "فشل توليد الصوت",
+            description: "حدث خطأ أثناء محاولة تحويل المقال إلى صوت."
+        })
+    } finally {
+        setIsGeneratingAudio(false);
+    }
+  }
+
 
   return (
     <article className="container max-w-4xl mx-auto px-4 py-12">
-        <div className='mb-8'>
+        <div className='mb-8 flex justify-between items-center'>
             <Button variant="ghost" asChild>
                 <Link href="/blog">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     العودة للمدونة
                 </Link>
             </Button>
+            
+            {!audioUrl && (
+              <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="outline">
+                  {isGeneratingAudio ? (
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin"/>
+                  ) : (
+                      <Headphones className="ml-2 h-4 w-4"/>
+                  )}
+                  <span>{isGeneratingAudio ? "جاري توليد الصوت..." : "استمع إلى المقال"}</span>
+              </Button>
+            )}
         </div>
+        
+      {audioUrl && (
+        <div className="mb-8 p-4 bg-muted rounded-lg">
+            <audio controls src={audioUrl} className="w-full">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+      )}
+
       <header className="mb-8">
         <div className="mb-4">
             <Badge variant="default" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
