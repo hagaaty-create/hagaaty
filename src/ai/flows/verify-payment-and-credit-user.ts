@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { doc, FieldValue, runTransaction } from 'firebase/firestore';
+import { doc, FieldValue, runTransaction, collection } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import { sendEmail } from '@/lib/send-email';
 import { notifyReferralBonus } from './notify-referral-bonus';
@@ -66,34 +66,33 @@ const creditUserAndProcessMLMTool = ai.defineTool(
       console.log(`[Tool] Credited user ${userId} with $${amount}.`);
 
       // 2. Check if this is the user's first deposit and if they have an upline (ancestors)
-      // We check for a low balance to approximate a "first deposit" scenario
-      const isFirstDeposit = userData.balance < 5;
+      const isFirstDeposit = (userData.balance || 0) < 5;
       const ancestors = userData.ancestors as string[] | undefined;
 
       if (isFirstDeposit && ancestors && ancestors.length > 0) {
         console.log(`[Tool] User ${userId} has an upline. Processing MLM commissions.`);
         const commissionPool = amount * COMMISSION_POOL_PERCENTAGE;
 
+        // Fetch all ancestor documents in one go for efficiency
+        const ancestorRefs = ancestors.map(id => doc(firestore, 'users', id));
+        const ancestorDocs = await transaction.getAll(...ancestorRefs);
+        
         // Distribute commissions to each ancestor
-        for (let i = 0; i < ancestors.length && i < LEVEL_DISTRIBUTION.length; i++) {
-          const ancestorId = ancestors[i];
+        for (let i = 0; i < ancestorDocs.length && i < LEVEL_DISTRIBUTION.length; i++) {
+          const ancestorDoc = ancestorDocs[i];
           const commissionAmount = commissionPool * LEVEL_DISTRIBUTION[i];
-          const ancestorRef = doc(firestore, 'users', ancestorId);
 
-          console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorId}`);
-          transaction.update(ancestorRef, { referralEarnings: FieldValue.increment(commissionAmount) });
-
-          // Fire-and-forget email notification to the referrer (only for the direct referrer for now)
-          if (i === 0) {
-             const ancestorDoc = await transaction.get(ancestorRef);
-             if (ancestorDoc.exists()) {
-                 const ancestorData = ancestorDoc.data()!;
-                 notifyReferralBonus({
-                     referrerEmail: ancestorData.email,
-                     newUserName: userData.displayName,
-                     commissionAmount: commissionAmount,
-                 }).catch(console.error);
-             }
+          if (ancestorDoc.exists()) {
+              console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorDoc.id}`);
+              transaction.update(ancestorDoc.ref, { referralEarnings: FieldValue.increment(commissionAmount) });
+              
+              const ancestorData = ancestorDoc.data()!;
+              // Fire-and-forget email notification to the referrer
+               notifyReferralBonus({
+                   referrerEmail: ancestorData.email,
+                   newUserName: userData.displayName,
+                   commissionAmount: commissionAmount,
+               }).catch(console.error);
           }
         }
       } else {

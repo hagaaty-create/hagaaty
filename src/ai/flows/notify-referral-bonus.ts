@@ -56,7 +56,7 @@ const notifyReferralBonusFlow = ai.defineFlow(
           <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; padding: 30px; border: 1px solid #ddd;">
             <h1 style="color: #16a34a; font-size: 24px;">تهانينا! لديك أرباح جديدة!</h1>
             <p style="color: #555; font-size: 16px; line-height: 1.6;">
-              يسعدنا إعلامك بأن المستخدم <strong>${input.newUserName}</strong>، الذي قمت بدعوته، قد قام بأول عملية شحن له.
+              يسعدنا إعلامك بأن المستخدم <strong>${input.newUserName}</strong>، الذي يقع ضمن شبكتك، قد قام بعملية إيداع.
             </p>
             <p style="color: #555; font-size: 16px; line-height: 1.6;">
               نتيجة لذلك، تمت إضافة عمولة بقيمة <strong>${input.commissionAmount.toFixed(2)}$</strong> إلى رصيد أرباح الإحالة الخاص بك.

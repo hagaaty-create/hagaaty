@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { doc, FieldValue, runTransaction, getDoc } from 'firebase/firestore';
+import { doc, FieldValue, runTransaction, getDoc, getDocs, collection } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import { sendEmail } from '@/lib/send-email';
 import { notifyReferralBonus } from './notify-referral-bonus';
@@ -53,7 +53,7 @@ const processAgencyMLMTool = ai.defineTool(
 
     await runTransaction(firestore, async (transaction) => {
       const userDoc = await transaction.get(userRef);
-      if (!userDoc.exists) {
+      if (!userDoc.exists()) {
         throw new Error(`User with ID ${userId} not found.`);
       }
       const userData = userDoc.data()!;
@@ -68,24 +68,24 @@ const processAgencyMLMTool = ai.defineTool(
         console.log(`[Tool] User ${userId} has an upline. Processing agency MLM commissions.`);
         const commissionPool = subscriptionAmount * COMMISSION_POOL_PERCENTAGE;
 
-        for (let i = 0; i < ancestors.length && i < LEVEL_DISTRIBUTION.length; i++) {
-          const ancestorId = ancestors[i];
+        const ancestorRefs = ancestors.map(id => doc(firestore, 'users', id));
+        const ancestorDocs = await transaction.getAll(...ancestorRefs);
+
+        for (let i = 0; i < ancestorDocs.length && i < LEVEL_DISTRIBUTION.length; i++) {
+          const ancestorDoc = ancestorDocs[i];
           const commissionAmount = commissionPool * LEVEL_DISTRIBUTION[i];
-          const ancestorRef = doc(firestore, 'users', ancestorId);
+          
+          if (ancestorDoc.exists()) {
+              console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorDoc.id}`);
+              transaction.update(ancestorDoc.ref, { referralEarnings: FieldValue.increment(commissionAmount) });
 
-          console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorId}`);
-          transaction.update(ancestorRef, { referralEarnings: FieldValue.increment(commissionAmount) });
-
-          if (i === 0) {
-             const ancestorDoc = await transaction.get(ancestorRef);
-             if (ancestorDoc.exists()) {
-                 const ancestorData = ancestorDoc.data()!;
-                 notifyReferralBonus({
-                     referrerEmail: ancestorData.email,
-                     newUserName: userData.displayName,
-                     commissionAmount: commissionAmount,
-                 }).catch(console.error);
-             }
+              const ancestorData = ancestorDoc.data()!;
+              // Fire-and-forget notification
+              notifyReferralBonus({
+                  referrerEmail: ancestorData.email,
+                  newUserName: userData.displayName,
+                  commissionAmount: commissionAmount,
+              }).catch(console.error);
           }
         }
       } else {
