@@ -229,8 +229,8 @@ service cloud.firestore {
        * Users can manage their own campaigns, but not if they are suspended.
        */
       match /campaigns/{campaignId} {
-          allow get, create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.status != 'suspended';
-          allow list: if isOwner(userId);
+          allow read: if isOwner(userId);
+          allow write: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.status != 'suspended';
       }
     }
     
