@@ -47,7 +47,7 @@ const notifyReferralBonusFlow = ai.defineFlow(
     outputSchema: z.void(),
   },
   async (input) => {
-    const subject = `💰 لقد ربحت ${input.commissionAmount}$ من برنامج الإحالة!`;
+    const subject = `💰 لقد ربحت ${input.commissionAmount.toFixed(2)}$ من برنامج الإحالة!`;
     const referralsUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/referrals`;
     
     const html = `
@@ -74,7 +74,8 @@ const notifyReferralBonusFlow = ai.defineFlow(
       </html>
     `;
 
-    await ai.generate({
+    // Fire and forget, but still needs to be an LLM call to use the tool
+    ai.generate({
       prompt: `أرسل بريدًا إلكترونيًا لإعلام المستخدم (${input.referrerEmail}) بأنه حصل على عمولة إحالة.`,
       model: 'googleai/gemini-2.5-flash',
       tools: [sendEmailTool],
@@ -85,6 +86,6 @@ const notifyReferralBonusFlow = ai.defineFlow(
               html,
           }
       }
-    });
+    }).catch(console.error);
   }
 );

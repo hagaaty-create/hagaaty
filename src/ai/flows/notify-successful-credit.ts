@@ -48,7 +48,7 @@ const notifySuccessfulCreditFlow = ai.defineFlow(
     outputSchema: z.void(),
   },
   async (input) => {
-    const subject = `✅ تم شحن رصيدك بنجاح: ${input.amount}$`;
+    const subject = `✅ تم شحن رصيدك بنجاح: ${input.amount.toFixed(2)}$`;
     const createAdUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/create-ad`;
     const billingUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/billing`;
 
@@ -80,7 +80,8 @@ const notifySuccessfulCreditFlow = ai.defineFlow(
       </html>
     `;
 
-    await ai.generate({
+    // Fire and forget
+    ai.generate({
       prompt: `أرسل بريدًا إلكترونيًا لإعلام المستخدم (${input.userEmail}) بأنه تم إضافة رصيد إلى حسابه بنجاح.`,
       model: 'googleai/gemini-2.5-flash',
       tools: [sendEmailTool],
@@ -91,6 +92,6 @@ const notifySuccessfulCreditFlow = ai.defineFlow(
           html,
         },
       },
-    });
+    }).catch(console.error);
   }
 );

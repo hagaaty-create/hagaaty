@@ -76,6 +76,10 @@ export default function BillingPage() {
         // Show success state immediately to the user.
         setIsSubmitted(true);
         setIsLoading(false);
+        toast({
+            title: '✅ تم إرسال طلبك بنجاح',
+            description: 'يقوم الذكاء الاصطناعي بمراجعة الإيصال الآن. سيتم إضافة الرصيد لحسابك خلال دقيقة.',
+        });
     };
 
     return (
@@ -88,9 +92,9 @@ export default function BillingPage() {
             {isSubmitted ? (
                 <Card className="max-w-2xl mx-auto text-center py-16 px-6 border-green-500 bg-green-500/5">
                     <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6"/>
-                    <CardTitle className="text-2xl font-headline">تم إرسال طلبك للمراجعة!</CardTitle>
+                    <CardTitle className="text-2xl font-headline">تم استلام طلبك للمراجعة!</CardTitle>
                     <CardDescription className="mt-4 text-base">
-                        سيقوم وكيل الذكاء الاصطناعي بمراجعة إيصالك الآن. سيتم إعلامك عبر البريد الإلكتروني وإضافة الرصيد لحسابك تلقائيًا خلال دقيقة في حال نجاح التحقق.
+                        يقوم وكيل الذكاء الاصطناعي حاليًا بتحليل إيصال الدفع الخاص بك. في حالة نجاح التحقق، سيتم إضافة الرصيد إلى حسابك تلقائيًا في غضون دقيقة، وسيتم إعلامك عبر البريد الإلكتروني عند اكتمال العملية.
                     </CardDescription>
                 </Card>
             ) : (

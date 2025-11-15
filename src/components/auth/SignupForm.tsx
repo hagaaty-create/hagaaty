@@ -90,7 +90,7 @@ function SignupFormComponent() {
         createdAt: serverTimestamp(),
         referralCode: generateReferralCode(6),
         referralEarnings: 0,
-        referredBy: referralCode || null,
+        referredBy: referralCode || null, // Store the referral code
         status: 'active',
       });
       
@@ -183,7 +183,7 @@ function SignupFormComponent() {
                 placeholder="أدخل رمز الإحالة هنا" 
                 value={referralCode}
                 onChange={e => setReferralCode(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || (searchParams.get('ref') ? true : false)}
               />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>

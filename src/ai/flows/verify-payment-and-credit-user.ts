@@ -53,7 +53,18 @@ const creditUserBalanceTool = ai.defineTool(
     }
 
     const userData = userDoc.data()!;
-    const referredBy = userData.referredBy; // The ID of the user who referred them
+    const referredByCode = userData.referredBy; // This should be the referral CODE, not UID.
+    
+    // We need to find the referrer by their code.
+    let referrerRef: FirebaseFirestore.DocumentReference | null = null;
+    if (referredByCode) {
+        const referrerQuery = db.collection('users').where('referralCode', '==', referredByCode).limit(1);
+        const referrerSnapshot = await referrerQuery.get();
+        if (!referrerSnapshot.empty) {
+            referrerRef = referrerSnapshot.docs[0].ref;
+        }
+    }
+
 
     // Transaction to ensure atomicity
     await db.runTransaction(async (transaction) => {
@@ -62,9 +73,8 @@ const creditUserBalanceTool = ai.defineTool(
 
       // 2. Check if this user was referred and if it's their first deposit (check if their balance was ~2)
       // We check for balance < 5 to consider the initial $2 welcome bonus.
-      if (referredBy && userData.balance < 5) {
-        console.log(`[Tool] User ${userId} was referred by ${referredBy}. Processing referral bonus.`);
-        const referrerRef = db.collection('users').doc(referredBy);
+      if (referrerRef && userData.balance < 5) {
+        console.log(`[Tool] User ${userId} was referred by ${referrerRef.id}. Processing referral bonus.`);
         const commission = amount * 0.20; // 20% commission
         
         // Add commission to the referrer's earnings
@@ -175,5 +185,6 @@ const verifyPaymentFlow = ai.defineFlow(
 
 // Exported function to be called from the frontend
 export async function verifyPaymentAndCreditUser(input: VerifyPaymentInput): Promise<void> {
-  await verifyPaymentFlow(input);
+  // This is a fire-and-forget call. The client does not wait for this to complete.
+  verifyPaymentFlow(input);
 }

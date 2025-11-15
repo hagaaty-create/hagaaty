@@ -54,6 +54,7 @@ service cloud.firestore {
             && user.referralCode is string
             && user.referralEarnings == 0
             && user.status == 'active'
+            // The 'referredBy' field is a referral *code*, not a UID. It's optional.
             && (!('referredBy' in user) || user.referredBy == null || user.referredBy is string);
     }
 
@@ -66,6 +67,7 @@ service cloud.firestore {
             && incoming.role == existing.role
             && incoming.createdAt == existing.createdAt
             && incoming.referralCode == existing.referralCode
+            // Users cannot change their own referral earnings. Only system logic (via admin SDK) can.
             && incoming.referralEarnings == existing.referralEarnings
             && incoming.referredBy == existing.referredBy // User cannot change who referred them
             && incoming.status == existing.status; // User cannot change their own status
