@@ -12,4 +12,7 @@ import '@/ai/flows/analyze-article-seo.ts';
 import '@/ai/flows/generate-video-flow.ts';
 import '@/ai/flows/generate-affiliate-material.ts';
 import '@/ai/flows/verify-agency-subscription.ts';
+import '@/ai/flows/verify-payment-and-credit-user.ts';
+import '@/ai/flows/notify-successful-credit.ts';
+import '@/ai/flows/notify-referral-bonus.ts';
     
