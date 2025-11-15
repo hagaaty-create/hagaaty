@@ -79,7 +79,7 @@ service cloud.firestore {
         // to ensure integrity (e.g. points/referrals should only be changed by system logic).
         return incoming.id == existing.id
             && incoming.email == existing.email
-            && incoming.role == existing.role
+            && incoming.role == existing.role // Admins cannot change roles
             && incoming.createdAt == existing.createdAt
             && incoming.referralCode == existing.referralCode
             && incoming.referralEarnings == existing.referralEarnings // Only system logic can change this

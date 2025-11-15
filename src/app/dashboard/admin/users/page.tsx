@@ -34,6 +34,7 @@ export default function ManageUsersPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [displayName, setDisplayName] = useState('');
   const [balanceAdjustment, setBalanceAdjustment] = useState('');
   
   const usersQuery = useMemoFirebase(() => {
@@ -45,28 +46,38 @@ export default function ManageUsersPage() {
 
   const handleOpenDialog = (user: UserProfile) => {
     setSelectedUser(user);
+    setDisplayName(user.displayName);
     setBalanceAdjustment('');
     setIsDialogOpen(true);
   };
 
   const handleSaveChanges = async () => {
     if (!firestore || !selectedUser) return;
-
+    
+    const updates: { [key: string]: any } = {};
     const amount = parseFloat(balanceAdjustment);
-    if (isNaN(amount)) {
-      toast({ variant: 'destructive', title: 'قيمة غير صالحة', description: 'الرجاء إدخال رقم صحيح لضبط الرصيد.' });
-      return;
+
+    if (displayName !== selectedUser.displayName) {
+        updates.displayName = displayName;
+    }
+
+    if (!isNaN(amount) && amount !== 0) {
+      updates.balance = selectedUser.balance + amount;
+    }
+
+    if (Object.keys(updates).length === 0) {
+        toast({ variant: 'default', title: 'لا توجد تغييرات', description: 'لم تقم بإجراء أي تغييرات.' });
+        setIsDialogOpen(false);
+        return;
     }
 
     const userRef = doc(firestore, 'users', selectedUser.id);
     try {
-      await updateDoc(userRef, {
-        balance: selectedUser.balance + amount
-      });
-      toast({ title: 'تم تحديث الرصيد', description: `تم تحديث رصيد ${selectedUser.displayName} بنجاح.` });
+      await updateDoc(userRef, updates);
+      toast({ title: 'تم تحديث المستخدم', description: `تم تحديث بيانات ${selectedUser.displayName} بنجاح.` });
     } catch (error) {
-      console.error("Error updating balance:", error);
-      toast({ variant: 'destructive', title: 'فشل التحديث', description: 'لم نتمكن من تحديث الرصيد.' });
+      console.error("Error updating user:", error);
+      toast({ variant: 'destructive', title: 'فشل التحديث', description: 'لم نتمكن من تحديث بيانات المستخدم.' });
     } finally {
       setIsDialogOpen(false);
       setSelectedUser(null);
@@ -161,15 +172,26 @@ export default function ManageUsersPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تعديل رصيد: {selectedUser?.displayName}</DialogTitle>
+            <DialogTitle>تعديل بيانات: {selectedUser?.displayName}</DialogTitle>
             <DialogDescription>
-              أدخل قيمة موجبة للإضافة أو سالبة للخصم. الرصيد الحالي هو ${selectedUser?.balance.toFixed(2)}.
+              قم بتعديل اسم المستخدم أو إضافة/خصم رصيد من حسابه.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="displayName" className="text-right col-span-1">
+                الاسم
+              </Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="balance-adjustment" className="text-right col-span-1">
-                المبلغ
+                تعديل الرصيد
               </Label>
               <Input
                 id="balance-adjustment"
@@ -177,7 +199,7 @@ export default function ManageUsersPage() {
                 value={balanceAdjustment}
                 onChange={(e) => setBalanceAdjustment(e.target.value)}
                 className="col-span-3"
-                placeholder="مثال: 50 أو -10"
+                placeholder={`الرصيد الحالي: $${selectedUser?.balance.toFixed(2)}`}
               />
             </div>
           </div>
