@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Crown, ExternalLink, ImagePlus, Loader2, Mail, ShieldCheck, TrendingUp, Zap } from "lucide-react";
+import { Check, Crown, ExternalLink, ImagePlus, Loader2, Mail, ShieldCheck, TrendingUp, Zap, Rocket } from "lucide-react";
 import { useState } from "react";
 import { useUser } from '@/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Badge } from "@/components/ui/badge";
 
 const agencyFeatures = [
     {
@@ -154,7 +155,7 @@ export default function ServicesPage() {
             </section>
 
             {/* How to Subscribe Section */}
-            <section>
+            <section className="mb-20">
                  <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
                     خطوات الاشتراك
                 </h2>
@@ -242,6 +243,38 @@ export default function ServicesPage() {
                         </Card>
                     </div>
                 </div>
+            </section>
+            
+            {/* What happens next */}
+            <section>
+                 <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
+                    ماذا بعد الاشتراك؟
+                </h2>
+                <Card className="max-w-4xl mx-auto bg-card/50 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3"><Rocket className="h-6 w-6 text-primary"/> استلام بيانات الدخول وبدء العمل</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-muted-foreground leading-relaxed">
+                          بعد إرسال طلبك ومراجعته من قبل فريقنا، ستستلم رسالة على بريدك الإلكتروني خلال 3 ساعات عمل تحتوي على بيانات تسجيل الدخول الخاصة بك إلى الوكالة (رابط الوكالة، اسم المستخدم، وكلمة المرور).
+                        </p>
+                        <p className="font-semibold text-foreground">بمجرد تسجيل دخولك، يمكنك فورًا:</p>
+                        <ul className="space-y-2">
+                            <li className="flex items-start gap-3">
+                                <Check className="h-5 w-5 text-green-500 mt-1 shrink-0" />
+                                <span className="text-muted-foreground">فتح أي عدد من الحسابات الإعلانية الموثقة (ايجنسي) على المنصة التي تختارها.</span>
+                            </li>
+                             <li className="flex items-start gap-3">
+                                <Check className="h-5 w-5 text-green-500 mt-1 shrink-0" />
+                                <span className="text-muted-foreground">الاستمتاع بحسابات محمية ضد التعليق والإغلاق العشوائي.</span>
+                            </li>
+                             <li className="flex items-start gap-3">
+                                <Check className="h-5 w-5 text-green-500 mt-1 shrink-0" />
+                                <span className="text-muted-foreground">استهداف جميع دول العالم وإطلاق حملاتك بدون حدود على الإنفاق.</span>
+                            </li>
+                        </ul>
+                    </CardContent>
+                </Card>
             </section>
         </div>
     );
