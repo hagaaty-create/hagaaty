@@ -99,18 +99,17 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                 </div>
                  <div className="grid w-full gap-2">
                     <Label htmlFor="tags-input">الوسوم (مفصولة بفاصلة)</Label>
-                    <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-[40px] bg-background">
+                     <Input
+                        id="tags-input"
+                        value={tags}
+                        onChange={(e) => setTags(e.target.value)}
+                        disabled={isSaving}
+                        placeholder="أضف الوسوم هنا..."
+                    />
+                     <div className="flex flex-wrap items-center gap-2 pt-2 min-h-[20px]">
                          {tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
                             <Badge key={tag} variant="secondary" className="text-sm">{tag}</Badge>
                         ))}
-                        <input
-                            id="tags-input"
-                            value={tags}
-                            onChange={(e) => setTags(e.target.value)}
-                            disabled={isSaving}
-                            placeholder={tags.split(',').map(t=>t.trim()).filter(Boolean).length === 0 ? "أضف الوسوم هنا..." : ""}
-                            className="bg-transparent outline-none flex-1 min-w-[100px] text-sm"
-                        />
                     </div>
                 </div>
             </div>
