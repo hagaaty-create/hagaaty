@@ -11,8 +11,8 @@ export default function CreateAdPage() {
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>محاكي حملات جوجل الإعلانية</CardTitle>
-                    <CardDescription>أدخل تفاصيل حملتك ودع الذكاء الاصطناعي يقترح عليك أفضل نسخة إعلانية. هذه محاكاة لتجربة إنشاء إعلان على جوجل.</CardDescription>
+                    <CardTitle>إنشاء حملة إعلانية على جوجل</CardTitle>
+                    <CardDescription>أدخل تفاصيل حملتك ودع الذكاء الاصطناعي يصمم وينشئ لك حملة إعلانية فعالة على جوجل.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <AdCreationForm />

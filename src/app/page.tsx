@@ -27,7 +27,7 @@ export default async function Home() {
   const features = [
     {
       icon: <Zap className="h-8 w-8 text-primary" />,
-      title: 'محاكاة إعلانات جوجل الفورية',
+      title: 'إطلاق إعلانات جوجل الفورية',
       description: 'احصل على رصيد ترحيبي بقيمة 2$ لتجربة إعلانك الأول. يقوم الذكاء الاصطناعي بتصميم وتفعيل حملتك خلال 10 دقائق فقط!',
     },
     {
