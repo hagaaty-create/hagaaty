@@ -115,27 +115,34 @@ const creditUserAndProcessMLMTool = ai.defineTool(
 const sendAdminNotificationTool = ai.defineTool(
   {
     name: 'sendAdminNotification',
-    description: 'Sends an email notification to the admin about a successful transaction.',
+    description: 'Sends an email notification to the admin about a successful or failed transaction.',
     inputSchema: z.object({
-      userEmail: z.string(),
-      amount: z.number(),
-      paymentMethod: z.string(),
-      paymentProofDataUri: z.string(),
+        userEmail: z.string(),
+        amount: z.number(),
+        paymentMethod: z.string(),
+        paymentProofDataUri: z.string(),
+        success: z.boolean(),
+        failureReason: z.string().optional(),
     }),
     outputSchema: z.void(),
   },
-  async ({ userEmail, amount, paymentMethod, paymentProofDataUri }) => {
+  async ({ userEmail, amount, paymentMethod, paymentProofDataUri, success, failureReason }) => {
     console.log(`[Tool] Sending admin notification for user ${userEmail}`);
-    const subject = `✅ عملية شحن ناجحة: ${userEmail} أضاف $${amount}`;
+    const subject = success
+        ? `✅ عملية شحن ناجحة: ${userEmail} أضاف $${amount}`
+        : `🚨 فشل التحقق من عملية شحن: ${userEmail}`;
+        
     const html = `
       <div dir="rtl">
-        <h1>عملية شحن جديدة وناجحة</h1>
-        <p>قام المستخدم <strong>${userEmail}</strong> بشحن رصيده بنجاح.</p>
+        <h1>${success ? 'عملية شحن جديدة وناجحة' : 'فشل التحقق من عملية شحن'}</h1>
+        <p>قام المستخدم <strong>${userEmail}</strong> بمحاولة شحن رصيده.</p>
         <ul>
           <li><strong>المبلغ:</strong> ${amount}$</li>
           <li><strong>طريقة الدفع:</strong> ${paymentMethod}</li>
+          <li><strong>الحالة:</strong> ${success ? 'ناجح' : 'فشل'}</li>
+           ${!success ? `<li><strong>سبب الفشل (حسب تقدير AI):</strong> ${failureReason}</li>` : ''}
         </ul>
-        <p>تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وإضافة الرصيد وتوزيع عمولات الشبكة تلقائيًا.</p>
+        <p>${success ? 'تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وإضافة الرصيد وتوزيع عمولات الشبكة تلقائيًا.' : '<strong>مطلوب إجراء يدوي!</strong> يرجى التحقق من الإيصال وإضافة الرصيد للمستخدم يدويًا إذا كان صالحًا.'}</p>
         <p><strong>إيصال الدفع المرفق:</strong></p>
         <img src="${paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px; border: 1px solid #ccc;"/>
       </div>
@@ -160,8 +167,10 @@ const verifyPaymentFlow = ai.defineFlow(
   async (input) => {
     console.log(`[Flow] Starting payment verification for user ${input.userEmail}`);
     
-    await ai.generate({
-      prompt: `أنت نظام آلي للتحقق من عمليات الدفع وتوزيع عمولات التسويق الشبكي (MLM). لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'creditUserAndProcessMLM' لإضافة الرصيد إلى حسابه وتوزيع العمولات على شبكته، ثم استدع أداة 'sendAdminNotification' لإرسال إشعار للمسؤول.
+    const { "tool-results": toolResults, output } = await ai.generate({
+      prompt: `أنت نظام آلي للتحقق من عمليات الدفع. لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة.
+- إذا بدت كإيصال دفع صالح للمبلغ المحدد، قم باستدعاء أداة 'creditUserAndProcessMLM' لإضافة الرصيد، ثم استدع أداة 'sendAdminNotification' مع success=true.
+- إذا لم تبدو كإيصال دفع صالح (غير واضحة، ليست إيصالًا، المبلغ خطأ، إلخ)، استدع فقط أداة 'sendAdminNotification' مع success=false وسبب الفشل.
 
 معلومات المستخدم:
 - البريد الإلكتروني: ${input.userEmail}
@@ -186,9 +195,14 @@ const verifyPaymentFlow = ai.defineFlow(
       },
     });
 
-    // Notify the user that their credit has been added, fire-and-forget.
-    notifySuccessfulCredit({ userEmail: input.userEmail, amount: input.amount }).catch(console.error);
+    // We can check if 'creditUserAndProcessMLM' was called to determine success.
+    const wasCreditSuccessful = toolResults.some(result => result.toolName === 'creditUserAndProcessMLM');
 
+    if (wasCreditSuccessful) {
+        // Notify the user that their credit has been added, fire-and-forget.
+        notifySuccessfulCredit({ userEmail: input.userEmail, amount: input.amount }).catch(console.error);
+    }
+    
     console.log(`[Flow] Payment verification and crediting process initiated for ${input.userEmail}.`);
   }
 );

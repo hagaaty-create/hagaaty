@@ -103,29 +103,38 @@ const processAgencyMLMTool = ai.defineTool(
 const sendAdminNotificationTool = ai.defineTool(
   {
     name: 'sendAdminAgencyNotification',
-    description: 'Sends an email notification to the admin about a successful agency subscription.',
+    description: 'Sends an email notification to the admin about a successful or failed agency subscription.',
     inputSchema: z.object({
-      userEmail: z.string(),
-      amount: z.number(),
-      paymentProofDataUri: z.string(),
+        userEmail: z.string(),
+        amount: z.number(),
+        paymentProofDataUri: z.string(),
+        success: z.boolean(),
+        failureReason: z.string().optional(),
     }),
     outputSchema: z.void(),
   },
-  async ({ userEmail, amount, paymentProofDataUri }) => {
+  async ({ userEmail, amount, paymentProofDataUri, success, failureReason }) => {
     console.log(`[Tool] Sending admin notification for agency subscription for ${userEmail}`);
-    const subject = `✅ اشتراك وكالة جديد: ${userEmail} دفع $${amount}`;
+    
+    const subject = success
+      ? `✅ اشتراك وكالة جديد: ${userEmail} دفع $${amount}`
+      : `🚨 فشل التحقق من اشتراك وكالة: ${userEmail}`;
+      
     const html = `
       <div dir="rtl">
-        <h1>اشتراك وكالة جديد وناجح</h1>
-        <p>قام المستخدم <strong>${userEmail}</strong> بالاشتراك في خدمة الوكالة.</p>
+        <h1>${success ? 'اشتراك وكالة جديد وناجح' : 'فشل التحقق من اشتراك وكالة'}</h1>
+        <p>قام المستخدم <strong>${userEmail}</strong> بمحاولة الاشتراك في خدمة الوكالة.</p>
         <ul>
           <li><strong>المبلغ:</strong> ${amount}$</li>
+          <li><strong>الحالة:</strong> ${success ? 'ناجح' : 'فشل'}</li>
+          ${!success ? `<li><strong>سبب الفشل (حسب تقدير AI):</strong> ${failureReason}</li>` : ''}
         </ul>
-        <p>تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وتوزيع عمولات الشبكة تلقائيًا.</p>
+        <p>${success ? 'تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وتوزيع عمولات الشبكة تلقائيًا.' : '<strong>مطلوب إجراء يدوي!</strong> يرجى التحقق من الإيصال وإتمام العملية يدويًا إذا كان صالحًا.'}</p>
         <p><strong>إيصال الدفع المرفق:</strong></p>
         <img src="${paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px; border: 1px solid #ccc;"/>
       </div>
     `;
+
     await sendEmail({
       to: 'hagaaty@gmail.com', // Hardcoded admin email
       subject,
@@ -147,7 +156,9 @@ const verifyAgencySubscriptionFlow = ai.defineFlow(
     console.log(`[Flow] Starting agency subscription verification for user ${input.userEmail}`);
     
     await ai.generate({
-      prompt: `أنت نظام آلي للتحقق من اشتراكات الوكالة وتوزيع عمولات التسويق الشبكي (MLM). لقد قدم المستخدم التالي إيصال دفع للاشتراك في خدمة الوكالة. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'processAgencyMLM' لتوزيع العمولات على شبكته، ثم استدع أداة 'sendAdminAgencyNotification' لإرسال إشعار للمسؤول.
+      prompt: `أنت نظام آلي للتحقق من اشتراكات الوكالة. لقد قدم المستخدم التالي إيصال دفع للاشتراك في خدمة الوكالة. "تحقق" من الصورة المرفقة.
+- إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'processAgencyMLM' لتوزيع العمولات، ثم استدع أداة 'sendAdminAgencyNotification' مع success=true.
+- إذا لم تبدو كإيصال دفع صالح (غير واضحة، ليست إيصالًا، إلخ)، استدع فقط أداة 'sendAdminAgencyNotification' مع success=false وسبب الفشل.
 
 معلومات المستخدم:
 - البريد الإلكتروني: ${input.userEmail}
