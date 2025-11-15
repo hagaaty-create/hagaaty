@@ -80,7 +80,7 @@ function CampaignsPageContent() {
             name: c.productName.substring(0, 15) + '...',
             impressions: c.performance.impressions,
             clicks: c.performance.clicks
-        })).reverse(); // Reverse to show oldest first in chart
+        })).slice(0, 10).reverse(); // show last 10, but oldest first in chart
         
         const impressions = campaigns.reduce((acc, c) => acc + c.performance.impressions, 0);
         const clicks = campaigns.reduce((acc, c) => acc + c.performance.clicks, 0);
@@ -162,7 +162,7 @@ function CampaignsPageContent() {
                 <CardHeader>
                     <CardTitle>مقارنة أداء الحملات</CardTitle>
                     <CardDescription>
-                        مخطط شريطي يقارن بين النقرات ومرات الظهور لكل حملة.
+                        مخطط شريطي يقارن بين النقرات ومرات الظهور لآخر 10 حملات.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -177,6 +177,9 @@ function CampaignsPageContent() {
                                         tickMargin={10}
                                         axisLine={false}
                                         stroke="hsl(var(--muted-foreground))"
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={60}
                                     />
                                     <YAxis stroke="hsl(var(--muted-foreground))" />
                                     <ChartTooltip

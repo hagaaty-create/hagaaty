@@ -11,7 +11,7 @@ type CampaignReviewProgressProps = {
   campaignId: string;
 };
 
-const REVIEW_DURATION_SECONDS = 300; // 5 minutes
+const REVIEW_DURATION_SECONDS = 10; // Reduced for better demo experience
 
 export default function CampaignReviewProgress({ campaignId }: CampaignReviewProgressProps) {
   const [progress, setProgress] = useState(0);
@@ -63,9 +63,9 @@ export default function CampaignReviewProgress({ campaignId }: CampaignReviewPro
   }
 
   return (
-    <div className="w-full flex items-center gap-2">
-      <Progress value={progress} className="w-20 h-2" />
+    <div className="w-full flex items-center gap-2" dir="ltr">
       <span className="text-xs text-muted-foreground font-mono">{Math.round(progress)}%</span>
+      <Progress value={progress} className="w-20 h-2" />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, MousePointerClick, DollarSign, Activity, Power } from "lucide-react";
 import type { Timestamp } from "firebase/firestore";

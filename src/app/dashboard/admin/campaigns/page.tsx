@@ -31,7 +31,7 @@ type AdCampaign = {
   id: string;
   productName: string;
   headline: string;
-  status: 'draft' | 'active' | 'paused' | 'completed';
+  status: 'draft' | 'active' | 'paused' | 'completed' | 'reviewing';
   createdAt: Timestamp;
   user?: {
     id: string;
@@ -99,6 +99,26 @@ export default function AllCampaignsPage() {
 
     fetchAllCampaignsAndUsers();
   }, [firestore]);
+
+    const getStatusBadge = (status: AdCampaign['status']) => {
+        const variantMap: Record<AdCampaign['status'], 'default' | 'secondary' | 'outline' | 'destructive'> = {
+            active: 'default',
+            reviewing: 'secondary',
+            paused: 'outline',
+            completed: 'outline',
+            draft: 'secondary',
+        };
+        
+        const statusTextMap: Record<AdCampaign['status'], string> = {
+            active: 'نشطة',
+            reviewing: 'تحت المراجعة',
+            paused: 'متوقفة',
+            completed: 'مكتملة',
+            draft: 'مسودة',
+        };
+
+        return <Badge variant={variantMap[status] || 'secondary'}>{statusTextMap[status]}</Badge>;
+    };
 
   const { chartData, totalImpressions, totalClicks, totalSpent, totalCampaigns } = useMemo(() => {
     if (!campaigns) {
@@ -261,13 +281,7 @@ export default function AllCampaignsPage() {
                     <TableCell className="font-medium text-muted-foreground">{campaign.user?.email}</TableCell>
                     <TableCell className="font-medium">{campaign.productName}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          campaign.status === 'active' ? 'default' : 'secondary'
-                        }
-                      >
-                        {campaign.status}
-                      </Badge>
+                      {getStatusBadge(campaign.status)}
                     </TableCell>
                     <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>

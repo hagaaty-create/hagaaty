@@ -62,7 +62,6 @@ export default function DashboardPage() {
   
   const activeCampaigns = useMemo(() => {
       if (!campaigns) return 0;
-      // For now we count all campaigns as "active" for the dashboard display
       return campaigns.filter(c => c.status === 'active').length;
   }, [campaigns]);
 

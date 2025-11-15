@@ -111,7 +111,7 @@ export default function AdCreationForm() {
         // Realistic performance simulation for a $2 budget
         const impressions = Math.floor(Math.random() * (2000 - 500 + 1)) + 500; // 500 to 2000 impressions
         const clicks = Math.min(100, Math.floor(impressions * (Math.random() * (0.08 - 0.02) + 0.02))); // 2% to 8% CTR, max 100 clicks
-        const ctr = clicks / impressions;
+        const ctr = impressions > 0 ? clicks / impressions : 0;
 
         try {
             const newCampaignRef = await addDoc(collection(firestore, 'users', user.uid, 'campaigns'), {
@@ -149,6 +149,7 @@ export default function AdCreationForm() {
               title: "فشل الحفظ",
               description: "لم نتمكن من حفظ الحملة في قاعدة البيانات.",
             });
+        } finally {
             setIsSaving(false);
         }
     }
