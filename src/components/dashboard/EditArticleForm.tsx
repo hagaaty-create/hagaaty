@@ -46,7 +46,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           date: serverTimestamp(), // To update the modification date
         };
 
-        // Non-blocking update
+        // Non-blocking update using the new centralized function
         updateDocumentNonBlocking(postRef, updatedData);
 
         toast({
