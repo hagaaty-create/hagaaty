@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
-import { BarChart, PenSquare, Wallet, Zap, Loader2, TrendingUp } from "lucide-react";
+import { BarChart, PenSquare, Wallet, Zap, Loader2, TrendingUp, Gift } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import AdPreview from "@/components/dashboard/AdPreview";
@@ -34,6 +34,29 @@ type AdCampaign = {
 };
 
 const AD_COST = 2.00;
+
+const WelcomeCard = ({ balance }: { balance?: number }) => (
+    <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
+        <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+                <Gift className="h-6 w-6 text-primary"/>
+                <span>ابدأ رحلتك نحو النجاح!</span>
+            </CardTitle>
+            <CardDescription>
+                لقد أضفنا رصيدًا ترحيبيًا بقيمة ${balance?.toFixed(2) || '2.00'} إلى حسابك. استخدمه الآن لإطلاق أول حملة إعلانية لك وتجربة قوة الذكاء الاصطناعي.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Button asChild size="lg">
+                <Link href="/dashboard/create-ad">
+                    <PenSquare className="ml-2 h-5 w-5"/>
+                    أنشئ حملتك الإعلانية الأولى
+                </Link>
+            </Button>
+        </CardContent>
+    </Card>
+);
+
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -125,6 +148,10 @@ export default function DashboardPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </CardContent>
         </Card>
+      )}
+
+      {!campaignsLoading && campaigns && campaigns.length === 0 && (
+         <WelcomeCard balance={userProfile?.balance}/>
       )}
 
       {!campaignsLoading && latestCampaign && (

@@ -2,8 +2,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gift, Zap, Percent, Users, Bot, BarChart } from 'lucide-react';
 import Link from 'next/link';
+import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/server-initialization';
+import type { Post } from '@/types';
+import { ArticleCard } from '@/components/blog/ArticleCard';
 
-export default function Home() {
+async function getRecentPosts() {
+  const { firestore } = initializeFirebase();
+  const postsQuery = query(collection(firestore, 'posts'), orderBy('date', 'desc'), limit(3));
+  const querySnapshot = await getDocs(postsQuery);
+  const posts = querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    // Ensure date is a serializable string
+    const date = data.date.toDate().toISOString();
+    return { id: doc.id, ...data, date } as Post;
+  });
+  return posts;
+}
+
+
+export default async function Home() {
+  const recentPosts = await getRecentPosts();
+
   const features = [
     {
       icon: <Zap className="h-8 w-8 text-primary" />,
@@ -17,8 +37,8 @@ export default function Home() {
     },
      {
       icon: <Users className="h-8 w-8 text-primary" />,
-      title: 'اكسب مع برنامج الإحالة',
-      description: 'ادعُ أصدقاءك وسيحصل كل منهم على 2$ رصيد إضافي عند شحن رصيده. أنت ستحصل على 20% من قيمة شحنهم، مع إمكانية سحب أرباحك عبر فودافون كاش.',
+      title: 'اكسب من فريقك بالكامل (MLM)',
+      description: 'اكسب عمولات من شبكة تمتد لـ 5 مستويات. عندما يقوم أي شخص في فريقك بشحن رصيده، تحصل على أرباح يمكنك سحبها.',
     },
      {
       icon: <Bot className="h-8 w-8 text-primary" />,
@@ -48,7 +68,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section>
+      <section className="mb-20">
         <h2 className="text-3xl font-bold text-center tracking-tight mb-12 font-headline">
           مستقبلك في التسويق الرقمي يبدأ هنا
         </h2>
@@ -68,6 +88,28 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Recent Posts Section */}
+      {recentPosts.length > 0 && (
+        <section>
+          <h2 className="text-3xl font-bold text-center tracking-tight mb-4 font-headline">
+            أحدث المقالات من مدونتنا
+          </h2>
+           <p className="text-lg text-muted-foreground text-center mb-12">
+            محتوى تم إنشاؤه بواسطة الذكاء الاصطناعي لمساعدتك على النجاح.
+          </p>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {recentPosts.map(post => (
+              <ArticleCard key={post.id} post={post} />
+            ))}
+          </div>
+           <div className="mt-12 text-center">
+            <Button asChild variant="outline" size="lg">
+              <Link href="/blog">عرض كل المقالات</Link>
+            </Button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

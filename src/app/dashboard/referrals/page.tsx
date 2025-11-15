@@ -151,6 +151,27 @@ export default function ReferralsPage() {
         <Share2 className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold font-headline">برنامج الإحالة</h1>
       </div>
+
+       <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3"><Gift className="h-6 w-6 text-primary" /> أداة بناء الثروة الخاصة بك</CardTitle>
+          <CardDescription>هذا هو مركز عملياتك في التسويق الشبكي. شارك رابطك، وراقب نمو فريقك، وشاهد أرباحك تتزايد.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+              <Label htmlFor="referral-link" className="text-base font-semibold text-primary-foreground/90">رابط الإحالة الخاص بك</Label>
+              <p className="text-sm text-primary-foreground/70 mb-2">شارك هذا الرابط في كل مكان لبناء شبكتك!</p>
+              <div className="flex items-center gap-2">
+                  <Input id="referral-link" value={referralLink} readOnly className="bg-background/70"/>
+                  <Button variant="default" size="icon" onClick={() => copyToClipboard(referralLink)} disabled={!referralLink}>
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+              </div>
+            </div>
+        </CardContent>
+      </Card>
+
+
       <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
               <CardTitle className="flex items-center gap-3">
@@ -240,33 +261,6 @@ export default function ReferralsPage() {
               </CardContent>
           </Card>
       </div>
-
-       <Card>
-          <CardHeader>
-              <CardTitle>أدوات بناء الشبكة</CardTitle>
-              <CardDescription>شارك هذا الرمز أو الرابط أدناه مع أصدقائك ليبدأوا في التسجيل وبناء فريقك.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-              <div>
-                  <Label htmlFor="referral-code">رمز الإحالة الخاص بك</Label>
-                  <div className="flex items-center gap-2">
-                      <Input id="referral-code" value={userProfile?.referralCode || "جاري التحميل..."} readOnly />
-                      <Button variant="outline" size="icon" onClick={() => copyToClipboard(userProfile?.referralCode || '')} disabled={!userProfile?.referralCode}>
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                  </div>
-              </div>
-              <div>
-                   <Label htmlFor="referral-link">رابط الإحالة المباشر</Label>
-                  <div className="flex items-center gap-2">
-                      <Input id="referral-link" value={referralLink} readOnly />
-                      <Button variant="outline" size="icon" onClick={() => copyToClipboard(referralLink)} disabled={!referralLink}>
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                  </div>
-              </div>
-          </CardContent>
-      </Card>
 
       <Card>
            <CardHeader>
