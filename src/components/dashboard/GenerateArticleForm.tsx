@@ -50,6 +50,7 @@ type GenerateArticleFormProps = {
 export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleFormProps) {
     const [prompt, setPrompt] = useState(prefilledTopic || '');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [step, setStep] = useState<GenerationStep>(GenerationStep.Idle);
     const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -57,13 +58,17 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
     const { user } = useUser();
     const { toast } = useToast();
     const router = useRouter();
-    const isSavingRef = useRef(false);
+    
+    useEffect(() => {
+        if (prefilledTopic) {
+            startGeneration(prefilledTopic);
+        }
+    }, [prefilledTopic]);
 
     const startGeneration = async (topic: string) => {
         if (!topic.trim()) return;
 
         setIsLoading(true);
-        isSavingRef.current = false;
         setGeneratedData(null);
         setError(null);
         let finalData: GeneratedData | null = null;
@@ -107,43 +112,31 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
         }
     };
     
-    useEffect(() => {
-        if (prefilledTopic) {
-            startGeneration(prefilledTopic);
-        }
-    }, [prefilledTopic]);
-
-    // Effect to automatically save when generation is complete
-    useEffect(() => {
-        if (step === GenerationStep.Done && generatedData && generatedData.imageUrl && !isSavingRef.current) {
-            handleSave(generatedData);
-            isSavingRef.current = true; // Prevent multiple saves
-        }
-    }, [step, generatedData]);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         startGeneration(prompt);
     };
     
-    const handleSave = (dataToSave: GeneratedData) => {
-        if (!firestore || !user || !dataToSave.imageUrl) return;
-
-        const slug = dataToSave.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
+    const handleSave = () => {
+        if (!firestore || !user || !generatedData || !generatedData.imageUrl) return;
+        
+        setIsSaving(true);
+        
+        const slug = generatedData.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/(^-|-$)/g, '');
 
         const articleData = {
-            title: dataToSave.title,
+            title: generatedData.title,
             slug: slug,
-            content: dataToSave.article,
-            excerpt: dataToSave.article.substring(0, 150) + '...',
-            category: dataToSave.category,
-            tags: dataToSave.tags,
+            content: generatedData.article,
+            excerpt: generatedData.article.substring(0, 150) + '...',
+            category: generatedData.category,
+            tags: generatedData.tags,
             author: {
                 name: user.displayName || "AI Admin",
                 avatarUrl: user.photoURL || 'https://picsum.photos/seed/avatar-placeholder/40/40'
             },
-            imageUrl: dataToSave.imageUrl,
-            imageHint: dataToSave.imageHint,
+            imageUrl: generatedData.imageUrl,
+            imageHint: generatedData.imageHint,
             date: serverTimestamp(),
         };
 
@@ -151,7 +144,7 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
         addDocumentNonBlocking(postsCollection, articleData);
 
         toast({
-            title: "جاري حفظ ونشر المقال...",
+            title: "تم حفظ ونشر المقال",
             description: "سيظهر المقال الجديد في المدونة خلال لحظات.",
         });
 
@@ -211,7 +204,7 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">مراجعة المقال المولد</CardTitle>
-                        <CardDescription>يقوم الذكاء الاصطناعي حاليًا بإنشاء البيانات الوصفية والصورة. سيتم الحفظ والنشر تلقائيًا عند الانتهاء.</CardDescription>
+                        <CardDescription>راجع المحتوى الذي تم إنشاؤه بواسطة الذكاء الاصطناعي. يمكنك تعديله قبل الحفظ والنشر.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {generatedData.imageUrl ? (
@@ -229,8 +222,8 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                           <Input 
                               id="title" 
                               value={generatedData.title}
-                              readOnly
-                              className="text-xl font-bold font-headline h-auto py-2 bg-muted/50"
+                              onChange={(e) => setGeneratedData(prev => prev ? {...prev, title: e.target.value} : null)}
+                              className="text-xl font-bold font-headline h-auto py-2"
                           />
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -248,17 +241,21 @@ export default function GenerateArticleForm({ prefilledTopic }: GenerateArticleF
                             <Textarea 
                                 id="content"
                                 value={generatedData.article}
-                                readOnly
+                                onChange={(e) => setGeneratedData(prev => prev ? {...prev, article: e.target.value} : null)}
                                 rows={15}
-                                className="leading-relaxed bg-muted/50"
+                                className="leading-relaxed"
                             />
                         </div>
                     </CardContent>
                     <CardFooter>
-                         <div className="flex items-center gap-2 text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin"/>
-                            <span>سيتم الحفظ تلقائيًا عند اكتمال جميع الخطوات...</span>
-                        </div>
+                         <Button onClick={handleSave} disabled={isSaving || isLoading || !generatedData.imageUrl}>
+                            {isSaving ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                            ) : (
+                                <Save className="mr-2 h-4 w-4"/>
+                            )}
+                            {isSaving ? 'جاري الحفظ...' : 'حفظ ونشر'}
+                        </Button>
                     </CardFooter>
                 </Card>
             )}
