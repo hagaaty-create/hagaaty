@@ -14,6 +14,7 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useSearchParams } from "next/navigation";
 import CampaignReviewProgress from "@/components/dashboard/CampaignReviewProgress";
+import CampaignPerformanceAnalysis from "@/components/dashboard/CampaignPerformanceAnalysis";
 
 type AdCampaign = {
     id: string;
@@ -211,28 +212,30 @@ function CampaignsPageContent() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>المنتج</TableHead>
-                                    <TableHead>العنوان الرئيسي</TableHead>
                                     <TableHead>الحالة</TableHead>
-                                    <TableHead className="text-right">مرات الظهور</TableHead>
-                                    <TableHead className="text-right">النقرات</TableHead>
+                                    <TableHead className="text-right">النقرات/الظهور</TableHead>
                                     <TableHead className="text-right">CTR</TableHead>
                                     <TableHead>تاريخ الإنشاء</TableHead>
+                                    <TableHead>تحليل الأداء بواسطة AI</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {campaigns.map((campaign) => (
                                     <TableRow key={campaign.id}>
                                         <TableCell className="font-medium">{campaign.productName}</TableCell>
-                                        <TableCell>{campaign.headline}</TableCell>
                                         <TableCell>
                                             {getStatusBadge(campaign)}
                                         </TableCell>
-                                        <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
-                                        <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>
+                                        <TableCell className="text-right font-mono">
+                                            {campaign.performance?.clicks?.toLocaleString() || 'N/A'} / {campaign.performance?.impressions?.toLocaleString() || 'N/A'}
+                                        </TableCell>
                                         <TableCell className="text-right font-mono">
                                             {campaign.performance?.ctr ? `${(campaign.performance.ctr * 100).toFixed(2)}%` : 'N/A'}
                                         </TableCell>
                                         <TableCell>{formatDate(campaign.createdAt)}</TableCell>
+                                        <TableCell>
+                                            <CampaignPerformanceAnalysis campaign={campaign} />
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

@@ -21,5 +21,6 @@ import '@/ai/flows/analyze-downline.ts';
 import '@/ai/flows/request-withdrawal.ts';
 import '@/ai/flows/verify-agency-subscription.ts';
 import '@/ai/flows/generate-affiliate-material.ts';
+import '@/ai/flows/analyze-campaign-performance.ts';
 
     
