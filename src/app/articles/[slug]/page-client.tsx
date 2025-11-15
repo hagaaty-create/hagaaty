@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import type { Post } from '@/types';
 import { Timestamp } from 'firebase/firestore';
+import { marked } from 'marked';
 
 
 type ArticlePageClientProps = {
@@ -35,6 +36,8 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
   if (!post) {
     notFound();
   }
+
+  const processedContent = marked(post.content);
 
   return (
     <article className="container max-w-4xl mx-auto px-4 py-12">
@@ -77,7 +80,7 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
 
       <div 
         className="prose prose-lg dark:prose-invert max-w-none text-foreground/90 prose-p:leading-relaxed prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground"
-        dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />').replace(/\\n/g, '<br />') }}
+        dangerouslySetInnerHTML={{ __html: processedContent }}
        />
 
       <footer className="mt-12">
