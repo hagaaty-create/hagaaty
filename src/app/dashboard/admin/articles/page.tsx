@@ -38,6 +38,7 @@ import { FileText, Trash2, Loader2, FileEdit, Sparkles } from 'lucide-react';
 import type { Post } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import SeoAnalysis from '@/components/dashboard/SeoAnalysis';
 
 export default function ManageArticlesPage() {
   const firestore = useFirestore();
@@ -128,6 +129,12 @@ export default function ManageArticlesPage() {
                     <TableCell>{formatDate(post.date)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                         <Link href={`/dashboard/admin/articles/edit?id=${post.id}`} passHref>
+                           <Button variant="ghost" size="icon" asChild>
+                              <a><FileEdit className="h-4 w-4" /></a>
+                           </Button>
+                         </Link>
+                         <SeoAnalysis article={post} />
                          <AlertDialog>
                           <AlertDialogTrigger asChild>
                              <Button variant="ghost" size="icon" disabled={isDeleting === post.id}>

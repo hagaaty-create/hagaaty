@@ -61,7 +61,6 @@ export default function SeoAnalysis({ article }: SeoAnalysisProps) {
                             <p className="text-sm font-semibold">العنوان المقترح:</p>
                              <p className="text-sm p-2 bg-muted rounded-md">{analysis.suggestedTitle}</p>
                         </div>
-                        {/* The apply button that linked to the deleted page has been removed */}
                     </div>
                 </PopoverContent>
             </Popover>
@@ -69,13 +68,12 @@ export default function SeoAnalysis({ article }: SeoAnalysisProps) {
     }
 
     return (
-        <Button onClick={handleAnalysis} disabled={isLoading} variant="outline" size="sm">
+        <Button onClick={handleAnalysis} disabled={isLoading} variant="ghost" size="icon">
             {isLoading ? (
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-                <Bot className="ml-2 h-4 w-4" />
+                <Bot className="h-4 w-4" />
             )}
-            تحليل SEO
         </Button>
     );
 }
