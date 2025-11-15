@@ -25,7 +25,19 @@ async function getPost(slug: string): Promise<Post | null> {
 
   const postDoc = querySnapshot.docs[0];
   const postData = postDoc.data();
-  const date = (postData.date as Timestamp).toDate().toISOString();
+  
+  // Ensure the date is serializable (string)
+  let date: string;
+  if (postData.date instanceof Timestamp) {
+    date = postData.date.toDate().toISOString();
+  } else if (typeof postData.date === 'string') {
+    date = postData.date;
+  } else if (postData.date instanceof Date) {
+    date = postData.date.toISOString();
+  } else {
+    date = new Date().toISOString(); // Fallback
+  }
+
   return { id: postDoc.id, ...postData, date } as Post;
 }
 
