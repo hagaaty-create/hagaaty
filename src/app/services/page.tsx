@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Check, Crown, ExternalLink, ImagePlus, Loader2, Mail, ShieldCheck, TrendingUp, Zap, Rocket, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from '@/firebase';
 import { Badge } from "@/components/ui/badge";
-import { submitSubscriptionRequest } from "@/ai/flows/submit-subscription-request";
+import { verifyAgencySubscription } from "@/ai/flows/verify-agency-subscription";
 
 const agencyFeatures = [
     {
@@ -36,6 +36,7 @@ const paymentMethods = [
     { name: "USDT (TRC20)", detail: "YOUR_USDT_WALLET_ADDRESS" },
 ];
 
+const AGENCY_FEE = 40.00;
 
 export default function ServicesPage() {
     const [email, setEmail] = useState('');
@@ -46,12 +47,11 @@ export default function ServicesPage() {
     const { toast } = useToast();
     const { user } = useUser();
 
-    // Set user email if logged in
-    useState(() => {
+    useEffect(() => {
         if (user?.email) {
             setEmail(user.email);
         }
-    });
+    }, [user]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
@@ -66,7 +66,6 @@ export default function ServicesPage() {
             }
             setPaymentProof(file);
             
-            // Convert file to base64
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => {
@@ -82,33 +81,26 @@ export default function ServicesPage() {
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !paymentProof || !imageBase64) {
+        if (!user || !email || !paymentProof || !imageBase64) {
             toast({ variant: 'destructive', title: 'بيانات ناقصة', description: 'يرجى إدخال بريدك الإلكتروني ورفع صورة إثبات الدفع.' });
             return;
         }
         setIsLoading(true);
-        try {
-            await submitSubscriptionRequest({
-                userEmail: email,
-                paymentProofDataUri: imageBase64,
-            });
 
-            toast({
-                title: '✅ تم إرسال طلبك بنجاح',
-                description: 'سيقوم فريقنا بمراجعة الطلب وتفعيل حسابك خلال ساعات.',
-            });
-            setIsSubmitted(true);
+        verifyAgencySubscription({
+            userId: user.uid,
+            userEmail: email,
+            paymentProofDataUri: imageBase64,
+        }).catch(err => {
+            console.error("Error in background agency subscription flow:", err);
+        });
 
-        } catch (error) {
-            console.error("Error handling subscription:", error);
-            toast({
-                variant: 'destructive',
-                title: 'حدث خطأ',
-                description: 'لم نتمكن من معالجة طلبك. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.',
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        setIsSubmitted(true);
+        setIsLoading(false);
+        toast({
+            title: '✅ تم إرسال طلبك بنجاح',
+            description: 'يقوم الذكاء الاصطناعي بمراجعة الإيصال الآن. سيتم تفعيل اشتراكك وتوزيع عمولات الشبكة خلال دقيقة.',
+        });
     };
 
 
@@ -123,7 +115,7 @@ export default function ServicesPage() {
                     انضم إلى <span className="text-primary">وكالة حاجتي</span> الإعلانية
                 </h1>
                 <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground sm:text-xl">
-                    بـ 40$ سنويًا فقط، احصل على حسابات وكالة إعلانية موثقة ومحمية على أكبر المنصات، وانطلق بحملاتك بلا حدود وبأمان تام.
+                    بـ ${AGENCY_FEE.toFixed(2)} سنويًا فقط، احصل على حسابات وكالة إعلانية موثقة ومحمية على أكبر المنصات، وانطلق بحملاتك بلا حدود وبأمان تام.
                 </p>
             </section>
 
@@ -154,7 +146,7 @@ export default function ServicesPage() {
                         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6"/>
                         <CardTitle className="text-2xl font-headline">تم استلام طلبك بنجاح!</CardTitle>
                         <CardDescription className="mt-4 text-base">
-                            لقد أرسلنا طلبك إلى فريق الدعم. سيتم مراجعته وتفعيل حساب الوكالة الخاص بك خلال 3 ساعات عمل. ستستلم بيانات الدخول على بريدك الإلكتروني.
+                            يقوم وكيل الذكاء الاصطناعي حاليًا بتحليل إيصال الدفع الخاص بك. سيتم تفعيل اشتراكك وتوزيع عمولات فريقك، وستتلقى بريدًا إلكترونيًا للتأكيد خلال دقائق.
                         </CardDescription>
                     </Card>
                 ) : (
@@ -168,7 +160,7 @@ export default function ServicesPage() {
                                     <span>دفع رسوم الاشتراك</span>
                                 </CardTitle>
                                 <CardDescription>
-                                    قم بتحويل مبلغ 40$ (أو ما يعادله بالعملة المحلية) إلى إحدى الوسائل التالية.
+                                    قم بتحويل مبلغ ${AGENCY_FEE.toFixed(2)} (أو ما يعادله بالعملة المحلية) إلى إحدى الوسائل التالية.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -192,7 +184,7 @@ export default function ServicesPage() {
                                     <span>تأكيد الاشتراك</span>
                                 </CardTitle>
                                 <CardDescription>
-                                    املأ النموذج أدناه وأرفق إثبات الدفع. سيقوم فريقنا بمراجعة الطلب وتفعيل حسابك خلال ساعات.
+                                    املأ النموذج أدناه وأرفق إثبات الدفع. سيقوم الذكاء الاصطناعي بالتحقق وتفعيل اشتراكك وتوزيع عمولات الشبكة تلقائيًا.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -206,7 +198,7 @@ export default function ServicesPage() {
                                             value={email}
                                             onChange={e => setEmail(e.target.value)}
                                             required
-                                            disabled={isLoading}
+                                            disabled={isLoading || !!user?.email}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -235,7 +227,7 @@ export default function ServicesPage() {
                                         ) : (
                                             <Mail className="mr-2 h-4 w-4" />
                                         )}
-                                        إرسال طلب الاشتراك
+                                        إرسال وتفعيل آلي
                                     </Button>
                                 </form>
                             </CardContent>
