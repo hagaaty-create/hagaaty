@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useUser } from '@/firebase';
-import { Trophy, Award, DollarSign, Users, Crown, Loader2, Medal } from 'lucide-react';
+import { Trophy, Award, DollarSign, Users, Crown, Loader2, Medal, Target } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 type UserRank = {
@@ -16,7 +16,7 @@ type UserRank = {
   value: number;
 }
 
-const LeaderboardCard = ({ title, icon, data, unit, isLoading, userRank }: { title: string, icon: React.ReactNode, data: UserRank[], unit: string, isLoading: boolean, userRank?: {rank: number, value: number} }) => {
+const LeaderboardCard = ({ title, icon, data, unit, isLoading, userRank, isChallenge = false }: { title: string, icon: React.ReactNode, data: UserRank[], unit: string, isLoading: boolean, userRank?: {rank: number, value: number}, isChallenge?: boolean }) => {
     
     const getMedalColor = (rank: number) => {
         if (rank === 0) return "text-yellow-400";
@@ -26,12 +26,15 @@ const LeaderboardCard = ({ title, icon, data, unit, isLoading, userRank }: { tit
     };
     
     return (
-        <Card>
+        <Card className={isChallenge ? 'border-primary/50 bg-primary/5' : ''}>
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                     {icon}
                     <span>{title}</span>
                 </CardTitle>
+                 {isChallenge && (
+                    <CardDescription>هذا هو محور المنافسة لهذا الأسبوع. أظهر للجميع من هو الأفضل!</CardDescription>
+                )}
             </CardHeader>
             <CardContent>
                 {isLoading ? (
@@ -139,23 +142,36 @@ export default function LeaderboardPage() {
                     <CardDescription>شاهد ترتيبك بين أفضل المسوقين والمستخدمين في المنصة. هل أنت مستعد للمنافسة على القمة؟</CardDescription>
                 </CardHeader>
             </Card>
+
+            <Card className="border-amber-500/50 bg-amber-500/5">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-amber-600">
+                        <Target className="h-6 w-6" />
+                        <span>تحدي هذا الأسبوع</span>
+                    </CardTitle>
+                    <CardDescription>
+                        من يستطيع دعوة أكبر عدد من الأعضاء الجدد إلى فريقه هذا الأسبوع؟ الفائز يحصل على 50$ رصيد إعلاني إضافي!
+                    </CardDescription>
+                </CardHeader>
+            </Card>
             
-            <div className="grid lg:grid-cols-3 gap-8">
-                <LeaderboardCard 
-                    title="أعلى الأرباح"
-                    icon={<DollarSign className="h-6 w-6 text-green-500" />}
-                    data={leaderboards?.topEarners || []}
-                    unit="$"
-                    isLoading={isLoading}
-                    userRank={findUserRank(leaderboards?.topEarners) || userEarningsRank}
-                />
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
                  <LeaderboardCard 
                     title="ملوك الشبكة"
                     icon={<Users className="h-6 w-6 text-blue-500" />}
                     data={leaderboards?.topReferrers || []}
                     unit="أعضاء"
                     isLoading={isLoading}
-                     userRank={findUserRank(leaderboards?.topReferrers) || userReferralsRank}
+                    userRank={findUserRank(leaderboards?.topReferrers) || userReferralsRank}
+                    isChallenge={true}
+                />
+                 <LeaderboardCard 
+                    title="أعلى الأرباح"
+                    icon={<DollarSign className="h-6 w-6 text-green-500" />}
+                    data={leaderboards?.topEarners || []}
+                    unit="$"
+                    isLoading={isLoading}
+                    userRank={findUserRank(leaderboards?.topEarners) || userEarningsRank}
                 />
                  <LeaderboardCard 
                     title="أغنى المستخدمين"
