@@ -4,46 +4,20 @@
  * @fileOverview An AI agent that creates a marketing campaign for a blog post.
  *
  * - generateMarketingContent - The main function that orchestrates the campaign generation.
- * - GenerateMarketingContentOutput - The return type for the function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
-import type { Post } from '@/types';
+import type { Post, GenerateMarketingContentOutput } from '@/types';
+import { GenerateMarketingContentOutputSchema } from '@/types';
 import { generateImage } from './generate-image-flow';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
   initializeApp();
 }
-
-// Define Zod schemas for structured output
-
-const ArticleInfoSchema = z.object({
-  title: z.string().describe('The title of the article.'),
-  excerpt: z.string().describe('A short excerpt from the article.'),
-  slug: z.string().describe('The URL slug for the article.'),
-});
-
-const SocialPostSchema = z.object({
-  text: z.string().describe('The content of the social media post, in Arabic.'),
-  hashtags: z.array(z.string()).describe('A list of relevant hashtags in Arabic, including the # symbol.'),
-});
-
-export const GenerateMarketingContentOutputSchema = z.object({
-  article: ArticleInfoSchema,
-  strategy: z.string().describe('A brief explanation in Arabic of why this article was chosen and the marketing angle.'),
-  socialPosts: z.object({
-    xPost: SocialPostSchema.describe('A post formatted for X (formerly Twitter).'),
-  }),
-  imageIdeas: z.array(z.string()).describe('A list of 3 creative and engaging image ideas for the social media posts, in Arabic.'),
-  imageUrl: z.string().url().describe('URL of the generated image for the campaign.'),
-});
-
-export type GenerateMarketingContentOutput = z.infer<typeof GenerateMarketingContentOutputSchema>;
-
 
 const getMostRecentArticle = ai.defineTool(
   {
