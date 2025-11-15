@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
@@ -39,18 +38,20 @@ export default function ReferralsPage() {
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const referralsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'users'), where('referredBy', '==', user.uid));
-  }, [user, firestore]);
+    // We must wait for the userProfile to load to get the referral code.
+    if (!firestore || !userProfile?.referralCode) return null;
+    return query(collection(firestore, 'users'), where('referredBy', '==', userProfile.referralCode));
+  }, [firestore, userProfile]);
   
   const { data: referrals, isLoading: areReferralsLoading } = useCollection<UserProfile>(referralsQuery);
   
   const referralLink = useMemo(() => {
-    if (!userProfile?.referralCode) return '';
+    if (typeof window === 'undefined' || !userProfile?.referralCode) return '';
     return `${window.location.origin}/signup?ref=${userProfile.referralCode}`;
   }, [userProfile]);
 
   const copyToClipboard = (text: string) => {
+    if (!text) return;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       toast({ title: "تم النسخ!", description: "تم نسخ رابط الإحالة الخاص بك." });
@@ -62,8 +63,10 @@ export default function ReferralsPage() {
     if (!timestamp) return 'N/A';
     return format(timestamp.toDate(), 'PPP');
   };
+  
+  const isLoading = isProfileLoading || (!!userProfile && areReferralsLoading);
 
-  if (isProfileLoading || areReferralsLoading) {
+  if (isLoading) {
     return (
         <div className="space-y-8">
              <div className="flex items-center gap-4">
@@ -94,7 +97,7 @@ export default function ReferralsPage() {
                   اكسب المال عن طريق دعوة الأصدقاء
               </CardTitle>
               <CardDescription>
-                  شارك رابط الإحالة الخاص بك. عندما يقوم صديقك بالتسجيل وشحن رصيده، ستحصل على عمولة 20% من قيمة شحنه الأول، وسيحصل صديقك على 2$ هدية إضافية!
+                  شارك رابط الإحالة الخاص بك. عندما يقوم صديقك بالتسجيل وشحن رصيده، ستحصل على عمولة 20% من قيمة شحنه الأول.
               </CardDescription>
           </CardHeader>
       </Card>
