@@ -19,6 +19,8 @@ import {
   Wallet,
   Landmark,
   Sparkles,
+  Trophy,
+  Banknote,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -85,8 +87,9 @@ export default function DashboardLayout({
     { href: '/dashboard/billing', label: 'شحن الرصيد', icon: Wallet },
     { href: '/dashboard/agent', label: 'الوكيل المستقل', icon: Bot },
     { href: '/dashboard/referrals', label: 'برنامج الإحالة', icon: Share2 },
+    { href: '/dashboard/leaderboard', label: 'لوحة الصدارة', icon: Trophy },
     { href: '/dashboard/marketing-tools', label: 'أدوات التسويق', icon: Sparkles },
-    { href: '/dashboard/withdraw', label: 'سحب الأرباح', icon: Landmark },
+    { href: '/dashboard/withdraw', label: 'سحب الأرباح', icon: Banknote },
   ];
   
   const adminNavItems = [
