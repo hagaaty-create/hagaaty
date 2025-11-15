@@ -11,6 +11,7 @@ import AdPreview from "@/components/dashboard/AdPreview";
 import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProactiveAnalysis from "@/components/dashboard/ProactiveAnalysis";
+import NextGoal from "@/components/dashboard/NextGoal";
 
 
 type UserProfile = {
@@ -18,7 +19,7 @@ type UserProfile = {
   displayName: string;
   email: string;
   balance?: number;
-  achievements?: { id: string, name: string }[];
+  achievements?: { id: string, name: string, awardedAt: Timestamp }[];
 }
 
 type AdCampaign = {
@@ -148,6 +149,10 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
       
+      {!userLoading && userProfile && (
+        <NextGoal userProfile={userProfile} />
+      )}
+
       {!campaignsLoading && activeCampaignsData.length > 1 && (
         <ProactiveAnalysis campaigns={activeCampaignsData} />
       )}
