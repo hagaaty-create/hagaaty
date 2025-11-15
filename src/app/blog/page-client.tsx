@@ -57,6 +57,7 @@ export default function BlogPageClient({ posts }: BlogPageClientProps) {
       )}
 
       {/* Posts */}
+      {otherPosts && otherPosts.length > 0 && (
       <section id="posts">
         <h2 className="text-3xl font-bold tracking-tight mb-8 font-headline">كل المقالات</h2>
         <Tabs defaultValue="الكل" className="w-full" dir="rtl">
@@ -80,6 +81,7 @@ export default function BlogPageClient({ posts }: BlogPageClientProps) {
           ))}
         </Tabs>
       </section>
+      )}
     </div>
   );
 }
