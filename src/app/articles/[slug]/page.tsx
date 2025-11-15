@@ -4,14 +4,15 @@ import { notFound } from 'next/navigation';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import type { Post } from '@/types';
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata } from 'next';
 import ArticlePageClient from './page-client';
 
-// This is the correct type definition that Next.js expects.
-type PageProps = {
+// This is the correct type definition that Next.js expects for Server Components.
+// It explicitly defines `params` and `searchParams` which are passed by Next.js.
+interface PageProps {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
-};
+}
 
 async function getPost(slug: string): Promise<Post | null> {
   const { firestore } = initializeFirebase();
@@ -44,7 +45,6 @@ async function getPost(slug: string): Promise<Post | null> {
 
 export async function generateMetadata(
   { params }: PageProps,
-  parent: ResolvingMetadata
 ): Promise<Metadata> {
   const post = await getPost(params.slug);
 
@@ -79,6 +79,7 @@ export async function generateMetadata(
 }
 
 // The default export is the page component itself.
+// It directly receives the props object with `params` and `searchParams`.
 export default async function ArticlePage({ params }: PageProps) {
   const post = await getPost(params.slug);
 
