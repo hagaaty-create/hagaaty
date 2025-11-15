@@ -82,8 +82,8 @@ export default function Header() {
     );
   };
   
-  // Don't show header on dashboard pages
-  if (pathname.startsWith('/dashboard')) {
+  // Don't show header on dashboard or embed pages
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/assistant')) {
     return null;
   }
 

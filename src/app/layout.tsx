@@ -6,6 +6,8 @@ import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import SmartAssistant from '@/components/chat/SmartAssistant';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { usePathname } from 'next/navigation';
+import RootLayoutClient from './layout-client';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -27,13 +29,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${tajawal.variable} font-body antialiased`}>
         <FirebaseClientProvider>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <SmartAssistant />
-          <Toaster />
+          <RootLayoutClient>{children}</RootLayoutClient>
         </FirebaseClientProvider>
       </body>
     </html>
