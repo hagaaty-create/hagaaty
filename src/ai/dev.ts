@@ -23,5 +23,6 @@ import '@/ai/flows/verify-agency-subscription.ts';
 import '@/ai/flows/generate-affiliate-material.ts';
 import '@/ai/flows/analyze-campaign-performance.ts';
 import '@/ai/flows/analyze-users.ts';
+import '@/ai/flows/proactive-campaign-analysis.ts';
 
     

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, orderBy } from "firebase/firestore";
-import { BarChart, PenSquare, Wallet, Zap, Loader2, TrendingUp, Gift, Shield, Award } from "lucide-react";
+import { BarChart, PenSquare, Wallet, Zap, Loader2, TrendingUp, Gift, Shield, Award, Users, Bot, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import AdPreview from "@/components/dashboard/AdPreview";
 import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import ProactiveAnalysis from "@/components/dashboard/ProactiveAnalysis";
 
 
 type UserProfile = {
@@ -92,13 +93,18 @@ export default function DashboardPage() {
       return campaigns.length * AD_COST;
   }, [campaigns]);
   
-  const activeCampaigns = useMemo(() => {
+  const activeCampaignsCount = useMemo(() => {
       if (!campaigns) return 0;
       return campaigns.filter(c => c.status === 'active').length;
   }, [campaigns]);
 
   const userAchievements = useMemo(() => userProfile?.achievements || [], [userProfile]);
   const hasAchievement = (id: string) => userAchievements.some(a => a.id === id);
+  
+  const activeCampaignsData = useMemo(() => {
+    if (!campaigns) return [];
+    return campaigns.filter(c => c.status === 'active');
+  }, [campaigns]);
 
   return (
     <div className="space-y-8">
@@ -131,7 +137,7 @@ export default function DashboardPage() {
                  {campaignsLoading ? (
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                  ) : (
-                    <div className="text-2xl font-bold">{activeCampaigns}</div>
+                    <div className="text-2xl font-bold">{activeCampaignsCount}</div>
                  )}
                 <p className="text-xs text-muted-foreground">إجمالي الحملات التي تعمل حاليًا</p>
               </CardContent>
@@ -152,6 +158,10 @@ export default function DashboardPage() {
             </Card>
         </CardContent>
       </Card>
+      
+      {!campaignsLoading && activeCampaignsData.length > 1 && (
+        <ProactiveAnalysis campaigns={activeCampaignsData} />
+      )}
       
        <Card>
         <CardHeader>
