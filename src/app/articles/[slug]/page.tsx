@@ -78,7 +78,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params }: PageProps) {
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
 
   if (!post) {
