@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview An AI flow to "verify" a payment receipt and credit a user's balance.
+ * @fileOverview An AI flow to "verify" a payment receipt, credit the user's balance, and handle referral bonuses.
  *
  * - verifyPaymentAndCreditUser - The main flow function.
  * - VerifyPaymentInput - The input type for the flow.
@@ -12,6 +12,8 @@ import { z } from 'zod';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { sendEmail } from '@/lib/send-email';
+import { notifyReferralBonus } from './notify-referral-bonus';
+import { notifySuccessfulCredit } from './notify-successful-credit';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
@@ -30,11 +32,11 @@ const VerifyPaymentInputSchema = z.object({
 });
 export type VerifyPaymentInput = z.infer<typeof VerifyPaymentInputSchema>;
 
-// Define a tool for the AI to update the user's balance in Firestore
+// Tool to credit the user's balance
 const creditUserBalanceTool = ai.defineTool(
   {
     name: 'creditUserBalance',
-    description: 'Updates the balance for a specified user in the database.',
+    description: "Updates a user's balance and checks for referral bonuses.",
     inputSchema: z.object({
       userId: z.string(),
       amount: z.number(),
@@ -44,14 +46,49 @@ const creditUserBalanceTool = ai.defineTool(
   async ({ userId, amount }) => {
     console.log(`[Tool] Crediting user ${userId} with $${amount}`);
     const userRef = db.collection('users').doc(userId);
-    await userRef.update({
-      balance: FieldValue.increment(amount),
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
+
+    const userData = userDoc.data()!;
+    const referredBy = userData.referredBy; // The ID of the user who referred them
+
+    // Transaction to ensure atomicity
+    await db.runTransaction(async (transaction) => {
+      // 1. Credit the new user's balance
+      transaction.update(userRef, { balance: FieldValue.increment(amount) });
+
+      // 2. Check if this user was referred and if it's their first deposit (check if their balance was ~2)
+      // We check for balance < 5 to consider the initial $2 welcome bonus.
+      if (referredBy && userData.balance < 5) {
+        console.log(`[Tool] User ${userId} was referred by ${referredBy}. Processing referral bonus.`);
+        const referrerRef = db.collection('users').doc(referredBy);
+        const commission = amount * 0.20; // 20% commission
+        
+        // Add commission to the referrer's earnings
+        transaction.update(referrerRef, { referralEarnings: FieldValue.increment(commission) });
+        
+        // Fire-and-forget notification to the referrer
+        const referrerDoc = await transaction.get(referrerRef);
+        if (referrerDoc.exists()) {
+            const referrerData = referrerDoc.data()!;
+            notifyReferralBonus({
+                referrerEmail: referrerData.email,
+                newUserName: userData.displayName,
+                commissionAmount: commission,
+            }).catch(console.error);
+        }
+      }
     });
-    console.log(`[Tool] Successfully credited user ${userId}.`);
+
+    console.log(`[Tool] Successfully credited user ${userId} and handled referral logic.`);
   }
 );
 
-// Define a tool to send a notification email to the admin
+
+// Tool to send notification to admin
 const sendAdminNotificationTool = ai.defineTool(
   {
     name: 'sendAdminNotification',
@@ -100,11 +137,10 @@ const verifyPaymentFlow = ai.defineFlow(
   async (input) => {
     console.log(`[Flow] Starting payment verification for user ${input.userEmail}`);
     
-    // IMPORTANT: This is a simulation. A real implementation would use a proper
-    // payment gateway's webhook or API to confirm payment status.
+    // IMPORTANT: This is a simulation.
     // Here, we use the LLM to "act" as the verification system.
     await ai.generate({
-      prompt: `أنت نظام آلي للتحقق من عمليات الدفع. لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء الأدوات اللازمة لإضافة الرصيد إلى حسابه وإرسال إشعار للمسؤول.
+      prompt: `أنت نظام آلي للتحقق من عمليات الدفع. لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة. إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'creditUserBalance' لإضافة الرصيد إلى حسابه، ثم استدع أداة 'sendAdminNotification' لإرسال إشعار للمسؤول.
 
 معلومات المستخدم:
 - البريد الإلكتروني: ${input.userEmail}
@@ -112,11 +148,10 @@ const verifyPaymentFlow = ai.defineFlow(
 - طريقة الدفع: ${input.paymentMethod}
 - صورة الإيصال: {{media url=paymentProofDataUri}}
 
-قم باستدعاء الأدوات بالترتيب: أولاً 'creditUserBalance' ثم 'sendAdminNotification'.`,
+قم باستدعاء الأدوات بالترتيب الصحيح.`,
       model: 'googleai/gemini-2.5-flash',
       tools: [creditUserBalanceTool, sendAdminNotificationTool],
       toolConfig: {
-        // Pre-fill the tool parameters. The AI's job is just to call them.
         creditUserBalance: {
           userId: input.userId,
           amount: input.amount,
@@ -129,6 +164,9 @@ const verifyPaymentFlow = ai.defineFlow(
         },
       },
     });
+
+    // Notify the user that their credit has been added, fire-and-forget.
+    notifySuccessfulCredit({ userEmail: input.userEmail, amount: input.amount }).catch(console.error);
 
     console.log(`[Flow] Payment verification and crediting process initiated for ${input.userEmail}.`);
   }

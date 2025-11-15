@@ -1,3 +1,5 @@
+'use server';
+
 import { config } from 'dotenv';
 config();
 
@@ -12,5 +14,6 @@ import '@/ai/flows/submit-subscription-request.ts';
 import '@/ai/flows/notify-campaign-active.ts';
 import '@/ai/flows/send-welcome-email.ts';
 import '@/ai/flows/verify-payment-and-credit-user.ts';
+import '@/ai/flows/notify-referral-bonus.ts';
 
     
