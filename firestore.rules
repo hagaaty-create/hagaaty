@@ -184,9 +184,9 @@ service cloud.firestore {
      * @path /users/{userId}
      */
     match /users/{userId} {
-      // Admins can read any profile. Users can only read their own if not suspended.
-      // Other users can read limited data (for downline analysis).
-      allow get: if (isOwner(userId) && resource.data.status != 'suspended') || isAdmin();
+      // Admins can read any profile. Signed-in users can read public profiles.
+      // Users can only read their own full data if not suspended.
+      allow get: if (isOwner(userId) && resource.data.status != 'suspended') || isAdmin() || isSignedIn();
       
       // Allow any signed-in user to list users, but the fields they can see are
       // restricted by the `get` rule. Our client-side downline query needs this.

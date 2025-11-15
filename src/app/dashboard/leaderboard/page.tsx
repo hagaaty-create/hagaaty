@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useUser } from '@/firebase';
 import { Trophy, Award, DollarSign, Users, Crown, Loader2, Medal, Target } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 type UserRank = {
   id: string;
@@ -63,13 +64,13 @@ const LeaderboardCard = ({ title, icon, data, unit, isLoading, userRank, isChall
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-3">
+                                        <Link href={`/users/${user.id}`} className="flex items-center gap-3 group">
                                             <Avatar className="h-8 w-8">
                                                 <AvatarImage src={user.avatarUrl} alt={user.displayName} />
                                                 <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium">{user.displayName}</span>
-                                        </div>
+                                            <span className="font-medium group-hover:underline">{user.displayName}</span>
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="text-right font-mono font-bold">
                                         {unit === '$' ? `${unit}${user.value.toFixed(2)}` : `${user.value} ${unit}`}
