@@ -28,8 +28,10 @@ function formatDate(date: string | Date | Timestamp) {
 }
 
 export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
+  // The Link component is changed to a div to prevent navigation to the deleted page.
+  // The 'group' and 'block' classes are kept for styling consistency.
   return (
-    <Link href={`/articles/${post.slug}`} className="group block h-full">
+    <div className="group block h-full">
       <Card className={cn(
           "h-full flex flex-col transition-all duration-300 hover:border-primary/50 hover:shadow-primary/20 hover:shadow-lg hover:-translate-y-2 bg-card/50 hover:bg-card",
           isFeatured ? "lg:flex-row" : "overflow-hidden"
@@ -75,6 +77,6 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
           </CardFooter>
         </div>
       </Card>
-    </Link>
+    </div>
   );
 }

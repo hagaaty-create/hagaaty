@@ -188,9 +188,7 @@ export default function AdminDashboardPage() {
                         {latestPosts?.map(post => (
                             <TableRow key={post.id}>
                                 <TableCell className="font-medium">
-                                    <Link href={`/articles/${post.slug}`} className="hover:underline" target="_blank">
-                                        {post.title}
-                                    </Link>
+                                    {post.title}
                                 </TableCell>
                                 <TableCell><Badge variant="secondary">{post.category}</Badge></TableCell>
                                 <TableCell className="text-right">{formatDate(post.date)}</TableCell>
