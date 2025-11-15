@@ -40,12 +40,6 @@ export default function SeoAnalysis({ article }: SeoAnalysisProps) {
         }
     };
     
-    const handleApplySuggestion = () => {
-        if (!analysis) return;
-        const params = new URLSearchParams({ suggestedTitle: analysis.suggestedTitle });
-        router.push(`/dashboard/admin/articles/${article.id}/edit?${params.toString()}`);
-    }
-
     if (analysis) {
         return (
             <Popover>
@@ -67,10 +61,7 @@ export default function SeoAnalysis({ article }: SeoAnalysisProps) {
                             <p className="text-sm font-semibold">العنوان المقترح:</p>
                              <p className="text-sm p-2 bg-muted rounded-md">{analysis.suggestedTitle}</p>
                         </div>
-                        <Button size="sm" onClick={handleApplySuggestion}>
-                            <Wand2 className="mr-2 h-4 w-4" />
-                            تطبيق التحسين
-                        </Button>
+                        {/* The apply button that linked to the deleted page has been removed */}
                     </div>
                 </PopoverContent>
             </Popover>
