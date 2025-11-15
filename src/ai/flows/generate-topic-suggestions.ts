@@ -1,9 +1,9 @@
 'use server';
 
 /**
- * @fileOverview An AI flow for generating blog topic suggestions based on user queries.
+ * @fileOverview An AI flow for generating blog topic suggestions based on user queries and existing content.
  *
- * - generateTopicSuggestions - Analyzes user queries and suggests new blog topics.
+ * - generateTopicSuggestions - Analyzes user queries, compares them against existing articles, and suggests new blog topics to fill content gaps.
  * - GenerateTopicSuggestionsOutput - The return type for the generateTopicSuggestions function.
  */
 
@@ -11,6 +11,9 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getApps, initializeApp } from 'firebase-admin/app';
+import type { Post } from '@/types';
+import { Timestamp } from 'firebase-admin/firestore';
+
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
@@ -19,7 +22,7 @@ if (!getApps().length) {
 
 const SuggestionSchema = z.object({
   title: z.string().describe('The suggested blog post title in Arabic.'),
-  reason: z.string().describe('A brief explanation in Arabic of why this topic is relevant based on user queries.'),
+  reason: z.string().describe('A brief explanation in Arabic of why this topic is a good content gap to fill based on user queries and existing articles.'),
 });
 
 const GenerateTopicSuggestionsOutputSchema = z.object({
@@ -51,6 +54,38 @@ const getRecentQueries = ai.defineTool(
   }
 );
 
+const getRecentArticles = ai.defineTool(
+    {
+        name: 'getRecentArticles',
+        description: 'يسترجع أحدث المقالات المنشورة في المدونة لتحليل المحتوى الحالي.',
+        inputSchema: z.object({
+            limit: z.number().optional().default(20).describe('The maximum number of articles to retrieve.'),
+        }),
+        outputSchema: z.array(z.object({
+            title: z.string(),
+            excerpt: z.string(),
+        })),
+    },
+    async ({ limit }) => {
+        console.log(`[getRecentArticles] Fetching the last ${limit} articles.`);
+        const db = getFirestore();
+        const postsRef = db.collection('posts').orderBy('date', 'desc').limit(limit);
+        const snapshot = await postsRef.get();
+
+        if (snapshot.empty) {
+            return [];
+        }
+
+        return snapshot.docs.map(doc => {
+            const data = doc.data() as Post;
+            return {
+                title: data.title,
+                excerpt: data.excerpt,
+            };
+        });
+    }
+);
+
 
 export async function generateTopicSuggestions(): Promise<GenerateTopicSuggestionsOutput> {
   return generateTopicSuggestionsFlow();
@@ -59,12 +94,16 @@ export async function generateTopicSuggestions(): Promise<GenerateTopicSuggestio
 const suggestionPrompt = ai.definePrompt({
   name: 'generateTopicSuggestionsPrompt',
   output: { schema: GenerateTopicSuggestionsOutputSchema },
-  tools: [getRecentQueries],
-  prompt: `أنت استراتيجي محتوى لمدونة "حاجتي للذكاء الاصطناعي". مهمتك هي تحليل استفسارات المستخدمين الأخيرة لتحديد الاتجاهات ونقاط الضعف ومجالات الاهتمام، ثم اقتراح 5 مواضيع جديدة لمقالات المدونة.
+  tools: [getRecentQueries, getRecentArticles],
+  prompt: `أنت استراتيجي محتوى خبير في تحسين محركات البحث (SEO) لمدونة "حاجتي للذكاء الاصطناعي". مهمتك هي إجراء تحليل للفجوات في المحتوى (Content Gap Analysis) واقتراح 5 مواضيع جديدة للمقالات.
 
-أولاً، استخدم أداة 'getRecentQueries' مع حد 50 للحصول على قائمة بأحدث الأسئلة التي طرحها المستخدمون.
+1.  **احصل على بيانات المستخدم**: استخدم أداة 'getRecentQueries' مع حد 50 للحصول على قائمة بأحدث الأسئلة التي طرحها المستخدمون. هذه هي الموضوعات التي يهتم بها جمهورك.
 
-بعد ذلك، وبناءً على هذه الاستفسارات، قم بإنشاء 5 عناوين مقالات مدونة مميزة ومقنعة باللغة العربية. لكل اقتراح، قدم سببًا موجزًا باللغة العربية يشرح سبب كونه موضوعًا جيدًا بناءً على استفسارات المستخدمين. ركز على الموضوعات التي تبدو متكررة أو لا يغطيها المحتوى الحالي بشكل جيد.`,
+2.  **احصل على المحتوى الحالي**: استخدم أداة 'getRecentArticles' مع حد 20 للحصول على قائمة بأحدث المقالات الموجودة بالفعل في المدونة.
+
+3.  **حلل وابحث عن الفجوات**: قارن بين استفسارات المستخدمين والمقالات الحالية. هدفك هو العثور على الأسئلة أو الموضوعات التي يطرحها المستخدمون بشكل متكرر ولكن لا يتم تناولها بشكل مباشر أو كافٍ في المحتوى الحالي.
+
+4.  **اقترح مواضيع لسد الفجوات**: بناءً على تحليلك، قم بإنشاء 5 عناوين مقالات جديدة ومقنعة باللغة العربية. لكل اقتراح، قدم "سببًا" موجزًا باللغة العربية يشرح لماذا يعتبر هذا الموضوع فجوة مهمة في المحتوى يجب سدها وكيف يلبي طلبًا حقيقيًا من المستخدمين. ركز على العناوين التي لديها القدرة على التفوق في نتائج البحث.`,
 });
 
 const generateTopicSuggestionsFlow = ai.defineFlow(
@@ -73,7 +112,7 @@ const generateTopicSuggestionsFlow = ai.defineFlow(
     outputSchema: GenerateTopicSuggestionsOutputSchema,
   },
   async () => {
-    const { output } = await suggestionPrompt({limit: 50});
+    const { output } = await suggestionPrompt();
     return output!;
   }
 );
