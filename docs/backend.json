@@ -53,6 +53,11 @@
         "referredBy": {
             "type": "string",
             "description": "The referral code of the user who referred this user."
+        },
+        "status": {
+            "type": "string",
+            "description": "The status of the user account.",
+            "enum": ["active", "suspended"]
         }
       },
       "required": [
@@ -62,7 +67,8 @@
         "role",
         "balance",
         "points",
-        "createdAt"
+        "createdAt",
+        "status"
       ]
     },
     "Article": {

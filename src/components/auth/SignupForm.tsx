@@ -91,6 +91,7 @@ function SignupFormComponent() {
         referralCode: generateReferralCode(6),
         referralEarnings: 0,
         referredBy: referralCode || null,
+        status: 'active',
       });
       
       // Fire and forget welcome email

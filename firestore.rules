@@ -53,6 +53,7 @@ service cloud.firestore {
             && user.createdAt == request.time
             && user.referralCode is string
             && user.referralEarnings == 0
+            && user.status == 'active'
             && (user.referredBy == null || user.referredBy is string);
     }
 
@@ -65,7 +66,24 @@ service cloud.firestore {
             && incoming.role == existing.role
             && incoming.createdAt == existing.createdAt
             && incoming.referralCode == existing.referralCode
-            && incoming.referralEarnings == existing.referralEarnings;
+            && incoming.referralEarnings == existing.referralEarnings
+            && incoming.status == existing.status; // User cannot change their own status
+    }
+    
+    /**
+     * @description Admin-only updates to a user profile.
+     */
+    function hasAllowedAdminUpdates(incoming, existing) {
+        // Admin can change balance and status.
+        return incoming.id == existing.id
+            && incoming.email == existing.email
+            && incoming.role == existing.role
+            && incoming.createdAt == existing.createdAt
+            && incoming.referralCode == existing.referralCode
+            && incoming.referralEarnings == existing.referralEarnings
+            && incoming.points == existing.points
+            && incoming.lastMarketingTriggerAt == existing.lastMarketingTriggerAt
+            && (incoming.status == 'active' || incoming.status == 'suspended');
     }
 
     /**
@@ -129,8 +147,9 @@ service cloud.firestore {
      * @path /users/{userId}
      */
     match /users/{userId} {
-      // Admins can read any profile. Users can only read their own.
-      allow get: if isOwner(userId) || isAdmin();
+      // Admins can read any profile. Users can only read their own if not suspended.
+      allow get: if (isOwner(userId) && resource.data.status != 'suspended') || isAdmin();
+      
       // Only admins can list all users.
       allow list: if isAdmin();
       
@@ -138,22 +157,22 @@ service cloud.firestore {
       allow create: if isOwner(userId) && hasValidSignupFields();
       
       // Allow updates only under specific, controlled conditions.
-      allow update: if isOwner(userId) && hasAllowedUserUpdates(request.resource.data, resource.data) && (
-          isTriggeringAgent(request.resource.data, resource.data) ||
-          isCashingInPoints(request.resource.data, resource.data) ||
-          isCreatingAdCampaign(request.resource.data, resource.data) ||
-          isGeneralProfileUpdate(request.resource.data, resource.data)
-      );
+      allow update: if (isOwner(userId) && hasAllowedUserUpdates(request.resource.data, resource.data) && (
+                          isTriggeringAgent(request.resource.data, resource.data) ||
+                          isCashingInPoints(request.resource.data, resource.data) ||
+                          isCreatingAdCampaign(request.resource.data, resource.data) ||
+                          isGeneralProfileUpdate(request.resource.data, resource.data)
+                      )) || (isAdmin() && hasAllowedAdminUpdates(request.resource.data, resource.data));
 
       // Only admins can delete users.
       allow delete: if isAdmin();
 
       /**
        * @description Rules for user's ad campaigns.
-       * Users can manage their own campaigns.
+       * Users can manage their own campaigns, but not if they are suspended.
        */
       match /campaigns/{campaignId} {
-          allow read, write: if isOwner(userId);
+          allow read, write: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.status != 'suspended';
       }
     }
     
