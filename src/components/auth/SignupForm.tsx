@@ -135,6 +135,7 @@ function SignupFormComponent() {
         status: 'active',
         ancestors: newAncestors, // Store the calculated MLM upline
         achievements: [], // Initialize achievements array
+        isAgencyMember: false,
       };
       
       // Use non-blocking write for faster UX

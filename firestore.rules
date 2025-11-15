@@ -61,7 +61,8 @@ service cloud.firestore {
             && user.status == 'active'
             && isReferredByValid
             && isAncestorsValid
-            && 'achievements' in user && user.achievements is list && user.achievements.size() == 0;
+            && 'achievements' in user && user.achievements is list && user.achievements.size() == 0
+            && user.isAgencyMember == false;
     }
 
 
@@ -78,7 +79,8 @@ service cloud.firestore {
             && incoming.referralEarnings == existing.referralEarnings
             && incoming.ancestors == existing.ancestors
             && incoming.referredBy == existing.referredBy // User cannot change who referred them
-            && incoming.status == existing.status; // User cannot change their own status
+            && incoming.status == existing.status // User cannot change their own status
+            && incoming.isAgencyMember == existing.isAgencyMember; // User cannot change their agency status
     }
     
     /**
@@ -98,7 +100,8 @@ service cloud.firestore {
             && incoming.points == existing.points // Only system logic can change this
             && incoming.lastMarketingTriggerAt == existing.lastMarketingTriggerAt // Only system logic can change this
             && (incoming.status == 'active' || incoming.status == 'suspended')
-            && incoming.achievements == existing.achievements; // Admin cannot manually change achievements
+            && incoming.achievements == existing.achievements // Admin cannot manually change achievements
+            && incoming.isAgencyMember == existing.isAgencyMember; // Admin cannot manually change agency status
     }
 
     /**

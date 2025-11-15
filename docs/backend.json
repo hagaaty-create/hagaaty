@@ -93,6 +93,10 @@
             },
             "required": ["id", "name", "awardedAt"]
           }
+        },
+        "isAgencyMember": {
+          "type": "boolean",
+          "description": "True if the user is a subscribed member of the advertising agency service."
         }
       },
       "required": [
@@ -106,7 +110,8 @@
         "status",
         "ancestors",
         "directReferralsCount",
-        "achievements"
+        "achievements",
+        "isAgencyMember"
       ]
     },
     "Article": {

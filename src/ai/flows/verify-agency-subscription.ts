@@ -39,7 +39,7 @@ const LEVEL_DISTRIBUTION = [
 const processAgencyMLMTool = ai.defineTool(
   {
     name: 'processAgencyMLM',
-    description: "Distributes MLM commissions to a user's upline after they subscribe to the agency service.",
+    description: "Distributes MLM commissions to a user's upline after they subscribe to the agency service and marks them as an agency member.",
     inputSchema: z.object({
       userId: z.string(),
       subscriptionAmount: z.number(),
@@ -57,6 +57,11 @@ const processAgencyMLMTool = ai.defineTool(
         throw new Error(`User with ID ${userId} not found.`);
       }
       const userData = userDoc.data()!;
+
+      // Mark the user as an agency member
+      transaction.update(userRef, { isAgencyMember: true });
+      console.log(`[Tool] User ${userId} marked as agency member.`);
+
       const ancestors = userData.ancestors as string[] | undefined;
 
       if (ancestors && ancestors.length > 0) {
@@ -123,7 +128,7 @@ const sendAdminNotificationTool = ai.defineTool(
           <li><strong>الحالة:</strong> ${success ? 'ناجح' : 'فشل'}</li>
           ${!success ? `<li><strong>سبب الفشل (حسب تقدير AI):</strong> ${failureReason}</li>` : ''}
         </ul>
-        <p>${success ? 'تم التحقق من الإيصال بواسطة الذكاء الاصطناعي وتوزيع عمولات الشبكة تلقائيًا.' : '<strong>مطلوب إجراء يدوي!</strong> يرجى التحقق من الإيصال وإتمام العملية يدويًا إذا كان صالحًا.'}</p>
+        <p>${success ? 'تم التحقق من الإيصال بواسطة الذكاء الاصطناعي، تفعيل العضوية، وتوزيع عمولات الشبكة تلقائيًا.' : '<strong>مطلوب إجراء يدوي!</strong> يرجى التحقق من الإيصال وإتمام العملية يدويًا إذا كان صالحًا.'}</p>
         <p><strong>إيصال الدفع المرفق:</strong></p>
         <img src="${paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px; border: 1px solid #ccc;"/>
       </div>
