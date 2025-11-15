@@ -36,7 +36,7 @@ export default function MarketingToolsPage() {
     const referralLink = useMemo(() => {
         if (typeof window === 'undefined' || !userProfile?.referralCode) return '';
         return `${window.location.origin}/signup?ref=${userProfile.referralCode}`;
-    }, [userProfile]);
+    }, [userProfile?.referralCode, typeof window]);
 
     const fetchMarketingCampaign = async () => {
         if (!referralLink) return;
@@ -54,10 +54,10 @@ export default function MarketingToolsPage() {
     };
     
     useEffect(() => {
-        if(referralLink) {
+        if(referralLink && !campaign) {
             fetchMarketingCampaign();
         }
-    }, [referralLink]);
+    }, [referralLink, campaign]);
 
     const copyToClipboard = (textToCopy: string, id: string) => {
         navigator.clipboard.writeText(textToCopy);
@@ -199,7 +199,7 @@ export default function MarketingToolsPage() {
                                     {copiedStates['xPost'] ? <Check className="ml-2 h-4 w-4" /> : <Copy className="ml-2 h-4 w-4" />}
                                     نسخ
                                 </Button>
-                                <Button onClick={() => handlePublish('X')} size="sm" disabled={isPublishing['xPost']}>
+                                <Button onClick={() => handlePublish('X')} size="sm" disabled={!!isPublishing['xPost']}>
                                     {isPublishing['xPost'] ? <Loader2 className="ml-2 h-4 w-4 animate-spin"/> : <Send className="ml-2 h-4 w-4" />}
                                     نشر
                                 </Button>
@@ -220,7 +220,7 @@ export default function MarketingToolsPage() {
                                     {copiedStates['fbPost'] ? <Check className="ml-2 h-4 w-4" /> : <Copy className="ml-2 h-4 w-4" />}
                                     نسخ
                                 </Button>
-                                 <Button onClick={() => handlePublish('Facebook')} size="sm" disabled={isPublishing['fbPost']}>
+                                 <Button onClick={() => handlePublish('Facebook')} size="sm" disabled={!!isPublishing['fbPost']}>
                                     {isPublishing['fbPost'] ? <Loader2 className="ml-2 h-4 w-4 animate-spin"/> : <Send className="ml-2 h-4 w-4" />}
                                     نشر
                                 </Button>
