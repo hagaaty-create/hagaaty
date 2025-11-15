@@ -51,43 +51,41 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
         if (!firestore || !user || !newComment.trim()) return;
 
         setIsSubmitting(true);
-        try {
-            // 1. Moderate the comment using the AI flow
-            const moderationResult = await moderateComment({ commentText: newComment });
+        
+        // The try/catch is removed to allow the global error handler to catch permission errors.
+        // The global handler will throw a detailed error for debugging.
+        
+        // 1. Moderate the comment using the AI flow
+        const moderationResult = await moderateComment({ commentText: newComment });
 
-            if (!moderationResult.shouldPost) {
-                toast({
-                    variant: "destructive",
-                    title: "تم رفض التعليق",
-                    description: moderationResult.reason || "التعليق لا يفي بمعايير المجتمع.",
-                });
-                setIsSubmitting(false);
-                return;
-            }
-
-            // 2. If approved, add the comment to Firestore
-            const commentsCollection = collection(firestore, 'posts', postId, 'comments');
-            const commentData = {
-                content: newComment,
-                authorId: user.uid,
-                authorName: user.displayName || "مستخدم مجهول",
-                authorAvatar: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
-                createdAt: serverTimestamp(),
-            };
-
-            await addDocumentNonBlocking(commentsCollection, commentData);
-            
-            setNewComment("");
-        } catch (error) {
-            console.error("Error submitting comment:", error);
+        if (!moderationResult.shouldPost) {
             toast({
                 variant: "destructive",
-                title: "خطأ",
-                description: "لم نتمكن من إضافة تعليقك. يرجى المحاولة مرة أخرى.",
+                title: "تم رفض التعليق",
+                description: moderationResult.reason || "التعليق لا يفي بمعايير المجتمع.",
             });
-        } finally {
             setIsSubmitting(false);
+            return;
         }
+
+        // 2. If approved, add the comment to Firestore. This is a fire-and-forget operation.
+        // The 'addDocumentNonBlocking' function already contains the necessary .catch() block
+        // to emit a detailed FirestorePermissionError.
+        const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+        const commentData = {
+            content: newComment,
+            authorId: user.uid,
+            authorName: user.displayName || "مستخدم مجهول",
+            authorAvatar: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+            createdAt: serverTimestamp(),
+        };
+
+        addDocumentNonBlocking(commentsCollection, commentData);
+        
+        setNewComment("");
+        // We will optimistically set submitting to false. If an error occurs, the global
+        // error overlay will appear.
+        setIsSubmitting(false);
     };
 
     const handleDelete = (commentId: string) => {
