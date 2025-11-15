@@ -1,9 +1,9 @@
 'use client';
 
-import { generateMarketingContent, type GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { generateMarketingContent, type GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { Bot, Gift, Loader2, Award, Info, RefreshCcw, Milestone, Lightbulb, Twitter, Send } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
