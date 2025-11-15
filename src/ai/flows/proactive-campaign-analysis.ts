@@ -3,32 +3,17 @@
  * @fileOverview An AI agent that proactively analyzes a user's active campaigns and provides optimization advice.
  *
  * - proactiveCampaignAnalysis - The main function that orchestrates the analysis.
- * - ProactiveCampaignAnalysisInput - The input type for the function.
- * - ProactiveCampaignAnalysisOutput - The return type for the function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import {
+  ProactiveCampaignAnalysisInputSchema,
+  ProactiveCampaignAnalysisOutputSchema,
+  type ProactiveCampaignAnalysisInput,
+  type ProactiveCampaignAnalysisOutput,
+} from '@/types';
 
-// Define Zod schemas
-const CampaignDataSchema = z.object({
-  id: z.string(),
-  productName: z.string(),
-  clicks: z.number(),
-  impressions: z.number(),
-  ctr: z.number(),
-});
-
-export const ProactiveCampaignAnalysisInputSchema = z.object({
-  campaigns: z.array(CampaignDataSchema),
-});
-export type ProactiveCampaignAnalysisInput = z.infer<typeof ProactiveCampaignAnalysisInputSchema>;
-
-export const ProactiveCampaignAnalysisOutputSchema = z.object({
-  insight: z.string().describe("A single, highly actionable insight in Arabic for the user. It should be encouraging and feel like a personal recommendation from an expert marketing coach. Max 2-3 sentences."),
-  isActionable: z.boolean().describe("Whether the insight is significant enough to be shown to the user."),
-});
-export type ProactiveCampaignAnalysisOutput = z.infer<typeof ProactiveCampaignAnalysisOutputSchema>;
 
 const analysisPrompt = ai.definePrompt({
     name: 'proactiveCampaignAnalysisPrompt',

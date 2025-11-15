@@ -1,6 +1,7 @@
 'use client';
 
-import { proactiveCampaignAnalysis, ProactiveCampaignAnalysisInput } from "@/ai/flows/proactive-campaign-analysis";
+import { proactiveCampaignAnalysis } from "@/ai/flows/proactive-campaign-analysis";
+import type { ProactiveCampaignAnalysisInput } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbulb, Loader2 } from "lucide-react";
