@@ -98,7 +98,7 @@ export default function ManageArticlesPage() {
         <CardHeader>
           <CardTitle>جميع منشورات المدونة</CardTitle>
           <CardDescription>
-            عرض أو تعديل أو حذف منشورات المدونة الحالية، والحصول على تحسينات SEO بالذكاء الاصطناعي.
+            عرض أو حذف منشورات المدونة الحالية، والحصول على تحسينات SEO بالذكاء الاصطناعي.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -133,11 +133,6 @@ export default function ManageArticlesPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/dashboard/admin/articles/${post.id}/edit`}>
-                            <FileEdit className="h-4 w-4" />
-                          </Link>
-                        </Button>
                          <AlertDialog>
                           <AlertDialogTrigger asChild>
                              <Button variant="ghost" size="icon" disabled={isDeleting === post.id}>
