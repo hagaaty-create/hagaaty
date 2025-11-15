@@ -10,7 +10,7 @@ import '@/ai/flows/create-ad-campaign.ts';
 import '@/ai/flows/generate-topic-suggestions.ts';
 import '@/ai/flows/generate-image-flow.ts';
 import '@/ai/flows/generate-video-flow.ts';
-import '@/ai/flows/generate-marketing-content.ts';
+import '@/aiflows/generate-marketing-content.ts';
 import '@/ai/flows/submit-subscription-request.ts';
 import '@/ai/flows/notify-campaign-active.ts';
 import '@/ai/flows/send-welcome-email.ts';
