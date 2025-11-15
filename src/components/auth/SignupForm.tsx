@@ -227,7 +227,7 @@ function SignupFormComponent() {
                 placeholder="أدخل رمز الإحالة هنا" 
                 value={referralCode}
                 onChange={e => setReferralCode(e.target.value)}
-                disabled={isLoading || (searchParams.get('ref') ? true : false)}
+                disabled={isLoading || !!searchParams.get('ref')}
               />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
