@@ -128,7 +128,7 @@ export default function WithdrawPage() {
                     <CardHeader>
                         <CardTitle>تقديم طلب سحب</CardTitle>
                         <CardDescription>
-                            اطلب سحب أرباحك من التسويق الشبكي. الحد الأدنى للسحب هو {MIN_WITHDRAWAL}$.
+                            اطلب سحب أرباحك من التسويق الشبكي. الحد الأدنى للسحب هو ${MIN_WITHDRAWAL}$.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
