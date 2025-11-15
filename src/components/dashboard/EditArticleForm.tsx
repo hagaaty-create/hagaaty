@@ -5,13 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import type { Post } from "@/types";
 import { useRouter } from "next/navigation";
-import { Badge } from "../ui/badge";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type EditArticleFormProps = {
@@ -29,7 +28,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
     const { toast } = useToast();
     const router = useRouter();
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!firestore) return;
         
@@ -46,7 +45,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           date: serverTimestamp(), // To update the modification date
         };
 
-        // Non-blocking update using the new centralized function
+        // Non-blocking update
         updateDocumentNonBlocking(postRef, updatedData);
 
         toast({
