@@ -41,7 +41,7 @@ function CampaignsPageContent() {
         return query(collection(firestore, 'users', user.uid, 'campaigns'), orderBy('createdAt', 'desc'));
     }, [user, firestore]);
 
-    const { data: campaigns, loading } = useCollection<AdCampaign>(campaignsQuery);
+    const { data: campaigns, isLoading: loading } = useCollection<AdCampaign>(campaignsQuery);
 
     const formatDate = (timestamp: Timestamp | null) => {
         if (!timestamp) return 'N/A';
@@ -254,7 +254,7 @@ function CampaignsPageContent() {
 
 export default function CampaignsPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
             <CampaignsPageContent />
         </Suspense>
     );

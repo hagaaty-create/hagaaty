@@ -83,7 +83,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                     onChange={(e) => setContent(e.target.value)}
                     rows={20}
                     disabled={isSaving}
-                    className="prose dark:prose-invert prose-p:leading-relaxed font-code"
+                    className="prose dark:prose-invert prose-p:leading-relaxed font-mono"
                     dir="ltr"
                 />
             </div>
