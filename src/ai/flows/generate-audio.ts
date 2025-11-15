@@ -71,7 +71,7 @@ const generateAudioFlow = ai.defineFlow(
     outputSchema: GenerateAudioOutputSchema,
   },
   async (input) => {
-    console.log('[generateAudioFlow] Starting audio generation...');
+    console.log('[generateAudioFlow] Starting audio generation for text...');
     
     // Generate the raw audio data from the Gemini TTS model.
     const { media } = await ai.generate({
@@ -80,7 +80,7 @@ const generateAudioFlow = ai.defineFlow(
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Algenib' }, // A pleasant male voice
+            prebuiltVoiceConfig: { voiceName: 'Algenib' }, // A pleasant Arabic male voice
           },
         },
       },

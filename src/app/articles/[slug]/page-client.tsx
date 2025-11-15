@@ -56,6 +56,8 @@ export default function ArticlePageClient({ post }: ArticlePageClientProps) {
                 }
             },
             renderer: {
+                html: () => '',
+                code: () => '',
                 text(text) {
                     return text;
                 },
