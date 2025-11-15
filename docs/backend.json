@@ -25,33 +25,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "socialConnections": {
-          "type": "object",
-          "description": "Stores connection status for various social media platforms.",
-          "properties": {
-            "facebook": {
-              "type": "boolean"
-            },
-            "x": {
-              "type": "boolean"
-            },
-            "instagram": {
-              "type": "boolean"
-            },
-            "tiktok": {
-              "type": "boolean"
-            },
-            "youtube": {
-              "type": "boolean"
-            },
-            "threads": {
-              "type": "boolean"
-            },
-            "linkedin": {
-              "type": "boolean"
-            }
-          }
         }
       },
       "required": [

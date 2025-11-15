@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gift, Zap, Percent, Users, Bot, BarChart, Share2 } from 'lucide-react';
+import { Gift, Zap, Percent, Users, Bot, BarChart } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
@@ -11,11 +11,6 @@ export default function Home() {
       description: 'احصل على رصيد ترحيبي بقيمة 2$ لتجربة إعلانك الأول. يقوم الذكاء الاصطناعي بتصميم وتفعيل حملتك خلال 10 دقائق فقط!',
     },
     {
-      icon: <Share2 className="h-8 w-8 text-primary" />,
-      title: 'النشر الموحد على الشبكات الاجتماعية',
-      description: 'اربط حساباتك، وسيقوم الذكاء الاصطناعي بكتابة وتصميم وتحسين منشوراتك. انشرها على جميع منصاتك بضغطة زر واحدة.',
-    },
-    {
       icon: <Percent className="h-8 w-8 text-primary" />,
       title: 'خصم 20% على الشحن',
       description: 'استمتع بخصم ثابت 20% على كل مرة تقوم فيها بشحن رصيدك الإعلاني، مما يمنحك قيمة أكبر وميزانية تسويقية أضخم.',
@@ -24,6 +19,11 @@ export default function Home() {
       icon: <Users className="h-8 w-8 text-primary" />,
       title: 'اكسب مع برنامج الإحالة',
       description: 'ادعُ أصدقاءك وسيحصل كل منهم على 2$ رصيد إضافي عند شحن رصيده. أنت ستحصل على 20% من قيمة شحنهم، مع إمكانية سحب أرباحك عبر فودافون كاش.',
+    },
+     {
+      icon: <Bot className="h-8 w-8 text-primary" />,
+      title: 'مساعد ذكي ومحتوى للمدونة',
+      description: 'استخدم مساعدنا الذكي للإجابة على استفساراتك، وقم بتوليد مقالات احترافية لمدونتك بضغطة زر.',
     },
   ];
 
