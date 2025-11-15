@@ -18,5 +18,6 @@ import '@/ai/flows/notify-referral-bonus.ts';
 import '@/ai/flows/notify-successful-credit.ts';
 import '@/ai/flows/generate-promotional-articles.ts';
 import '@/ai/flows/analyze-downline.ts';
+import '@/ai/flows/request-withdrawal.ts';
 
     
