@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp, getDoc, collection, query, where, getDocs, updateDoc, FieldValue } from "firebase/firestore";
+import { doc, serverTimestamp, collection, query, where, getDocs, FieldValue, limit } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
