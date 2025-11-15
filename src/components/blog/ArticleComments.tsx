@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, addDoc, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, serverTimestamp, doc } from "firebase/firestore";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -12,7 +12,7 @@ import { Skeleton } from "../ui/skeleton";
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import type { Comment } from "@/types";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type ArticleCommentsProps = {
     postId: string;
@@ -63,10 +63,10 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
         setIsSubmitting(false);
     };
 
-    const handleDelete = async (commentId: string) => {
+    const handleDelete = (commentId: string) => {
         if (!firestore) return;
         const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
-        await deleteDoc(commentRef);
+        deleteDocumentNonBlocking(commentRef);
     }
 
     return (
@@ -128,7 +128,7 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
                                             {comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: ar }) : 'منذ فترة'}
                                         </p>
                                     </div>
-                                    {user && (user.uid === comment.authorId) && (
+                                    {user && (user.uid === comment.authorId || userProfile?.role === 'admin') && (
                                         <Button 
                                             variant="ghost" 
                                             size="icon" 
