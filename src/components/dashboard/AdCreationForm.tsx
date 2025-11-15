@@ -79,6 +79,7 @@ export default function AdCreationForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
         if (!productName.trim() || !productDescription.trim() || !targetAudience.trim() || !keywords.trim() || !websiteUrl.trim()) return;
 
         if (!hasSufficientBalance) {
@@ -181,7 +182,7 @@ export default function AdCreationForm() {
 
     return (
         <div className="space-y-6">
-             {!hasSufficientBalance && (
+             {!hasSufficientBalance && userProfile && (
                 <Alert variant="destructive">
                     <AlertTitle>رصيد غير كافٍ</AlertTitle>
                     <AlertDescription>

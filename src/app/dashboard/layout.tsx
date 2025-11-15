@@ -53,7 +53,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, loading: userLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -63,13 +63,13 @@ export default function DashboardLayout({
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
   
-  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
   React.useEffect(() => {
-    if (!userLoading && !user) {
+    if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, userLoading, router]);
+  }, [user, isUserLoading, router]);
 
   const isAdmin = userProfile?.role === 'admin';
 
@@ -110,7 +110,7 @@ export default function DashboardLayout({
     }
   };
   
-  const loading = userLoading || profileLoading;
+  const loading = isUserLoading || profileLoading;
 
   if (loading || !user) {
     return (
