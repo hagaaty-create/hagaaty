@@ -2,8 +2,8 @@
 
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, DocumentData } from 'firebase/firestore';
-import { useParams } from 'next/navigation';
-import { useMemo } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useMemo, Suspense } from 'react';
 import type { Post } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import EditArticleForm from '@/components/dashboard/EditArticleForm';
@@ -11,10 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileEdit } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-export default function EditArticlePage() {
+
+function EditArticlePageContent() {
   const firestore = useFirestore();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { id } = params;
+
+  const suggestedTitle = searchParams.get('suggestedTitle');
 
   const postRef = useMemoFirebase(() => {
     if (!firestore || typeof id !== 'string') return null;
@@ -22,6 +26,15 @@ export default function EditArticlePage() {
   }, [firestore, id]);
 
   const { data: post, isLoading: loading } = useDoc<Post>(postRef);
+
+  const postWithSuggestion = useMemo(() => {
+    if (!post) return null;
+    if (suggestedTitle) {
+      return { ...post, title: suggestedTitle };
+    }
+    return post;
+  }, [post, suggestedTitle]);
+
 
   if (loading) {
     return (
@@ -51,7 +64,7 @@ export default function EditArticlePage() {
     );
   }
 
-  if (!post) {
+  if (!postWithSuggestion) {
     notFound();
   }
 
@@ -63,15 +76,24 @@ export default function EditArticlePage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>تحرير: {post.title}</CardTitle>
+          <CardTitle>تحرير: {postWithSuggestion.title}</CardTitle>
           <CardDescription>
             قم بتعديل محتوى المقال أدناه. سيتم حفظ التغييرات على الفور في المدونة.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <EditArticleForm post={post} />
+          <EditArticleForm post={postWithSuggestion} />
         </CardContent>
       </Card>
     </div>
   );
+}
+
+
+export default function EditArticlePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <EditArticlePageContent />
+        </Suspense>
+    );
 }

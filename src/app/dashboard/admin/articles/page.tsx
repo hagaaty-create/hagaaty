@@ -34,10 +34,11 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Trash2, Loader2, FileEdit } from 'lucide-react';
+import { FileText, Trash2, Loader2, FileEdit, Sparkles } from 'lucide-react';
 import type { Post } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import SeoAnalysis from '@/components/dashboard/SeoAnalysis';
 
 export default function ManageArticlesPage() {
   const firestore = useFirestore();
@@ -97,7 +98,7 @@ export default function ManageArticlesPage() {
         <CardHeader>
           <CardTitle>جميع منشورات المدونة</CardTitle>
           <CardDescription>
-            عرض أو تعديل أو حذف منشورات المدونة الحالية.
+            عرض أو تعديل أو حذف منشورات المدونة الحالية، والحصول على تحسينات SEO بالذكاء الاصطناعي.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -115,6 +116,7 @@ export default function ManageArticlesPage() {
                   <TableHead>العنوان</TableHead>
                   <TableHead>الفئة</TableHead>
                   <TableHead>التاريخ</TableHead>
+                  <TableHead>تحسينات SEO بواسطة AI</TableHead>
                   <TableHead className="text-right">الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -126,6 +128,9 @@ export default function ManageArticlesPage() {
                       <Badge variant="secondary">{post.category}</Badge>
                     </TableCell>
                     <TableCell>{formatDate(post.date)}</TableCell>
+                    <TableCell>
+                      <SeoAnalysis article={post} />
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="icon" asChild>
