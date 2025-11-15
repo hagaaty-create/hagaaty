@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { marked } from 'marked';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -75,9 +76,9 @@ export default function SmartAssistant() {
   }, [messages]);
 
   const exampleQueries = [
-    "ما هو الذكاء الاصطناعي التوليدي؟",
-    "كيف تعمل الحوسبة الكمومية؟",
-    "اشرح لي مفهوم الثقب الأسود ببساطة"
+    "كيف أزيد أرباحي من التسويق الشبكي؟",
+    "ما هي أفضل طريقة لكتابة إعلان؟",
+    "اشرح لي ما هو تحسين محركات البحث (SEO)"
   ];
   
   const handleExampleQuery = (query: string) => {
@@ -129,7 +130,7 @@ export default function SmartAssistant() {
             {messages.length === 0 && (
                 <div className="text-center text-muted-foreground p-4 sm:p-8">
                     <Bot className="mx-auto h-12 w-12 mb-4 text-primary/50"/>
-                    <p className='mb-6'>مرحباً! أنا مساعد حاجتي للذكاء الاصطناعي. اسألني أي شيء.</p>
+                    <p className='mb-6'>مرحباً! أنا مساعد حاجتي للذكاء الاصطناعي. اسألني أي شيء عن التسويق أو الإعلانات وسأبحث لك في مدونتنا عن أفضل الإجابات.</p>
                     <div className='flex flex-col items-center gap-2'>
                         {exampleQueries.map((q) => (
                            <Button 
@@ -154,14 +155,13 @@ export default function SmartAssistant() {
                 )}
                 <div
                   className={cn(
-                    'max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap',
+                    'max-w-[85%] rounded-lg p-3 text-sm prose dark:prose-invert prose-p:m-0 prose-headings:m-0 prose-a:text-primary',
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary text-primary-foreground prose-a:text-primary-foreground'
                       : 'bg-muted'
                   )}
-                >
-                  {message.content}
-                </div>
+                  dangerouslySetInnerHTML={{ __html: marked(message.content, { breaks: true, gfm: true }) }}
+                />
                  {message.role === 'user' && (
                   <Avatar className="h-8 w-8 border">
                     <AvatarFallback><User size={16}/></AvatarFallback>
