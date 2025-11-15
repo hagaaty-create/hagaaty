@@ -1,10 +1,10 @@
 'use client';
 
-import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
+import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, where, getDocs } from "firebase/firestore";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Copy, Check, DollarSign, Users, Gift, Network } from "lucide-react";
+import { Share2, Copy, Check, DollarSign, Users, Gift, Network, Bot, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
-
+import { analyzeDownline, type AnalyzeDownlineOutput } from "@/ai/flows/analyze-downline";
 
 type UserProfile = {
   id: string;
@@ -38,6 +38,8 @@ export default function ReferralsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [downlineAnalysis, setDownlineAnalysis] = useState<AnalyzeDownlineOutput | null>(null);
+  const [isAnalysisLoading, setIsAnalysisLoading] = useState(true);
 
   const userProfileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -47,13 +49,25 @@ export default function ReferralsPage() {
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const referralsQuery = useMemoFirebase(() => {
-    // We must wait for the userProfile to load to get the referral code.
     if (!firestore || !userProfile?.referralCode) return null;
     return query(collection(firestore, 'users'), where('referredBy', '==', userProfile.referralCode));
   }, [firestore, userProfile]);
   
   const { data: referrals, isLoading: areReferralsLoading } = useCollection<UserProfile>(referralsQuery);
   
+  useEffect(() => {
+    if (user) {
+      setIsAnalysisLoading(true);
+      analyzeDownline({ userId: user.uid })
+        .then(setDownlineAnalysis)
+        .catch(err => {
+          console.error("Failed to analyze downline:", err);
+          toast({ variant: 'destructive', title: 'فشل تحليل الشبكة' });
+        })
+        .finally(() => setIsAnalysisLoading(false));
+    }
+  }, [user, toast]);
+
   const referralLink = useMemo(() => {
     if (typeof window === 'undefined' || !userProfile?.referralCode) return '';
     return `${window.location.origin}/signup?ref=${userProfile.referralCode}`;
@@ -73,9 +87,9 @@ export default function ReferralsPage() {
     return format(timestamp.toDate(), 'PPP');
   };
   
-  const isLoading = isProfileLoading || (!!userProfile && areReferralsLoading);
+  const isLoading = isProfileLoading || (!!userProfile && areReferralsLoading) || isAnalysisLoading;
 
-  if (isLoading) {
+  if (isLoading && !downlineAnalysis) {
     return (
         <div className="space-y-8">
              <div className="flex items-center gap-4">
@@ -130,6 +144,40 @@ export default function ReferralsPage() {
               </Table>
           </CardContent>
       </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3"><Bot className="h-6 w-6 text-primary"/> تحليل شبكتك بالذكاء الاصطناعي</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isAnalysisLoading ? (
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>يقوم الوكيل بتحليل شبكتك الآن...</span>
+            </div>
+          ) : downlineAnalysis && (
+            <div className="space-y-4">
+                <p className="text-base text-muted-foreground italic">"{downlineAnalysis.summary}"</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {downlineAnalysis.levels.map(l => <TableHead key={l.level} className="text-center">المستوى {l.level}</TableHead>)}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                       {downlineAnalysis.levels.map(l => (
+                          <TableCell key={l.level} className="text-center font-bold text-2xl">
+                              {l.count}
+                           </TableCell>
+                        ))}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
@@ -145,7 +193,7 @@ export default function ReferralsPage() {
           </Card>
            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">الإحالات المباشرة</CardTitle>
+                  <CardTitle className="text-sm font-medium">الإحالات المباشرة (المستوى 1)</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

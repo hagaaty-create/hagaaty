@@ -17,5 +17,6 @@ import '@/ai/flows/verify-payment-and-credit-user.ts';
 import '@/ai/flows/notify-referral-bonus.ts';
 import '@/ai/flows/notify-successful-credit.ts';
 import '@/ai/flows/generate-promotional-articles.ts';
+import '@/ai/flows/analyze-downline.ts';
 
     
