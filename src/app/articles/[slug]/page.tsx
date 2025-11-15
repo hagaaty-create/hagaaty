@@ -45,7 +45,12 @@ async function getPost(slug: string): Promise<Post | null> {
   return { id: postDoc.id, ...postData, date } as Post;
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+type PageProps = {
+  params: Promise<{ slug: string }> | { slug: string };
+};
+
+export async function generateMetadata({ params: paramsProp }: PageProps): Promise<Metadata> {
+  const params = 'then' in paramsProp ? await paramsProp : paramsProp;
   const post = await getPost(params.slug);
 
   if (!post) {
@@ -92,7 +97,8 @@ function formatDate(date: string | Date | Timestamp) {
     return "Date not available";
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params: paramsProp }: PageProps) {
+  const params = 'then' in paramsProp ? await paramsProp : paramsProp;
   const post = await getPost(params.slug);
 
   if (!post) {
