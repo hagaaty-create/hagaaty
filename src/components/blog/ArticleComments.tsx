@@ -13,6 +13,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import type { Comment } from "@/types";
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { moderateComment } from "@/ai/flows/moderate-comment";
+import { useToast } from "@/hooks/use-toast";
 
 type ArticleCommentsProps = {
     postId: string;
@@ -34,7 +36,9 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
     const { user } = useUser();
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { toast } = useToast();
 
+    // This query is for reading existing comments
     const commentsQuery = useMemoFirebase(() => {
         if (!firestore || !postId) return null;
         return query(collection(firestore, 'posts', postId, 'comments'), orderBy('createdAt', 'desc'));
@@ -47,20 +51,43 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
         if (!firestore || !user || !newComment.trim()) return;
 
         setIsSubmitting(true);
-        const commentsCollection = collection(firestore, 'posts', postId, 'comments');
-        
-        const commentData = {
-            content: newComment,
-            authorId: user.uid,
-            authorName: user.displayName || "مستخدم مجهول",
-            authorAvatar: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
-            createdAt: serverTimestamp(),
-        };
+        try {
+            // 1. Moderate the comment using the AI flow
+            const moderationResult = await moderateComment({ commentText: newComment });
 
-        await addDocumentNonBlocking(commentsCollection, commentData);
-        
-        setNewComment("");
-        setIsSubmitting(false);
+            if (!moderationResult.shouldPost) {
+                toast({
+                    variant: "destructive",
+                    title: "تم رفض التعليق",
+                    description: moderationResult.reason || "التعليق لا يفي بمعايير المجتمع.",
+                });
+                setIsSubmitting(false);
+                return;
+            }
+
+            // 2. If approved, add the comment to Firestore
+            const commentsCollection = collection(firestore, 'posts', postId, 'comments');
+            const commentData = {
+                content: newComment,
+                authorId: user.uid,
+                authorName: user.displayName || "مستخدم مجهول",
+                authorAvatar: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+                createdAt: serverTimestamp(),
+            };
+
+            await addDocumentNonBlocking(commentsCollection, commentData);
+            
+            setNewComment("");
+        } catch (error) {
+            console.error("Error submitting comment:", error);
+            toast({
+                variant: "destructive",
+                title: "خطأ",
+                description: "لم نتمكن من إضافة تعليقك. يرجى المحاولة مرة أخرى.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleDelete = (commentId: string) => {
@@ -68,6 +95,14 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
         const commentRef = doc(firestore, 'posts', postId, 'comments', commentId);
         deleteDocumentNonBlocking(commentRef);
     }
+    
+    // We need to fetch the user's role to allow admin to delete any comment
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile } = useDoc<{ role?: 'admin' | 'user' }>(userProfileRef);
+
 
     return (
         <Card className="mt-12">
@@ -83,7 +118,7 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
                                 <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
                             <Textarea
-                                placeholder="أضف تعليقًا..."
+                                placeholder="أضف تعليقًا يلتزم بمعايير المجتمع..."
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 disabled={isSubmitting}
@@ -97,7 +132,7 @@ export default function ArticleComments({ postId }: ArticleCommentsProps) {
                                 ) : (
                                     <Send className="ml-2 h-4 w-4" />
                                 )}
-                                نشر التعليق
+                                {isSubmitting ? 'جاري التحليل...' : 'نشر التعليق'}
                             </Button>
                         </div>
                     </form>

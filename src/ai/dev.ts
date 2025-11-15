@@ -17,4 +17,5 @@ import '@/ai/flows/notify-successful-credit.ts';
 import '@/ai/flows/notify-referral-bonus.ts';
 import '@/ai/flows/generate-audio.ts';
 import '@/ai/flows/proactive-campaign-analysis.ts';
+import '@/ai/flows/moderate-comment.ts';
     
