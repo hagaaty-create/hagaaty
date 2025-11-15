@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Circle } from "lucide-react";
+import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Circle, Users } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
+import { collection, serverTimestamp, doc, updateDoc, increment, getCountFromServer, FieldValue } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
@@ -114,6 +114,25 @@ export default function AdCreationForm() {
         const clicks = Math.min(100, Math.floor(impressions * (Math.random() * (0.08 - 0.02) + 0.02))); // 2% to 8% CTR, max 100 clicks
         const ctr = impressions > 0 ? clicks / impressions : 0;
 
+        const campaignsCollection = collection(firestore, 'users', user.uid, 'campaigns');
+
+        // Check if this is the first campaign to award the achievement
+        const snapshot = await getCountFromServer(campaignsCollection);
+        if (snapshot.data().count === 0) {
+            updateDocumentNonBlocking(userProfileRef, {
+                achievements: FieldValue.arrayUnion({
+                    id: 'ad_pioneer',
+                    name: 'رائد الإعلانات',
+                    awardedAt: serverTimestamp()
+                })
+            });
+             toast({
+                title: "🏆 إنجاز جديد!",
+                description: "لقد حصلت على شارة 'رائد الإعلانات' لإنشاء أول حملة لك.",
+            });
+        }
+
+
         const newCampaignData = {
             productName,
             productDescription,
@@ -131,7 +150,7 @@ export default function AdCreationForm() {
             }
         };
 
-        const campaignsCollection = collection(firestore, 'users', user.uid, 'campaigns');
+        
         const newCampaignRef = await addDocumentNonBlocking(campaignsCollection, newCampaignData);
         
         updateDocumentNonBlocking(userProfileRef, {

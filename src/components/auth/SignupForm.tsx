@@ -17,9 +17,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc, collection, query, where, getDocs, updateDoc, FieldValue } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 function SignupFormComponent() {
@@ -75,6 +75,7 @@ function SignupFormComponent() {
       // Step 1: Find the referrer by their code to get their ancestor list
       let referrerAncestors: string[] = [];
       let referrerUid: string | null = null;
+      let referrerDocRef = null;
       if (referralCode) {
         const usersRef = collection(firestore, 'users');
         const q = query(usersRef, where('referralCode', '==', referralCode), limit(1));
@@ -82,7 +83,18 @@ function SignupFormComponent() {
         if (!querySnapshot.empty) {
           const referrerDoc = querySnapshot.docs[0];
           referrerUid = referrerDoc.id;
+          referrerDocRef = referrerDoc.ref;
           referrerAncestors = referrerDoc.data().ancestors || [];
+
+          // Award achievement to referrer (non-blocking)
+          updateDocumentNonBlocking(referrerDocRef, {
+            achievements: FieldValue.arrayUnion({
+              id: 'team_builder',
+              name: 'بنّاء الفريق',
+              awardedAt: serverTimestamp()
+            })
+          });
+
         } else {
             // Handle invalid referral code, maybe show a warning, but proceed with signup
             toast({
@@ -120,6 +132,7 @@ function SignupFormComponent() {
         referredBy: referralCode || null, // Store the referral code
         status: 'active',
         ancestors: newAncestors, // Store the calculated MLM upline
+        achievements: [], // Initialize achievements array
       };
       
       // Use non-blocking write for faster UX
