@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
 
 export default function SignupForm() {
   const [fullName, setFullName] = useState('');
@@ -55,10 +56,8 @@ export default function SignupForm() {
       
       await updateProfile(userCredential.user, { displayName: fullName });
       
-      // Check if the email is the admin email
       const userRole = email === 'hagaaty@gmail.com' ? 'admin' : 'user';
 
-      // Create user profile document in Firestore
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
       await setDoc(userDocRef, {
         id: userCredential.user.uid,
@@ -69,6 +68,11 @@ export default function SignupForm() {
         points: 0,
         lastMarketingTriggerAt: null,
         createdAt: serverTimestamp()
+      });
+      
+      // Fire and forget welcome email
+      sendWelcomeEmail({ userName: fullName, userEmail: email }).catch(err => {
+        console.error("Failed to send welcome email:", err);
       });
 
       toast({
