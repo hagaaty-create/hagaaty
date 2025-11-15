@@ -6,14 +6,16 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { notifyCampaignActive } from '@/ai/flows/notify-campaign-active';
 
 type CampaignReviewProgressProps = {
   campaignId: string;
+  campaignName: string;
 };
 
 const REVIEW_DURATION_SECONDS = 10; // Reduced for better demo experience
 
-export default function CampaignReviewProgress({ campaignId }: CampaignReviewProgressProps) {
+export default function CampaignReviewProgress({ campaignId, campaignName }: CampaignReviewProgressProps) {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const firestore = useFirestore();
@@ -37,7 +39,7 @@ export default function CampaignReviewProgress({ campaignId }: CampaignReviewPro
   useEffect(() => {
     if (progress >= 100 && !isComplete) {
       setIsComplete(true);
-      if (firestore && user) {
+      if (firestore && user?.uid && user.email) {
         const campaignRef = doc(firestore, 'users', user.uid, 'campaigns', campaignId);
         updateDoc(campaignRef, { status: 'active' })
           .then(() => {
@@ -45,6 +47,12 @@ export default function CampaignReviewProgress({ campaignId }: CampaignReviewPro
               title: 'تم تفعيل الحملة!',
               description: 'تمت مراجعة حملتك بنجاح وهي الآن نشطة.',
             });
+            // Send email notification in the background
+            notifyCampaignActive({
+              userEmail: user.email!,
+              campaignName: campaignName,
+              campaignId: campaignId,
+            }).catch(console.error); // Log error if email sending fails, but don't block UI
           })
           .catch(error => {
             console.error('Error updating campaign status:', error);
@@ -56,7 +64,7 @@ export default function CampaignReviewProgress({ campaignId }: CampaignReviewPro
           });
       }
     }
-  }, [progress, isComplete, firestore, user, campaignId, toast]);
+  }, [progress, isComplete, firestore, user, campaignId, campaignName, toast]);
 
   if (isComplete) {
     return <Badge variant="default">نشطة</Badge>;

@@ -48,9 +48,9 @@ function CampaignsPageContent() {
         return format(timestamp.toDate(), 'PPP');
     }
 
-    const getStatusBadge = (status: AdCampaign['status'], campaignId: string) => {
-        if (status === 'reviewing' && campaignId === newCampaignId) {
-            return <CampaignReviewProgress campaignId={campaignId} />;
+    const getStatusBadge = (campaign: AdCampaign) => {
+        if (campaign.status === 'reviewing' && campaign.id === newCampaignId) {
+            return <CampaignReviewProgress campaignId={campaign.id} campaignName={campaign.productName} />;
         }
         
         const variantMap: Record<AdCampaign['status'], 'default' | 'secondary' | 'outline' | 'destructive'> = {
@@ -69,7 +69,7 @@ function CampaignsPageContent() {
             draft: 'مسودة',
         };
 
-        return <Badge variant={variantMap[status] || 'secondary'}>{statusTextMap[status]}</Badge>;
+        return <Badge variant={variantMap[campaign.status] || 'secondary'}>{statusTextMap[campaign.status]}</Badge>;
     };
 
     const { chartData, totalImpressions, totalClicks, totalSpent } = useMemo(() => {
@@ -224,7 +224,7 @@ function CampaignsPageContent() {
                                         <TableCell className="font-medium">{campaign.productName}</TableCell>
                                         <TableCell>{campaign.headline}</TableCell>
                                         <TableCell>
-                                            {getStatusBadge(campaign.status, campaign.id)}
+                                            {getStatusBadge(campaign)}
                                         </TableCell>
                                         <TableCell className="text-right font-mono">{campaign.performance?.impressions?.toLocaleString() || 'N/A'}</TableCell>
                                         <TableCell className="text-right font-mono">{campaign.performance?.clicks?.toLocaleString() || 'N/A'}</TableCell>
