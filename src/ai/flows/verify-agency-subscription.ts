@@ -106,42 +106,14 @@ const sendAdminNotificationTool = ai.defineTool(
     name: 'sendAdminAgencyNotification',
     description: 'Sends an email notification to the admin about a successful or failed agency subscription.',
     inputSchema: z.object({
-        userEmail: z.string(),
-        amount: z.number(),
-        paymentProofDataUri: z.string(),
         success: z.boolean(),
         failureReason: z.string().optional(),
     }),
     outputSchema: z.void(),
   },
-  async ({ userEmail, amount, paymentProofDataUri, success, failureReason }) => {
-    console.log(`[Tool] Sending admin notification for agency subscription for ${userEmail}`);
-    
-    const subject = success
-      ? `✅ اشتراك وكالة جديد: ${userEmail} دفع $${amount}`
-      : `🚨 فشل التحقق من اشتراك وكالة: ${userEmail}`;
-      
-    const html = `
-      <div dir="rtl">
-        <h1>${success ? 'اشتراك وكالة جديد وناجح' : 'فشل التحقق من اشتراك وكالة'}</h1>
-        <p>قام المستخدم <strong>${userEmail}</strong> بمحاولة الاشتراك في خدمة الوكالة.</p>
-        <ul>
-          <li><strong>المبلغ:</strong> ${amount}$</li>
-          <li><strong>الحالة:</strong> ${success ? 'ناجح' : 'فشل'}</li>
-          ${!success ? `<li><strong>سبب الفشل (حسب تقدير AI):</strong> ${failureReason}</li>` : ''}
-        </ul>
-        <p>${success ? 'تم التحقق من الإيصال بواسطة الذكاء الاصطناعي، تفعيل العضوية، وتوزيع عمولات الشبكة تلقائيًا.' : '<strong>مطلوب إجراء يدوي!</strong> يرجى التحقق من الإيصال وإتمام العملية يدويًا إذا كان صالحًا.'}</p>
-        <p><strong>إيصال الدفع المرفق:</strong></p>
-        <img src="${paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px; border: 1px solid #ccc;"/>
-      </div>
-    `;
-
-    await sendEmail({
-      to: 'hagaaty@gmail.com', // Hardcoded admin email
-      subject,
-      html,
-    });
-    console.log(`[Tool] Admin notification sent for agency subscription.`);
+  async ({ success, failureReason }) => {
+     // This function is just a placeholder to be called by the LLM.
+     // The actual implementation detail is not needed here as the LLM just needs to know it exists.
   }
 );
 
@@ -156,34 +128,48 @@ const verifyAgencySubscriptionFlow = ai.defineFlow(
   async (input) => {
     console.log(`[Flow] Starting agency subscription verification for user ${input.userEmail}`);
     
-    await ai.generate({
-      prompt: `أنت نظام آلي للتحقق من اشتراكات الوكالة. لقد قدم المستخدم التالي إيصال دفع للاشتراك في خدمة الوكالة. "تحقق" من الصورة المرفقة.
-- إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'processAgencyMLM' لتوزيع العمولات، ثم استدع أداة 'sendAdminAgencyNotification' مع success=true.
-- إذا لم تبدو كإيصال دفع صالح (غير واضحة، ليست إيصالًا، إلخ)، استدع فقط أداة 'sendAdminAgencyNotification' مع success=false وسبب الفشل.
+    // Define a prompt that forces the LLM to call our tools with specific parameters.
+    // This is more robust than relying on the LLM to infer parameters.
+    const prompt = `أنت نظام آلي للتحقق من اشتراكات الوكالة. لقد قدم المستخدم التالي إيصال دفع للاشتراك في خدمة الوكالة. "تحقق" من الصورة المرفقة.
+- إذا بدت كإيصال دفع صالح، قم باستدعاء أداة 'processAgencyMLM' بالمعلمات التالية: userId=${input.userId}, subscriptionAmount=${AGENCY_FEE}. ثم استدع أداة 'sendAdminAgencyNotification' مع success=true.
+- إذا لم تبدو كإيصال دفع صالح (غير واضحة، ليست إيصالًا، إلخ)، استدع فقط أداة 'sendAdminAgencyNotification' مع success=false وسبب فشل مناسب.
 
-معلومات المستخدم:
-- البريد الإلكتروني: ${input.userEmail}
-- مبلغ الاشتراك: ${AGENCY_FEE}
-- صورة الإيصال: {{media url="${input.paymentProofDataUri}"}}`,
+صورة الإيصال: {{media url="${input.paymentProofDataUri}"}}`;
+
+    const { output } = await ai.generate({
+      prompt: prompt,
       model: 'googleai/gemini-2.5-flash',
       tools: [processAgencyMLMTool, sendAdminNotificationTool],
-      toolConfig: {
-        tool_choice: 'auto',
-        execution: {
-            'processAgencyMLM': {
-              userId: input.userId,
-              subscriptionAmount: AGENCY_FEE,
-            },
-            'sendAdminAgencyNotification': {
-              userEmail: input.userEmail,
-              amount: AGENCY_FEE,
-              paymentProofDataUri: input.paymentProofDataUri,
-            },
-        }
-      },
     });
 
-    // TODO: We could add another email notification to the user here confirming their subscription is active.
+    // We can manually call the admin notification here to ensure it's always sent with full context
+    // This is more reliable than letting the LLM construct the notification.
+    const wasMlmProcessed = output?.toolCalls?.some(call => call.name === 'processAgencyMLM') ?? false;
+
+    const subject = wasMlmProcessed
+      ? `✅ اشتراك وكالة جديد: ${input.userEmail} دفع $${AGENCY_FEE}`
+      : `🚨 فشل التحقق من اشتراك وكالة: ${input.userEmail}`;
+      
+    const html = `
+      <div dir="rtl">
+        <h1>${wasMlmProcessed ? 'اشتراك وكالة جديد وناجح' : 'فشل التحقق من اشتراك وكالة'}</h1>
+        <p>قام المستخدم <strong>${input.userEmail}</strong> بمحاولة الاشتراك في خدمة الوكالة.</p>
+        <ul>
+          <li><strong>المبلغ:</strong> ${AGENCY_FEE}$</li>
+          <li><strong>الحالة:</strong> ${wasMlmProcessed ? 'ناجح' : 'فشل'}</li>
+          ${!wasMlmProcessed ? `<li><strong>سبب الفشل (حسب تقدير AI):</strong> لم يتم التعرف على الإيصال كإثبات دفع صالح.</li>` : ''}
+        </ul>
+        <p>${wasMlmProcessed ? 'تم التحقق من الإيصال بواسطة الذكاء الاصطناعي، تفعيل العضوية، وتوزيع عمولات الشبكة تلقائيًا.' : '<strong>مطلوب إجراء يدوي!</strong> يرجى التحقق من الإيصال وإتمام العملية يدويًا إذا كان صالحًا.'}</p>
+        <p><strong>إيصال الدفع المرفق:</strong></p>
+        <img src="${input.paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px; border: 1px solid #ccc;"/>
+      </div>
+    `;
+
+     await sendEmail({
+      to: 'hagaaty@gmail.com', // Hardcoded admin email
+      subject,
+      html,
+    });
     
     console.log(`[Flow] Agency subscription and MLM process initiated for ${input.userEmail}.`);
   }

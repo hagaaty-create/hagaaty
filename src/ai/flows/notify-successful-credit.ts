@@ -81,16 +81,14 @@ const notifySuccessfulCreditFlow = ai.defineFlow(
     `;
 
     // Fire and forget
-    ai.prompt(
-      `أرسل بريدًا إلكترونيًا إلى ${input.userEmail} لإعلامه بأنه تم إضافة رصيد إلى حسابه بنجاح.
+    ai.generate({
+      prompt: `أرسل بريدًا إلكترونيًا إلى ${input.userEmail} لإعلامه بأنه تم إضافة رصيد إلى حسابه بنجاح.
        
        الموضوع: ${subject}
        المحتوى:
        ${html}
       `,
-      {
-        tools: [sendEmailTool],
-      }
-    ).catch(console.error);
+      tools: [sendEmailTool],
+    }).catch(console.error);
   }
 );
