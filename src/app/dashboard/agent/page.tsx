@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,8 @@ import { Progress } from '@/components/ui/progress';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import Image from 'next/image';
 import Link from 'next/link';
-import { GenerateMarketingContentOutput, generateMarketingContent } from '@/types';
+import { GenerateMarketingContentOutput } from '@/types';
+import { generateMarketingContent } from "@/ai/flows/generate-marketing-content";
 
 type UserProfile = {
   id: string;
