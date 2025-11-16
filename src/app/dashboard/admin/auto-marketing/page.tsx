@@ -1,6 +1,6 @@
 'use client';
 
-import type { GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
+import type { GenerateMarketingContentOutput } from "@/types";
 import { generateMarketingContent } from "@/ai/flows/generate-marketing-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
