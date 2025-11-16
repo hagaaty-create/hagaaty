@@ -49,10 +49,10 @@ const searchBlogTool = ai.defineTool(
       return [];
     }
 
-    const allPosts = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    } as Post));
+    const allPosts = snapshot.docs.map(doc => {
+      return { id: doc.id, ...doc.data() } as Post;
+    });
+
 
     // Simple keyword matching in title and content
     const keywords = input.query.split(/\s+/).filter(k => k.length > 2); // ignore short words
