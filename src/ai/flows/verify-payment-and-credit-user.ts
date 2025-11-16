@@ -173,21 +173,6 @@ const verifyPaymentFlow = ai.defineFlow(
 - صورة الإيصال: {{media url="${input.paymentProofDataUri}"}}`,
       model: 'googleai/gemini-2.5-flash',
       tools: [creditUserAndProcessMLMTool, sendAdminNotificationTool],
-      toolConfig: {
-        tool_choice: 'auto',
-        execution: {
-            'creditUserAndProcessMLM': {
-              userId: input.userId,
-              amount: input.amount,
-            },
-            'sendAdminNotification': {
-              userEmail: input.userEmail,
-              amount: input.amount,
-              paymentMethod: input.paymentMethod,
-              paymentProofDataUri: input.paymentProofDataUri,
-            },
-        }
-      },
     });
 
     // We can check if 'creditUserAndProcessMLM' was called to determine success.
