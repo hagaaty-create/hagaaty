@@ -17,6 +17,7 @@ import {
   type SmartAssistantChatInput,
   SmartAssistantChatOutputSchema,
   type SmartAssistantChatOutput,
+  type Post,
 } from '@/types';
 import {collection, query, where, getDocs, limit} from 'firebase/firestore';
 
@@ -51,7 +52,7 @@ const searchBlogTool = ai.defineTool(
     const allPosts = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-    }));
+    } as Post));
 
     // Simple keyword matching in title and content
     const keywords = input.query.split(/\s+/).filter(k => k.length > 2); // ignore short words
