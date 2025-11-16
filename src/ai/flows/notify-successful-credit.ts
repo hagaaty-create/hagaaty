@@ -81,17 +81,15 @@ const notifySuccessfulCreditFlow = ai.defineFlow(
     `;
 
     // Fire and forget
-    ai.generate({
-      prompt: `أرسل بريدًا إلكترونيًا لإعلام المستخدم (${input.userEmail}) بأنه تم إضافة رصيد إلى حسابه بنجاح.`,
-      model: 'googleai/gemini-2.5-flash',
+    // Updated prompt to force tool call correctly
+    ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى ${input.userEmail} لإعلامه بأنه تم إضافة رصيد إلى حسابه بنجاح.
+       
+       الموضوع: ${subject}
+       المحتوى:
+       ${html}
+      `, {
       tools: [sendEmailTool],
-      toolConfig: {
-        sendEmailTool: {
-          to: input.userEmail,
-          subject,
-          html,
-        },
-      },
     }).catch(console.error);
   }
 );

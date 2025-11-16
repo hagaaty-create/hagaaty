@@ -103,17 +103,15 @@ const requestWithdrawalFlow = ai.defineFlow(
       </html>
     `;
 
-    await ai.generate({
-      prompt: `أرسل بريدًا إلكترونيًا إلى المسؤول (${adminEmail}) لإعلامه بطلب سحب جديد.`,
-      model: 'googleai/gemini-2.5-flash',
+    // Updated prompt to force tool call correctly
+    await ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى المسؤول (${adminEmail}) لإعلامه بطلب سحب جديد.
+       
+       الموضوع: ${subject}
+       المحتوى:
+       ${html}
+      `, {
       tools: [sendEmailTool],
-      toolConfig: {
-          sendEmailTool: {
-              to: adminEmail,
-              subject,
-              html,
-          }
-      }
     });
   }
 );

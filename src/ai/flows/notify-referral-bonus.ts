@@ -74,18 +74,16 @@ const notifyReferralBonusFlow = ai.defineFlow(
       </html>
     `;
 
-    // Fire and forget, but still needs to be an LLM call to use the tool
-    ai.generate({
-      prompt: `أرسل بريدًا إلكترونيًا لإعلام المستخدم (${input.referrerEmail}) بأنه حصل على عمولة إحالة.`,
-      model: 'googleai/gemini-2.5-flash',
+    // Fire and forget
+    // Updated prompt to force tool call correctly
+     ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى ${input.referrerEmail} لإعلامه بأنه حصل على عمولة إحالة.
+       
+       الموضوع: ${subject}
+       المحتوى:
+       ${html}
+      `, {
       tools: [sendEmailTool],
-      toolConfig: {
-          sendEmailTool: {
-              to: input.referrerEmail,
-              subject,
-              html,
-          }
-      }
     }).catch(console.error);
   }
 );

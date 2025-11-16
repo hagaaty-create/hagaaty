@@ -81,18 +81,15 @@ const sendWelcomeEmailFlow = ai.defineFlow(
       </html>
     `;
 
-    // Use a prompt to make the AI call the tool with the correct parameters
-    await ai.generate({
-      prompt: `أرسل بريدًا ترحيبيًا إلى المستخدم الجديد ${input.userName} (${input.userEmail}).`,
-      model: 'googleai/gemini-2.5-flash',
+    // Updated prompt to force tool call correctly
+    await ai.prompt(
+      `أرسل بريدًا ترحيبيًا إلى ${input.userEmail}.
+       
+       الموضوع: ${subject}
+       المحتوى:
+       ${html}
+      `, {
       tools: [sendEmailTool],
-      toolConfig: {
-          sendEmailTool: {
-              to: input.userEmail,
-              subject,
-              html,
-          }
-      }
     });
   }
 );

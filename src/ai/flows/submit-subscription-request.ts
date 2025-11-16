@@ -59,26 +59,15 @@ const submitSubscriptionRequestFlow = ai.defineFlow(
       <img src="${input.paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px;" />
     `;
 
-    // The Gemini tool calling API has a size limit for parameters.
-    // The Data URI can be large, so we pass a smaller version to the prompt and use the full one for the tool.
-    const promptInputForSize = {
-        ...input,
-        paymentProofDataUri: input.paymentProofDataUri.substring(0, 100) + '...'
-    };
-
-    await ai.generate({
-      prompt: `المستخدم (${promptInputForSize.userEmail}) قدم طلب اشتراك. استخدم الأداة لإرسال بريد إلكتروني إلى "hagaaty@gmail.com" مع التفاصيل.`,
-      model: 'googleai/gemini-2.5-flash',
+    // Updated prompt to force tool call correctly
+    await ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى hagaaty@gmail.com لإعلامهم بطلب اشتراك جديد.
+       
+       الموضوع: ${subject}
+       المحتوى:
+       ${html}
+      `, {
       tools: [sendEmailTool],
-      toolConfig: {
-          sendEmailTool: {
-              to: "hagaaty@gmail.com",
-              subject,
-              html,
-          }
-      }
     });
   }
 );
-
-    

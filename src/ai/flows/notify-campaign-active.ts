@@ -78,18 +78,15 @@ const notifyCampaignActiveFlow = ai.defineFlow(
       </html>
     `;
 
-    // Use a prompt to make the AI call the tool with the correct parameters
-    await ai.generate({
-      prompt: `المستخدم (${input.userEmail}) لديه حملة نشطة (${input.campaignName}). استخدم أداة إرسال البريد الإلكتروني لإعلامه.`,
-      model: 'googleai/gemini-2.5-flash',
+    // Updated prompt to force tool call correctly
+    await ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى ${input.userEmail} لإعلامه بأن حملته الإعلانية "${input.campaignName}" أصبحت نشطة الآن. استخدم أداة إرسال البريد الإلكتروني.
+       
+       الموضوع: ${subject}
+       المحتوى:
+       ${html}
+      `, {
       tools: [sendEmailTool],
-      toolConfig: {
-          sendEmailTool: {
-              to: input.userEmail,
-              subject,
-              html,
-          }
-      }
     });
   }
 );
