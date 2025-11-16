@@ -1,7 +1,7 @@
 'use server';
 
-import { config } from 'dotenv';
-config();
+// The dotenv import is removed as it's not needed for Vercel deployment
+// and causes build failures. Environment variables are set directly in Vercel's UI.
 
 import '@/ai/flows/generate-blog-article.ts';
 import '@/ai/flows/categorize-and-tag-article.ts';
