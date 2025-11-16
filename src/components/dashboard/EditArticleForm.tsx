@@ -109,7 +109,8 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                     />
                 </div>
                  <div className="grid w-full gap-2">
-                    <Label htmlFor="tags-input">الوسوم (مفصولة بفاصلة)</Label>                     <Input
+                    <Label htmlFor="tags-input">الوسوم (مفصولة بفاصلة)</Label>
+                     <Input
                         id="tags-input"
                         value={tags}
                         onChange={(e) => setTags(e.target.value)}
