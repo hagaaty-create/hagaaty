@@ -75,15 +75,16 @@ const notifyReferralBonusFlow = ai.defineFlow(
     `;
 
     // Fire and forget
-    // Updated prompt to force tool call correctly
-     ai.prompt(
-      `أرسل بريدًا إلكترونيًا إلى ${input.referrerEmail} لإعلامه بأنه حصل على عمولة إحالة.
+     ai.prompt({
+       prompt: `أرسل بريدًا إلكترونيًا إلى ${input.referrerEmail} لإعلامه بأنه حصل على عمولة إحالة.
        
        الموضوع: ${subject}
        المحتوى:
        ${html}
-      `, {
-      tools: [sendEmailTool],
+      `,
+      config: {
+        tools: [sendEmailTool],
+      },
     }).catch(console.error);
   }
 );

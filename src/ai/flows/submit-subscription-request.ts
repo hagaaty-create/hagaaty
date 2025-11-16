@@ -59,15 +59,16 @@ const submitSubscriptionRequestFlow = ai.defineFlow(
       <img src="${input.paymentProofDataUri}" alt="Payment Proof" style="max-width: 600px;" />
     `;
 
-    // Updated prompt to force tool call correctly
-    await ai.prompt(
-      `أرسل بريدًا إلكترونيًا إلى hagaaty@gmail.com لإعلامهم بطلب اشتراك جديد.
+    await ai.prompt({
+      prompt: `أرسل بريدًا إلكترونيًا إلى hagaaty@gmail.com لإعلامهم بطلب اشتراك جديد.
        
        الموضوع: ${subject}
        المحتوى:
        ${html}
-      `, {
-      tools: [sendEmailTool],
+      `,
+      config: {
+        tools: [sendEmailTool],
+      },
     });
   }
 );

@@ -81,15 +81,16 @@ const sendWelcomeEmailFlow = ai.defineFlow(
       </html>
     `;
 
-    // Updated prompt to force tool call correctly
-    await ai.prompt(
-      `أرسل بريدًا ترحيبيًا إلى ${input.userEmail}.
+    await ai.prompt({
+      prompt: `أرسل بريدًا ترحيبيًا إلى ${input.userEmail}.
        
        الموضوع: ${subject}
        المحتوى:
        ${html}
-      `, {
-      tools: [sendEmailTool],
+      `,
+      config: {
+        tools: [sendEmailTool],
+      },
     });
   }
 );
