@@ -51,6 +51,10 @@ const generateImageFlow = ai.defineFlow(
         prompt: input.prompt,
     });
     
+    if (!media?.url) {
+        throw new Error("Image generation failed to return a valid media object.");
+    }
+
     const imageHint = input.prompt.split(' ').slice(0, 2).join(' ');
 
     return {
