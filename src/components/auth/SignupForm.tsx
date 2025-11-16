@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from "next/link"
@@ -17,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, serverTimestamp, collection, query, where, getDocs, FieldValue, limit, increment, writeBatch } from "firebase/firestore";
+import { doc, serverTimestamp, collection, query, where, getDocs, limit, increment, writeBatch, arrayUnion } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -144,7 +145,7 @@ function SignupFormComponent() {
       // Award achievement to referrer and increment direct referrals count (non-blocking)
       if (referrerDocRef && !hasAwardedTeamBuilder) {
           updateDocumentNonBlocking(referrerDocRef, {
-            achievements: FieldValue.arrayUnion({
+            achievements: arrayUnion({
               id: 'team_builder',
               name: 'بنّاء الفريق',
               awardedAt: serverTimestamp()
@@ -274,3 +275,5 @@ export default function SignupForm() {
     </Suspense>
   )
 }
+
+    

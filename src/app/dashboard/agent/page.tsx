@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Bot, Gift, Loader2, Award, Info, RefreshCcw, Milestone, Lightbulb, Twitter, Send } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp, increment, FieldValue, Timestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, increment, Timestamp, arrayUnion } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import Image from 'next/image';
@@ -175,7 +175,7 @@ export default function AgentPage() {
         }
 
         if (achievementsToAward.length > 0) {
-            updateData.achievements = FieldValue.arrayUnion(...achievementsToAward);
+            updateData.achievements = arrayUnion(...achievementsToAward);
         }
 
         updateDocumentNonBlocking(userProfileRef, updateData);
@@ -333,3 +333,5 @@ export default function AgentPage() {
     </div>
   );
 }
+
+    
