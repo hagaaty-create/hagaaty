@@ -161,7 +161,7 @@ const verifyPaymentFlow = ai.defineFlow(
   async (input) => {
     console.log(`[Flow] Starting payment verification for user ${input.userEmail}`);
     
-    const { "tool-results": toolResults, output } = await ai.generate({
+    const { output } = await ai.generate({
       prompt: `أنت نظام آلي للتحقق من عمليات الدفع. لقد قدم المستخدم التالي إيصال دفع. "تحقق" من الصورة المرفقة.
 - إذا بدت كإيصال دفع صالح للمبلغ المحدد، قم باستدعاء أداة 'creditUserAndProcessMLM' لإضافة الرصيد، ثم استدع أداة 'sendAdminNotification' مع success=true.
 - إذا لم تبدو كإيصال دفع صالح (غير واضحة، ليست إيصالًا، المبلغ خطأ، إلخ)، استدع فقط أداة 'sendAdminNotification' مع success=false وسبب الفشل.
@@ -191,7 +191,7 @@ const verifyPaymentFlow = ai.defineFlow(
     });
 
     // We can check if 'creditUserAndProcessMLM' was called to determine success.
-    const wasCreditSuccessful = toolResults.some(result => result.toolName === 'creditUserAndProcessMLM');
+    const wasCreditSuccessful = output?.toolCalls?.some(call => call.name === 'creditUserAndProcessMLM') ?? false;
 
     if (wasCreditSuccessful) {
         // Notify the user that their credit has been added, fire-and-forget.
