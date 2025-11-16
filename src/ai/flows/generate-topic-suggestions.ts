@@ -79,7 +79,7 @@ const getRecentArticles = ai.defineTool(
                 title: data.title,
                 excerpt: data.excerpt,
             };
-        });
+        }).filter(Boolean); // Filter out any potential undefined/null posts
     }
 );
 

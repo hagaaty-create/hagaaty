@@ -118,7 +118,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
                         placeholder="أضف الوسوم هنا..."
                     />
                      <div className="flex flex-wrap items-center gap-2 pt-2 min-h-[20px]">
-                         {tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
+                         {(tags || '').split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
                             <Badge key={tag} variant="secondary" className="text-sm">{tag}</Badge>
                         ))}
                     </div>

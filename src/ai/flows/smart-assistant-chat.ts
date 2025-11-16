@@ -51,7 +51,7 @@ const searchBlogTool = ai.defineTool(
 
     const allPosts = snapshot.docs.map(doc => {
       return { id: doc.id, ...doc.data() } as Post;
-    });
+    }).filter(Boolean); // Filter out any potential undefined/null posts
 
 
     // Simple keyword matching in title and content
