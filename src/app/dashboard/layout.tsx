@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -54,7 +55,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user, isLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -67,10 +68,10 @@ export default function DashboardLayout({
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
   React.useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isLoading, router]);
 
   const isAdmin = userProfile?.role === 'admin';
 
@@ -112,7 +113,7 @@ export default function DashboardLayout({
     }
   };
   
-  const loading = isUserLoading || profileLoading;
+  const loading = isLoading || profileLoading;
 
   if (loading || !user) {
     return (
