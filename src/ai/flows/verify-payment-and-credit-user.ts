@@ -177,7 +177,7 @@ const verifyPaymentFlow = ai.defineFlow(
     });
 
     // We can check if 'creditUserAndProcessMLM' was called to determine success.
-    const wasCreditSuccessful = output?.toolCalls?.some(call => call.name === 'creditUserAndProcessMLM') ?? false;
+    const wasCreditSuccessful = output?.toolCalls?.some((call: { name: string; }) => call.name === 'creditUserAndProcessMLM') ?? false;
 
     if (wasCreditSuccessful) {
         // Notify the user that their credit has been added, fire-and-forget.
