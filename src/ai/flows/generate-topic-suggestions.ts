@@ -34,11 +34,11 @@ const getRecentQueries = ai.defineTool(
     }),
     outputSchema: z.array(z.string().describe('A list of user queries.')),
   },
-  async ({ limit }) => {
-    console.log(`[getRecentQueries] Fetching the last ${limit} user queries.`);
+  async ({ limit: queryLimit }) => {
+    console.log(`[getRecentQueries] Fetching the last ${queryLimit} user queries.`);
     const { firestore } = initializeFirebase();
     const queriesRef = collection(firestore, 'queries');
-    const q = query(queriesRef, orderBy('createdAt', 'desc'), limit(limit));
+    const q = query(queriesRef, orderBy('createdAt', 'desc'), limit(queryLimit));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -61,11 +61,11 @@ const getRecentArticles = ai.defineTool(
             excerpt: z.string(),
         })),
     },
-    async ({ limit }) => {
-        console.log(`[getRecentArticles] Fetching the last ${limit} articles.`);
+    async ({ limit: queryLimit }) => {
+        console.log(`[getRecentArticles] Fetching the last ${queryLimit} articles.`);
         const { firestore } = initializeFirebase();
         const postsRef = collection(firestore, 'posts');
-        const q = query(postsRef, orderBy('date', 'desc'), limit(limit));
+        const q = query(postsRef, orderBy('date', 'desc'), limit(queryLimit));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
