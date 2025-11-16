@@ -86,10 +86,10 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
   );
 
   return (
-      <CardContainer>
-          <Link href={`/blog/${post.slug}`} className="contents">
+    <Link href={`/blog/${post.slug}`} passHref className="contents">
+        <CardContainer>
             {content}
-          </Link>
-      </CardContainer>
+        </CardContainer>
+    </Link>
   );
 }
