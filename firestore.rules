@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Firestore Security Rules for the Hagaaty AI Blog.
  *
@@ -62,6 +63,7 @@ service cloud.firestore {
             && user.status == 'active'
             && isReferredByValid
             && isAncestorsValid
+            && 'directReferralsCount' in user && user.directReferralsCount == 0
             && 'achievements' in user && user.achievements is list && user.achievements.size() == 0
             && user.isAgencyMember == false;
     }
@@ -290,9 +292,7 @@ service cloud.firestore {
       */
     match /queries/{queryId} {
       allow read, update, delete: if false;
-      allow create: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status != 'suspended';
+      allow create: if isSignedIn();
     }
   }
 }
-
-    
