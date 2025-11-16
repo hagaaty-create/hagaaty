@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Award, PenSquare, Share2, Bot, CheckCircle } from "lucide-react";
-import type { Timestamp } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import Link from 'next/link';
 
 type UserProfile = {

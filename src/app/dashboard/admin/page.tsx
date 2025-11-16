@@ -18,13 +18,12 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, FileText, BarChart, PenSquare, Shield, Loader2, ArrowLeft, Lightbulb, Megaphone, ImageIcon, Video } from 'lucide-react';
+import { Users, FileText, BarChart, PenSquare, Shield, Loader2, ArrowLeft, Lightbulb, Megaphone, ImageIcon, Video, Key } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
+import { collection, query, orderBy, limit, collectionGroup, Timestamp } from 'firebase/firestore';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import type { Timestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 
 type UserProfile = {
@@ -92,7 +91,10 @@ export default function AdminDashboardPage() {
 
   const formatDate = (timestamp: Timestamp | null) => {
     if (!timestamp) return 'N/A';
-    return format(timestamp.toDate(), 'PPP');
+    if (timestamp instanceof Timestamp) {
+        return format(timestamp.toDate(), 'PPP');
+    }
+    return 'Invalid Date';
   };
 
   const quickLinks = [

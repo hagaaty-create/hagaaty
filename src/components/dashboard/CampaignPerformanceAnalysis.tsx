@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Bot, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
-import type { Timestamp } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 
 type AdCampaign = {
     id: string;

@@ -1,19 +1,17 @@
 'use client';
 
-import type { GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
-import { generateMarketingContent } from "@/ai/flows/generate-marketing-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Bot, Gift, Loader2, Award, Info, RefreshCcw, Milestone, Lightbulb, Twitter, Send } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp, increment } from 'firebase/firestore';
-import type { Timestamp, FieldValue } from 'firebase/firestore';
+import { doc, serverTimestamp, increment, FieldValue, Timestamp } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import Image from 'next/image';
 import Link from 'next/link';
+import { GenerateMarketingContentOutput, generateMarketingContent } from '@/types';
 
 type UserProfile = {
   id: string;

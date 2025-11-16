@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc, writeBatch, Timestamp } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Edit, Shield, UserX, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import type { Timestamp } from 'firebase/firestore';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type UserProfile = {
@@ -119,7 +118,10 @@ export default function ManageUsersPage() {
 
   const formatDate = (timestamp: Timestamp | null) => {
     if (!timestamp) return 'N/A';
-    return format(timestamp.toDate(), 'PPP');
+    if (timestamp instanceof Timestamp) {
+        return format(timestamp.toDate(), 'PPP');
+    }
+    return 'Invalid Date';
   };
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { doc, collection, query, where, getDocs, getCountFromServer } from "firebase/firestore";
+import { doc, collection, query, where, getDocs, getCountFromServer, Timestamp } from "firebase/firestore";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share2, Copy, Check, DollarSign, Users, Gift, Network, Bot, Loader2, User } from "lucide-react";
@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
-import type { Timestamp } from "firebase/firestore";
 import { analyzeDownline, DownlineAnalysisInput } from "@/ai/flows/analyze-downline";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -141,7 +140,10 @@ export default function ReferralsPage() {
 
   const formatDate = (timestamp: Timestamp | undefined) => {
     if (!timestamp) return 'N/A';
-    return format(timestamp.toDate(), 'PPP');
+    if (timestamp instanceof Timestamp) {
+        return format(timestamp.toDate(), 'PPP');
+    }
+    return 'Invalid Date';
   };
   
   const isLoading = isProfileLoading || areReferralsLoading || isAnalysisLoading;

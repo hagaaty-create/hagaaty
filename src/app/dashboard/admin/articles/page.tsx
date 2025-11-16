@@ -29,10 +29,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
-import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileText, Trash2, Loader2, FileEdit, Sparkles } from 'lucide-react';
 import type { Post } from '@/types';
@@ -61,7 +60,7 @@ export default function ManageArticlesPage() {
         return format(timestamp, 'PPP');
     }
     // This is for the Timestamp from Firestore
-    if ('toDate' in timestamp && typeof timestamp.toDate === 'function') {
+    if (timestamp instanceof Timestamp) {
         return format(timestamp.toDate(), 'PPP');
     }
     return 'Invalid Date';

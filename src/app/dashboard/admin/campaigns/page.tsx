@@ -19,10 +19,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, DollarSign, MousePointerClick, Eye, BarChart as BarChartIcon } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collectionGroup, query, orderBy, getDocs, collection, where } from 'firebase/firestore';
+import { collectionGroup, query, orderBy, getDocs, collection, where, Timestamp } from 'firebase/firestore';
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
-import type { Timestamp } from 'firebase/firestore';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from "recharts";
 

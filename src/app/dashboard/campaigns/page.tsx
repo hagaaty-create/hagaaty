@@ -5,10 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Loader2, DollarSign, MousePointerClick, Eye } from "lucide-react";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, Timestamp } from "firebase/firestore";
 import { useMemo, Suspense } from "react";
 import { format } from 'date-fns';
-import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis } from "recharts";
@@ -45,7 +44,10 @@ function CampaignsPageContent() {
 
     const formatDate = (timestamp: Timestamp | null) => {
         if (!timestamp) return 'N/A';
-        return format(timestamp.toDate(), 'PPP');
+        if (timestamp instanceof Timestamp) {
+            return format(timestamp.toDate(), 'PPP');
+        }
+        return 'Invalid Date';
     }
 
     const getStatusBadge = (campaign: AdCampaign) => {

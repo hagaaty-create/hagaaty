@@ -3,12 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDoc, useFirestore, useUser, useCollection, useMemoFirebase } from "@/firebase";
-import { doc, collection, query, orderBy } from "firebase/firestore";
+import { doc, collection, query, orderBy, Timestamp } from "firebase/firestore";
 import { BarChart, PenSquare, Wallet, Zap, Loader2, TrendingUp, Gift, Shield, Award, Users, Bot, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import AdPreview from "@/components/dashboard/AdPreview";
-import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProactiveAnalysis from "@/components/dashboard/ProactiveAnalysis";
 import NextGoal from "@/components/dashboard/NextGoal";
