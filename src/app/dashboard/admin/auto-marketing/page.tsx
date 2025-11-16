@@ -1,6 +1,7 @@
 'use client';
 
-import { generateMarketingContent, type GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
+import type { GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
+import { generateMarketingContent } from "@/ai/flows/generate-marketing-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -110,7 +111,7 @@ export default function AutoMarketingPage() {
                                         <h3 className="font-semibold text-lg">{campaign.article.title}</h3>
                                         <p className="text-sm text-muted-foreground mt-1 mb-4">{campaign.article.excerpt}</p>
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/articles/${campaign.article.slug}`} target="_blank">
+                                            <Link href={`/blog/${campaign.article.slug}`} target="_blank">
                                                 اقرأ المقال
                                             </Link>
                                         </Button>

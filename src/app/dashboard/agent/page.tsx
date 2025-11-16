@@ -1,13 +1,15 @@
 'use client';
 
-import { generateMarketingContent, type GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
+import type { GenerateMarketingContentOutput } from "@/ai/flows/generate-marketing-content";
+import { generateMarketingContent } from "@/ai/flows/generate-marketing-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Bot, Gift, Loader2, Award, Info, RefreshCcw, Milestone, Lightbulb, Twitter, Send } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp, increment, Timestamp, FieldValue } from 'firebase/firestore';
+import { doc, serverTimestamp, increment } from 'firebase/firestore';
+import type { Timestamp, FieldValue } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import Image from 'next/image';
@@ -278,7 +280,7 @@ export default function AgentPage() {
                                         <h3 className="font-semibold text-lg">{campaignResult.article.title}</h3>
                                         <p className="text-sm text-muted-foreground mt-1 mb-4">{campaignResult.article.excerpt}</p>
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/articles/${campaignResult.article.slug}`} target="_blank">
+                                            <Link href={`/blog/${campaignResult.article.slug}`} target="_blank">
                                                 اقرأ المقال
                                             </Link>
                                         </Button>

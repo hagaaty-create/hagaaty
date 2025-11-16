@@ -9,7 +9,8 @@ import { Loader2, Save, Wand2, Link as LinkIcon, Search, Phone, CheckCircle, Cir
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
-import { collection, serverTimestamp, doc, updateDoc, increment, getCountFromServer, FieldValue } from "firebase/firestore";
+import { collection, serverTimestamp, doc, updateDoc, increment, getCountFromServer } from "firebase/firestore";
+import type { FieldValue } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";

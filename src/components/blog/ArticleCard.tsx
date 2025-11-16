@@ -41,6 +41,9 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
       </div>
   );
 
+  const authorName = post.author?.name || 'فريق حاجتي';
+  const authorAvatarUrl = post.author?.avatarUrl || 'https://picsum.photos/seed/hagaaty-logo/40/40';
+
   const content = (
       <>
           <div className={cn("relative", isFeatured ? "lg:w-1/2" : "aspect-[16/9]")}>
@@ -68,11 +71,11 @@ export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
               <CardFooter className={cn("flex justify-between items-center", isFeatured ? "pt-4" : "mt-auto")}>
                   <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8 border-2 border-primary/30">
-                          <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                          <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                          <AvatarImage src={authorAvatarUrl} alt={authorName} />
+                          <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                          <p className="text-sm font-medium">{post.author.name}</p>
+                          <p className="text-sm font-medium">{authorName}</p>
                           <p className="text-xs text-muted-foreground">{formatDate(post.date)}</p>
                       </div>
                   </div>
