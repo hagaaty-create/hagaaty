@@ -54,7 +54,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           slug: updatedSlug,
           category,
           tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-          updatedAt: serverTimestamp(), // Correctly use updatedAt instead of date
+          updatedAt: serverTimestamp(),
         };
 
         // Non-blocking update using merge to only update the fields that changed
