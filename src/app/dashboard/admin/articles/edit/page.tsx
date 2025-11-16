@@ -63,7 +63,7 @@ async function EditArticlePageContent({ searchParams }: { searchParams: { id?: s
 }
 
 
-export default function EditArticlePage({ searchParams }: { searchParams: { id?: string } }) {
+export default async function EditArticlePage({ searchParams }: { searchParams: { id?: string } }) {
     return (
         <Suspense fallback={<div className="text-center p-20">جاري تحميل المقال...</div>}>
             <EditArticlePageContent searchParams={searchParams} />
