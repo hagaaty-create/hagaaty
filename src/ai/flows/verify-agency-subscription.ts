@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -144,7 +145,7 @@ const verifyAgencySubscriptionFlow = ai.defineFlow(
 
     // We can manually call the admin notification here to ensure it's always sent with full context
     // This is more reliable than letting the LLM construct the notification.
-    const wasMlmProcessed = output?.toolCalls?.some(call => call.name === 'processAgencyMLM') ?? false;
+    const wasMlmProcessed = output?.toolCalls?.some((call: { name: string; }) => call.name === 'processAgencyMLM') ?? false;
 
     const subject = wasMlmProcessed
       ? `✅ اشتراك وكالة جديد: ${input.userEmail} دفع $${AGENCY_FEE}`
