@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, loading } = useUser();
+  const { user, isLoading: loading } = useUser();
   const auth = useAuth();
   const pathname = usePathname();
   

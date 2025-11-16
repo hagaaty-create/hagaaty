@@ -54,7 +54,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, isUserLoading } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
