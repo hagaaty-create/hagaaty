@@ -8,6 +8,7 @@ import {
   CollectionReference,
   DocumentReference,
   SetOptions,
+  FieldValue,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import {FirestorePermissionError} from '@/firebase/errors';
