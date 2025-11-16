@@ -54,7 +54,7 @@ export default function AgentPage() {
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
 
-  const { data: userProfile, loading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const canTriggerAgent = useMemo(() => {
     if (!userProfile || !userProfile.lastMarketingTriggerAt) return true;
@@ -330,3 +330,5 @@ export default function AgentPage() {
     </div>
   );
 }
+
+    
