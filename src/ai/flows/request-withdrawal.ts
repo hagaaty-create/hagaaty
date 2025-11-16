@@ -103,16 +103,16 @@ const requestWithdrawalFlow = ai.defineFlow(
       </html>
     `;
 
-    await ai.prompt({
-      prompt: `أرسل بريدًا إلكترونيًا إلى المسؤول (${adminEmail}) لإعلامه بطلب سحب جديد.
+    await ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى المسؤول (${adminEmail}) لإعلامه بطلب سحب جديد.
        
        الموضوع: ${subject}
        المحتوى:
        ${html}
       `,
-      config: {
+      {
         tools: [sendEmailTool],
-      },
-    });
+      }
+    );
   }
 );

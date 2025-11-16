@@ -9,10 +9,11 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { doc, FieldValue, runTransaction, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, runTransaction, getDoc, getDocs, collection, serverTimestamp, increment, writeBatch } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import { sendEmail } from '@/lib/send-email';
 import { notifyReferralBonus } from './notify-referral-bonus';
+import type { FieldValue } from 'firebase/firestore';
 
 const AGENCY_FEE = 40.00;
 
@@ -69,7 +70,8 @@ const processAgencyMLMTool = ai.defineTool(
         const commissionPool = subscriptionAmount * COMMISSION_POOL_PERCENTAGE;
 
         const ancestorRefs = ancestors.map(id => doc(firestore, 'users', id));
-        const ancestorDocs = await transaction.getAll(...ancestorRefs);
+        // Use `getAll` outside the loop to fetch all docs at once within the transaction
+        const ancestorDocs = await Promise.all(ancestorRefs.map(ref => transaction.get(ref)));
 
         for (let i = 0; i < ancestorDocs.length && i < LEVEL_DISTRIBUTION.length; i++) {
           const ancestorDoc = ancestorDocs[i];
@@ -77,7 +79,7 @@ const processAgencyMLMTool = ai.defineTool(
           
           if (ancestorDoc.exists()) {
               console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorDoc.id}`);
-              transaction.update(ancestorDoc.ref, { referralEarnings: FieldValue.increment(commissionAmount) });
+              transaction.update(ancestorDoc.ref, { referralEarnings: increment(commissionAmount) });
 
               const ancestorData = ancestorDoc.data()!;
               // Fire-and-forget notification
@@ -162,21 +164,22 @@ const verifyAgencySubscriptionFlow = ai.defineFlow(
 معلومات المستخدم:
 - البريد الإلكتروني: ${input.userEmail}
 - مبلغ الاشتراك: ${AGENCY_FEE}
-- صورة الإيصال: {{media url=paymentProofDataUri}}
-
-قم باستدعاء الأدوات بالترتيب الصحيح.`,
+- صورة الإيصال: {{media url="${input.paymentProofDataUri}"}}`,
       model: 'googleai/gemini-2.5-flash',
       tools: [processAgencyMLMTool, sendAdminNotificationTool],
       toolConfig: {
-        processAgencyMLM: {
-          userId: input.userId,
-          subscriptionAmount: AGENCY_FEE,
-        },
-        sendAdminAgencyNotification: {
-          userEmail: input.userEmail,
-          amount: AGENCY_FEE,
-          paymentProofDataUri: input.paymentProofDataUri,
-        },
+        tool_choice: 'auto',
+        execution: {
+            'processAgencyMLM': {
+              userId: input.userId,
+              subscriptionAmount: AGENCY_FEE,
+            },
+            'sendAdminAgencyNotification': {
+              userEmail: input.userEmail,
+              amount: AGENCY_FEE,
+              paymentProofDataUri: input.paymentProofDataUri,
+            },
+        }
       },
     });
 

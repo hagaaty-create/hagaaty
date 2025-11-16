@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth, useFirestore } from "@/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, serverTimestamp, collection, query, where, getDocs, FieldValue, limit, increment } from "firebase/firestore";
+import { doc, serverTimestamp, collection, query, where, getDocs, FieldValue, limit, increment, writeBatch } from "firebase/firestore";
 import { sendWelcomeEmail } from "@/ai/flows/send-welcome-email";
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -76,28 +76,23 @@ function SignupFormComponent() {
       let referrerAncestors: string[] = [];
       let referrerUid: string | null = null;
       let referrerDocRef = null;
+      
+      let hasAwardedTeamBuilder = false;
+
       if (referralCode) {
         const usersRef = collection(firestore, 'users');
         const q = query(usersRef, where('referralCode', '==', referralCode), limit(1));
         const querySnapshot = await getDocs(q);
+        
         if (!querySnapshot.empty) {
           const referrerDoc = querySnapshot.docs[0];
+          const referrerData = referrerDoc.data();
           referrerUid = referrerDoc.id;
           referrerDocRef = referrerDoc.ref;
-          referrerAncestors = referrerDoc.data().ancestors || [];
-
-          // Award achievement to referrer and increment direct referrals count (non-blocking)
-          updateDocumentNonBlocking(referrerDocRef, {
-            achievements: FieldValue.arrayUnion({
-              id: 'team_builder',
-              name: 'بنّاء الفريق',
-              awardedAt: serverTimestamp()
-            }),
-            directReferralsCount: increment(1)
-          });
+          referrerAncestors = referrerData.ancestors || [];
+          hasAwardedTeamBuilder = referrerData.achievements?.some((a: any) => a.id === 'team_builder');
 
         } else {
-            // Handle invalid referral code, maybe show a warning, but proceed with signup
             toast({
                 variant: "destructive",
                 title: "رمز الإحالة غير صالح",
@@ -145,6 +140,23 @@ function SignupFormComponent() {
       
       // Use non-blocking write for faster UX
       setDocumentNonBlocking(userDocRef, userProfileData, {});
+      
+      // Award achievement to referrer and increment direct referrals count (non-blocking)
+      if (referrerDocRef && !hasAwardedTeamBuilder) {
+          updateDocumentNonBlocking(referrerDocRef, {
+            achievements: FieldValue.arrayUnion({
+              id: 'team_builder',
+              name: 'بنّاء الفريق',
+              awardedAt: serverTimestamp()
+            }),
+            directReferralsCount: increment(1)
+          });
+      } else if (referrerDocRef) {
+          updateDocumentNonBlocking(referrerDocRef, {
+            directReferralsCount: increment(1)
+          });
+      }
+
 
       // Fire and forget welcome email
       sendWelcomeEmail({ userName: fullName, userEmail: email }).catch(err => {

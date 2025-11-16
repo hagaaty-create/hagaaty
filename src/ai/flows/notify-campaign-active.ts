@@ -79,16 +79,16 @@ const notifyCampaignActiveFlow = ai.defineFlow(
     `;
 
     // Fire and forget email sending
-    ai.prompt({
-      prompt: `أرسل بريدًا إلكترونيًا إلى ${input.userEmail} لإعلامه بأن حملته الإعلانية "${input.campaignName}" أصبحت نشطة الآن. استخدم أداة إرسال البريد الإلكتروني.
+    ai.prompt(
+      `أرسل بريدًا إلكترونيًا إلى ${input.userEmail} لإعلامه بأن حملته الإعلانية "${input.campaignName}" أصبحت نشطة الآن. استخدم أداة إرسال البريد الإلكتروني.
        
        الموضوع: ${subject}
        المحتوى:
        ${html}
       `,
-      config: {
+      {
         tools: [sendEmailTool],
-      },
-    }).catch(console.error);
+      }
+    ).catch(console.error);
   }
 );

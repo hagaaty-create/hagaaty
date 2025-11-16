@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { doc, FieldValue, runTransaction, collection } from 'firebase/firestore';
+import { doc, FieldValue, runTransaction, collection, getDocs, increment } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-initialization';
 import { sendEmail } from '@/lib/send-email';
 import { notifyReferralBonus } from './notify-referral-bonus';
@@ -62,7 +62,7 @@ const creditUserAndProcessMLMTool = ai.defineTool(
       const userData = userDoc.data()!;
 
       // 1. Credit the new user's balance
-      transaction.update(userRef, { balance: FieldValue.increment(amount) });
+      transaction.update(userRef, { balance: increment(amount) });
       console.log(`[Tool] Credited user ${userId} with $${amount}.`);
 
       // 2. Check if this is the user's first deposit and if they have an upline (ancestors)
@@ -75,7 +75,7 @@ const creditUserAndProcessMLMTool = ai.defineTool(
 
         // Fetch all ancestor documents in one go for efficiency
         const ancestorRefs = ancestors.map(id => doc(firestore, 'users', id));
-        const ancestorDocs = await transaction.getAll(...ancestorRefs);
+        const ancestorDocs = await Promise.all(ancestorRefs.map(ref => transaction.get(ref)));
         
         // Distribute commissions to each ancestor
         for (let i = 0; i < ancestorDocs.length && i < LEVEL_DISTRIBUTION.length; i++) {
@@ -84,7 +84,7 @@ const creditUserAndProcessMLMTool = ai.defineTool(
 
           if (ancestorDoc.exists()) {
               console.log(`[Tool] Distributing $${commissionAmount.toFixed(4)} to Level ${i + 1} ancestor: ${ancestorDoc.id}`);
-              transaction.update(ancestorDoc.ref, { referralEarnings: FieldValue.increment(commissionAmount) });
+              transaction.update(ancestorDoc.ref, { referralEarnings: increment(commissionAmount) });
               
               const ancestorData = ancestorDoc.data()!;
               // Fire-and-forget email notification to the referrer
@@ -170,22 +170,23 @@ const verifyPaymentFlow = ai.defineFlow(
 - البريد الإلكتروني: ${input.userEmail}
 - المبلغ: ${input.amount}
 - طريقة الدفع: ${input.paymentMethod}
-- صورة الإيصال: {{media url=paymentProofDataUri}}
-
-قم باستدعاء الأدوات بالترتيب الصحيح.`,
+- صورة الإيصال: {{media url="${input.paymentProofDataUri}"}}`,
       model: 'googleai/gemini-2.5-flash',
       tools: [creditUserAndProcessMLMTool, sendAdminNotificationTool],
       toolConfig: {
-        creditUserAndProcessMLM: {
-          userId: input.userId,
-          amount: input.amount,
-        },
-        sendAdminNotification: {
-          userEmail: input.userEmail,
-          amount: input.amount,
-          paymentMethod: input.paymentMethod,
-          paymentProofDataUri: input.paymentProofDataUri,
-        },
+        tool_choice: 'auto',
+        execution: {
+            'creditUserAndProcessMLM': {
+              userId: input.userId,
+              amount: input.amount,
+            },
+            'sendAdminNotification': {
+              userEmail: input.userEmail,
+              amount: input.amount,
+              paymentMethod: input.paymentMethod,
+              paymentProofDataUri: input.paymentProofDataUri,
+            },
+        }
       },
     });
 
