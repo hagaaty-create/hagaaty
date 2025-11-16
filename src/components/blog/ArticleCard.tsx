@@ -16,16 +16,17 @@ type ArticleCardProps = {
 };
 
 function formatDate(date: string | Date | Timestamp) {
+    let dateObj: Date;
     if (typeof date === 'string') {
-        return format(new Date(date), 'PPP');
+        dateObj = new Date(date);
+    } else if (date instanceof Timestamp) {
+        dateObj = date.toDate();
+    } else if(date instanceof Date) {
+        dateObj = date;
+    } else {
+        return "Date not available";
     }
-    if (date instanceof Timestamp) {
-        return format(date.toDate(), 'PPP');
-    }
-    if(date instanceof Date) {
-        return format(date, 'PPP');
-    }
-    return "Date not available";
+    return format(dateObj, 'PPP');
 }
 
 export function ArticleCard({ post, isFeatured = false }: ArticleCardProps) {
