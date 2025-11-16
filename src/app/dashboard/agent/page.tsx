@@ -71,19 +71,22 @@ export default function AgentPage() {
     }
 
     const interval = setInterval(() => {
-      const lastTrigger = userProfile.lastMarketingTriggerAt.toDate();
-      const now = new Date();
-      const cooldownEnd = new Date(lastTrigger.getTime() + COOLDOWN_HOURS * 60 * 60 * 1000);
-      const diff = cooldownEnd.getTime() - now.getTime();
+        // Add a check here to ensure lastMarketingTriggerAt is defined before calling toDate()
+      if (userProfile && userProfile.lastMarketingTriggerAt) {
+          const lastTrigger = userProfile.lastMarketingTriggerAt.toDate();
+          const now = new Date();
+          const cooldownEnd = new Date(lastTrigger.getTime() + COOLDOWN_HOURS * 60 * 60 * 1000);
+          const diff = cooldownEnd.getTime() - now.getTime();
 
-      if (diff <= 0) {
-        setTimeLeft('');
-        clearInterval(interval);
-      } else {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+          if (diff <= 0) {
+            setTimeLeft('');
+            clearInterval(interval);
+          } else {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            setTimeLeft(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+          }
       }
     }, 1000);
 
@@ -330,5 +333,3 @@ export default function AgentPage() {
     </div>
   );
 }
-
-    
