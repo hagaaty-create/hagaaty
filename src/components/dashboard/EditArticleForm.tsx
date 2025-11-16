@@ -53,7 +53,7 @@ export default function EditArticleForm({ post }: EditArticleFormProps) {
           content,
           slug: updatedSlug,
           category,
-          tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+          tags: (tags || '').split(',').map(tag => tag.trim()).filter(Boolean),
           updatedAt: serverTimestamp(),
         };
 
