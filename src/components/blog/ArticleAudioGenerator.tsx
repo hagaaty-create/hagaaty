@@ -12,6 +12,23 @@ type ArticleAudioGeneratorProps = {
   post: Post;
 };
 
+// This function safely parses Markdown and strips HTML tags to get plain text.
+const markdownToPlainText = (markdown: string): string => {
+  try {
+    const html = marked.parse(markdown || '', {
+      mangle: false,
+      headerIds: false,
+    });
+    // Strip HTML tags from the generated HTML to get plain text.
+    // This is a more reliable approach than custom renderers.
+    return (html as string).replace(/<[^>]*>?/gm, '');
+  } catch (e) {
+    console.error('Error parsing markdown:', e);
+    return ''; // Return empty string on error
+  }
+};
+
+
 export default function ArticleAudioGenerator({ post }: ArticleAudioGeneratorProps) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
@@ -20,33 +37,8 @@ export default function ArticleAudioGenerator({ post }: ArticleAudioGeneratorPro
   const handleGenerateAudio = async () => {
     setIsGeneratingAudio(true);
     try {
-      const plainText = marked.parse(post.content || '', {
-        walkTokens(token) {
-          if (token.type === 'space') {
-            return false;
-          }
-        },
-        renderer: {
-          html: () => '',
-          code: () => '',
-          text(text) {
-            return text;
-          },
-          paragraph(text) {
-            return text + '\n\n';
-          },
-          heading(text, level) {
-            return text + '\n\n';
-          },
-          listitem(text) {
-            return ' - ' + text + '\n';
-          },
-          list(body, ordered, start) {
-            return body + '\n';
-          },
-        },
-      });
-
+      const plainText = markdownToPlainText(post.content);
+      
       const audioResult = await generateAudio({ text: `عنوان المقال: ${post.title}. \n\n ${plainText}` });
       setAudioUrl(audioResult.audioUrl);
     } catch (error) {
