@@ -1,3 +1,4 @@
+
 'use client';
 
 import { generateVideo, type GenerateVideoOutput } from "@/ai/flows/generate-video-flow";

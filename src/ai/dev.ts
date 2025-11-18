@@ -1,3 +1,4 @@
+
 'use server';
 
 // The dotenv import is removed as it's not needed for Vercel deployment
@@ -16,7 +17,7 @@ import '@/ai/flows/verify-payment-and-credit-user.ts';
 import '@/ai/flows/notify-successful-credit.ts';
 import '@/ai/flows/notify-referral-bonus.ts';
 import '@/ai/flows/request-withdrawal.ts';
-import '@/aiflows/generate-promotional-articles.ts';
+import '@/ai/flows/generate-promotional-articles.ts';
 import '@/ai/flows/analyze-campaign-performance.ts';
 import '@/ai/flows/analyze-downline.ts';
 import '@/ai/flows/analyze-users.ts';

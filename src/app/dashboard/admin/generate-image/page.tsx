@@ -1,3 +1,4 @@
+
 'use client';
 
 import { generateImage, type GenerateImageOutput } from '@/ai/flows/generate-image-flow';

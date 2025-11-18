@@ -113,9 +113,9 @@ export default function DashboardLayout({
     }
   };
   
-  const loading = isLoading || profileLoading;
+  const combinedLoading = isLoading || profileLoading;
 
-  if (loading || !user) {
+  if (combinedLoading || !user) {
     return (
       <div className="flex h-screen w-full bg-background">
         <div className='hidden md:block'>

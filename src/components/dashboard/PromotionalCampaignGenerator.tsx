@@ -1,3 +1,4 @@
+
 'use client';
 
 import { generatePromotionalArticles } from "@/ai/flows/generate-promotional-articles";
