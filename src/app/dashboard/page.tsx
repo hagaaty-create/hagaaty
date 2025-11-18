@@ -75,7 +75,7 @@ export default function DashboardPage() {
     return query(collection(firestore, 'users', user.uid, 'campaigns'), orderBy('createdAt', 'desc'));
   }, [user, firestore]);
 
-  const { data: campaigns, loading: campaignsLoading } = useCollection<AdCampaign>(campaignsQuery);
+  const { data: campaigns, isLoading: campaignsLoading } = useCollection<AdCampaign>(campaignsQuery);
   
   const latestCampaign = useMemo(() => campaigns?.[0], [campaigns]);
 
